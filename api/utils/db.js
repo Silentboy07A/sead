@@ -18,14 +18,8 @@ async function connectToDatabase() {
         return { client: cachedClient, db: cachedDb };
     }
 
-    // Set up connection options
-    const opts = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    };
-
-    // Connect to cluster
-    const client = new MongoClient(MONGODB_URI, opts);
+    // Connect to cluster (no deprecated options needed in MongoDB driver v5+)
+    const client = new MongoClient(MONGODB_URI);
     await client.connect();
 
     // Select the database "cintic" explicitly
