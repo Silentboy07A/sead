@@ -2,10 +2,12 @@ require('dotenv').config();
 const { connectToDatabase } = require('../utils/db');
 const { OAuth2Client } = require('google-auth-library');
 
-const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
-if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-    // If not set, we'll log a warning but keep the route active (returning error when called)
-    console.warn('WARNING: GOOGLE_CLIENT_ID is not configured in environment variables.');
+// Use env var, cleaned of newlines. Fallback to hardcoded value if env var is missing or corrupted.
+const GOOGLE_CLIENT_ID = ((process.env.GOOGLE_CLIENT_ID || '').trim())
+    || '554940727049-j2fcom24vrb6ssal0i6om0r4gpap77d1.apps.googleusercontent.com';
+
+if (!GOOGLE_CLIENT_ID) {
+    console.warn('WARNING: GOOGLE_CLIENT_ID is not configured.');
 }
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
