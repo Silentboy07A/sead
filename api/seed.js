@@ -2,18 +2,29 @@ const { connectToDatabase } = require('./utils/db');
 
 // --- HARDCODED DATA TO SEED ---
 const MOVIES_SEED = [
-    { _id: 1, title: "Sinners", genre: "Thriller", language: "English", rating: 8.7, duration: "2h 17m", description: "Trying to leave their troubled lives behind, twin brothers return to their hometown to start again, only to discover that an even greater evil is waiting to welcome them back.", poster: "https://image.tmdb.org/t/p/w500/tgCfQmMJQdMgjclPMbMbMFOSLkP.jpg" },
-    { _id: 2, title: "Superman", genre: "Action", language: "English", rating: 8.3, duration: "2h 32m", description: "Superman, a cub reporter in Metropolis, must balance his heritage with his human upbringing as the hero of Metropolis in James Gunn's DC Universe.", poster: "https://image.tmdb.org/t/p/w500/sJFnKOlRfJCHCmMFcAo9eJkTajI.jpg" },
-    { _id: 3, title: "Avatar: Fire and Ash", genre: "Sci-Fi", language: "English", rating: 8.5, duration: "3h 2m", description: "Jake Sully and Neytiri venture to the volcanic Ash People clan of Pandora, uncovering new wonders and facing an even deadlier threat.", poster: "https://image.tmdb.org/t/p/w500/aosm8NMQ3UyoBVpSxyimorCQykC.jpg" },
-    { _id: 4, title: "A Minecraft Movie", genre: "Comedy", language: "English", rating: 7.2, duration: "1h 41m", description: "Four misfits are pulled through a portal into the Overworld, a bizarre cubic wonderland that thrives on imagination and must overcome it.", poster: "https://image.tmdb.org/t/p/w500/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg" },
-    { _id: 5, title: "Wicked: For Good", genre: "Drama", language: "English", rating: 8.1, duration: "2h 40m", description: "The epic conclusion follows Elphaba's transformation into the Wicked Witch as political strife threatens to tear Oz apart.", poster: "https://image.tmdb.org/t/p/w500/tVnMCFf4a0sLKjYILc6bOh0c6nC.jpg" },
-    { _id: 6, title: "The Running Man", genre: "Action", language: "English", rating: 7.9, duration: "2h 10m", description: "In a dystopian America, a desperate man enters a deadly game show where convicted criminals must survive to win freedom.", poster: "https://image.tmdb.org/t/p/w500/mCl4JMjb3CdDZJAxblBVjR0EUqo.jpg" },
-    { _id: 7, title: "Lilo & Stitch", genre: "Comedy", language: "English", rating: 7.8, duration: "1h 48m", description: "A live-action reimagining of the beloved story about a lonely Hawaiian girl and the mischievous alien experiment who becomes her best friend.", poster: "https://image.tmdb.org/t/p/w500/2Mo4qFBqYEhdVqcAn8jEASG2CyW.jpg" },
-    { _id: 8, title: "Zootopia 2", genre: "Comedy", language: "English", rating: 8.0, duration: "1h 53m", description: "Judy Hopps and Nick Wilde face their biggest case yet when mysterious disappearances threaten the fragile peace of Zootopia.", poster: "https://image.tmdb.org/t/p/w500/65IW0HyPzlFnMBTlGkvnxJkif2R.jpg" },
-    { _id: 9, title: "Pushpa 2: The Rule", genre: "Action", language: "Hindi", rating: 7.5, duration: "3h 20m", description: "Pushpa Raj returns as the undisputed king of the red sandalwood syndicate, facing off against SP Bhanwar Singh Shekhawat.", poster: "https://image.tmdb.org/t/p/w500/bnmPFBjbRCgNhVgCGlNVFmqnLdD.jpg" },
-    { _id: 10, title: "28 Years Later", genre: "Thriller", language: "English", rating: 8.4, duration: "2h 28m", description: "Almost three decades after the original rage virus outbreak, a group of survivors face a horrifying new evolution of the plague on an isolated island.", poster: "https://image.tmdb.org/t/p/w500/ds5JKCx5Cz2cOfc0u5MoATVqXa3.jpg" },
-    { _id: 11, title: "Jurassic World Rebirth", genre: "Sci-Fi", language: "English", rating: 7.6, duration: "2h 15m", description: "Five years after the events of Dominion, a covert team must extract DNA from three massive dinosaurs in the wild.", poster: "https://image.tmdb.org/t/p/w500/6bQLRzMo2jCayvKSan8MBHmL1Mr.jpg" },
-    { _id: 12, title: "Sikandar", genre: "Action", language: "Hindi", rating: 7.3, duration: "2h 45m", description: "Salman Khan stars as a fearless warrior navigating a world of power and betrayal in this action-packed blockbuster directed by AR Murugadoss.", poster: "https://image.tmdb.org/t/p/w500/7TulCghb7G3KXRJL5pREaPsxjTu.jpg" }
+    // Hollywood / English
+    { _id: 1, title: "Sinners", genre: "Thriller", language: "English", rating: 8.7, duration: "2h 17m", description: "Twin brothers return to their hometown, only to discover a greater evil waiting.", poster: "https://image.tmdb.org/t/p/w500/tgCfQmMJQdMgjclPMbMbMFOSLkP.jpg" },
+    { _id: 2, title: "Superman", genre: "Action", language: "English", rating: 8.3, duration: "2h 32m", description: "The origin story of the Man of Steel in James Gunn's DC Universe.", poster: "https://image.tmdb.org/t/p/w500/sJFnKOlRfJCHCmMFcAo9eJkTajI.jpg" },
+    { _id: 3, title: "Avatar: Fire and Ash", genre: "Sci-Fi", language: "English", rating: 8.5, duration: "3h 2m", description: "Jake Sully and Neytiri face the Ash People of Pandora.", poster: "https://image.tmdb.org/t/p/w500/aosm8NMQ3UyoBVpSxyimorCQykC.jpg" },
+
+    // Indian - Hindi
+    { _id: 9, title: "Pushpa 2: The Rule", genre: "Action", language: "Hindi", rating: 7.5, duration: "3h 20m", description: "Pushpa Raj returns as the king of the red sandalwood syndicate.", poster: "https://image.tmdb.org/t/p/w500/bnmPFBjbRCgNhVgCGlNVFmqnLdD.jpg" },
+    { _id: 12, title: "Sikandar", genre: "Action", language: "Hindi", rating: 7.3, duration: "2h 45m", description: "A fearless warrior navigates power and betrayal.", poster: "https://image.tmdb.org/t/p/w500/7TulCghb7G3KXRJL5pREaPsxjTu.jpg" },
+    { _id: 13, title: "The Bull", genre: "Action", language: "Hindi", rating: 8.2, duration: "2h 30m", description: "Based on a true story of bravery and sacrifice in the Indian Army.", poster: "https://image.tmdb.org/t/p/w500/nSbtQp0XqYn5E4v8pYInPny9XGk.jpg" },
+
+    // Indian - Tamil
+    { _id: 14, title: "Vidaamuyarchi", genre: "Action", language: "Tamil", rating: 8.4, duration: "2h 40m", description: "Ajith Kumar stars in this high-octane action thriller set in Dubai.", poster: "https://image.tmdb.org/t/p/w500/v9Z5vE6TqV3XwW8P4S5s5u9K2Wj.jpg" },
+    { _id: 15, title: "Good Bad Ugly", genre: "Action", language: "Tamil", rating: 8.1, duration: "2h 35m", description: "A multi-layered action drama exploring the shades of a man's character.", poster: "https://image.tmdb.org/t/p/w500/pA2kS5vE8TqV3XwW8P4S5s5u9K2Wj.jpg" },
+    { _id: 16, title: "Thug Life", genre: "Drama", language: "Tamil", rating: 8.9, duration: "2h 50m", description: "Mani Ratnam and Kamal Haasan reunite for this epic gangster saga.", poster: "https://image.tmdb.org/t/p/w500/8K2kS5vE8TqV3XwW8P4S5s5u9K2Wj.jpg" },
+
+    // Indian - Telugu
+    { _id: 17, title: "Game Changer", genre: "Political Thriller", language: "Telugu", rating: 8.0, duration: "2h 55m", description: "An honest IAS officer takes on the corrupt political system.", poster: "https://image.tmdb.org/t/p/w500/uA2kS5vE8TqV3XwW8P4S5s5u9K2Wj.jpg" },
+    { _id: 18, title: "Devara Part 1", genre: "Action", language: "Telugu", rating: 7.9, duration: "2h 58m", description: "A coastal saga about a man who stands against injustice.", poster: "https://image.tmdb.org/t/p/w500/6A2kS5vE8TqV3XwW8P4S5s5u9K2Wj.jpg" },
+
+    // International - East Asian
+    { _id: 19, title: "Parasite", genre: "Thriller", language: "Korean", rating: 9.2, duration: "2h 12m", description: "Greed and class discrimination threaten the relationship between the wealthy Park family and the destitute Kim clan.", poster: "https://image.tmdb.org/t/p/w500/7IiTTjMvIS7v9Z7u9er9Y69YtZt.jpg" },
+    { _id: 20, title: "Demon Slayer: Infinity Castle", genre: "Anime", language: "Japanese", rating: 9.0, duration: "1h 50m", description: "The final battle against Muzan Kibutsuji begins in the Infinity Castle.", poster: "https://image.tmdb.org/t/p/w500/hK2kS5vE8TqV3XwW8P4S5s5u9K2Wj.jpg" },
+    { _id: 21, title: "Godzilla Minus One", genre: "Sci-Fi", language: "Japanese", rating: 8.6, duration: "2h 4m", description: "In post-war Japan, a new terror rises in the form of Godzilla.", poster: "https://image.tmdb.org/t/p/w500/hkxxM9p4B8VMju87vV9vXubgEz.jpg" }
 ];
 
 const THEATRES_SEED = [
