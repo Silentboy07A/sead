@@ -13,6 +13,10 @@ module.exports = async (req, res) => {
         res.status(200).json(formattedMovies);
     } catch (error) {
         console.error('Error in /api/movies:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({
+            error: 'Internal Server Error',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
