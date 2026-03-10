@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { connectToDatabase } = require('../utils/db');
 const { OAuth2Client } = require('google-auth-library');
 
