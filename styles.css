@@ -29,6 +29,138 @@
   --transition: all 0.3s ease;
 }
 
+/* --- Light Theme Override --- */
+[data-theme="light"] {
+  --bg: #f5f3f0;
+  --card: #ffffff;
+  --auth-panel: #ede9e4;
+  --red: #d9304a;
+  --red-dark: #b32838;
+  --gold: #c07830;
+  --text: #1a1a2e;
+  --text-muted: #5a5a6e;
+  --green: #27ae60;
+  --blue: #2980b9;
+  --orange: #d35400;
+  --yellow: #f39c12;
+  --border: #d5d0ca;
+  --input-bg: #eae6e0;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --glow-red: 0 0 20px rgba(217, 48, 74, 0.15);
+  --glow-gold: 0 0 20px rgba(192, 120, 48, 0.1);
+}
+
+[data-theme="light"] .auth-left {
+  background: linear-gradient(135deg, #e8e4df 0%, #ded6cd 50%, #e8e4df 100%);
+}
+
+[data-theme="light"] .auth-left::before {
+  opacity: 0.25;
+}
+
+[data-theme="light"] .auth-form-card {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="light"] .navbar {
+  background: rgba(245, 243, 240, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .genre-pill {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .film-particle {
+  background: var(--gold);
+  opacity: 0.2;
+}
+
+[data-theme="light"] .genre-ticker {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .toast {
+  background: var(--card);
+  box-shadow: 0 4px 20px rgba(39, 174, 96, 0.12);
+}
+
+[data-theme="light"] .dropdown-menu {
+  background: var(--card);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .dropdown-menu a:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .auth-btn:disabled {
+  background: #ccc;
+  color: #888;
+}
+
+[data-theme="light"] .spinner {
+  border-color: rgba(0, 0, 0, 0.15);
+  border-top-color: var(--text);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+/* --- Theme Toggle Button --- */
+.theme-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.theme-toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 2px 8px rgba(241, 196, 15, 0.4);
+  position: relative;
+  z-index: 2;
+}
+
+[data-theme="light"] .theme-toggle {
+  background: linear-gradient(135deg, #87CEEB 0%, #b0d9f0 100%);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .theme-toggle-knob {
+  transform: translateX(24px);
+  background: linear-gradient(135deg, #f9a825, #ff8f00);
+  box-shadow: 0 2px 8px rgba(249, 168, 37, 0.5);
+}
+
 /* --- Reset & Base --- */
 *,
 *::before,
