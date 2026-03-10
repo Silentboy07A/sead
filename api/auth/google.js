@@ -35,7 +35,8 @@ module.exports = async (req, res) => {
         const usersCollection = db.collection('users');
 
         // 4. Upsert User (Update if exists, Insert if new)
-        const result = await usersCollection.findOneAndUpdate(
+        // In MongoDB driver v5+, findOneAndUpdate returns the document directly
+        const user = await usersCollection.findOneAndUpdate(
             { email: email },
             {
                 $set: {
@@ -53,21 +54,22 @@ module.exports = async (req, res) => {
             { upsert: true, returnDocument: 'after' }
         );
 
-        const user = result.value || result;
-
         // 5. Send User session back to frontend
         res.status(200).json({
             message: 'Login successful',
             user: {
                 id: user._id,
-                name: user.name,
-                email: user.email,
-                picture: user.picture
+                name: user.name || name,
+                email: user.email || email,
+                picture: user.picture || picture
             }
         });
 
     } catch (error) {
         console.error('Error verifying Google Token:', error);
-        res.status(401).json({ error: 'Invalid or expired Google Token' });
+        res.status(401).json({
+            error: 'Google sign-in failed',
+            details: error.message
+        });
     }
 };

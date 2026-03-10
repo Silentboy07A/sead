@@ -145,7 +145,7 @@ async function handleGoogleLogin(response) {
     enterApp();
   } catch (error) {
     console.error('Google Auth Error:', error);
-    showToast('Failed to sign in with Google');
+    showToast('Google sign-in failed: ' + (error.message || 'Please try again'));
   }
 }
 
