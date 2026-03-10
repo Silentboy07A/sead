@@ -362,8 +362,34 @@ function enterApp() {
 
 function updateNavUser() {
   if (state.user) {
-    $('navAvatar').textContent = state.user.name.charAt(0).toUpperCase();
+    const initial = state.user.name.charAt(0).toUpperCase();
+    $('navAvatar').textContent = initial;
     $('navUserName').textContent = state.user.name;
+
+    // Wire profile button
+    const profileBtn = $('profileBtn');
+    if (profileBtn) {
+      profileBtn.onclick = () => {
+        // Populate modal
+        $('profileAvatar').textContent = initial;
+        $('profileName').textContent = state.user.name;
+        $('profileEmail').textContent = state.user.email || 'Google Account';
+        $('profileJoined').textContent = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        // Show modal
+        const modal = $('profileModal');
+        modal.style.display = 'flex';
+        // Close dropdown
+        $('userDropdown').classList.remove('show');
+      };
+    }
+
+    // Close profile modal on backdrop click
+    const profileModal = $('profileModal');
+    if (profileModal) {
+      profileModal.addEventListener('click', (e) => {
+        if (e.target === profileModal) profileModal.style.display = 'none';
+      });
+    }
   }
 }
 
