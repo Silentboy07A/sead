@@ -620,6 +620,14 @@ function selectMovie(movie) {
   state.selectedShow = null;
   state.selectedSeats = [];
   renderTheatres();
+
+  const searchInput = $('theatreSearchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    // Use oninput to replace any existing listener instead of adding duplicates
+    searchInput.oninput = () => renderTheatres();
+  }
+
   showPage('theatreSection');
 }
 
@@ -637,20 +645,34 @@ function renderTheatres() {
   let theatres = THEATRES;
   if (city) theatres = theatres.filter(t => t.city === city);
 
-  $('theatreList').innerHTML = theatres.map(t => `
-    <div class="theatre-card">
-      <h3>${t.name}</h3>
-      <p class="location">📍 ${t.location}, ${t.city}</p>
-      <div class="show-times">
-        ${t.shows.map((s, i) => `
-          <div class="show-badge" onclick="selectShow(${t.id}, ${i})" data-theatre="${t.id}" data-show="${i}">
-            <span>${s.time}</span>
-            <span class="format">${s.format}</span>
-          </div>
-        `).join('')}
+  const searchInput = $('theatreSearchInput');
+  if (searchInput && searchInput.value) {
+    const s = searchInput.value.toLowerCase();
+    theatres = theatres.filter(t =>
+      t.name.toLowerCase().includes(s) ||
+      t.location.toLowerCase().includes(s) ||
+      t.city.toLowerCase().includes(s)
+    );
+  }
+
+  if (theatres.length === 0) {
+    $('theatreList').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:3rem">No theatres found</p>';
+  } else {
+    $('theatreList').innerHTML = theatres.map(t => `
+      <div class="theatre-card">
+        <h3>${t.name}</h3>
+        <p class="location">📍 ${t.location}, ${t.city}</p>
+        <div class="show-times">
+          ${t.shows.map((s, i) => `
+            <div class="show-badge" onclick="selectShow(${t.id}, ${i})" data-theatre="${t.id}" data-show="${i}">
+              <span>${s.time}</span>
+              <span class="format">${s.format}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
 }
 
 // ========== SHOW SELECTION ==========

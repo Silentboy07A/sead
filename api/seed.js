@@ -35,13 +35,15 @@ const MOVIES_SEED = [
 
 const THEATRES_SEED = [
     { _id: 1, name: "PVR IMAX Phoenix", location: "Lower Parel", city: "Mumbai", shows: [{ time: "10:30 AM", format: "IMAX" }, { time: "1:45 PM", format: "3D" }, { time: "5:00 PM", format: "IMAX" }, { time: "8:30 PM", format: "2D" }, { time: "10:45 PM", format: "3D" }] },
-    { _id: 2, name: "INOX Megaplex", location: "Malad West", city: "Mumbai", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:15 PM", format: "3D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "3D" }] },
+    { _id: 2, name: "INOX Megaplex R City", location: "Ghatkopar", city: "Mumbai", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:15 PM", format: "3D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "3D" }] },
     { _id: 3, name: "Cinepolis DLF", location: "Vasant Kunj", city: "Delhi", shows: [{ time: "9:30 AM", format: "2D" }, { time: "12:45 PM", format: "IMAX" }, { time: "4:00 PM", format: "3D" }, { time: "7:15 PM", format: "IMAX" }, { time: "10:30 PM", format: "2D" }] },
     { _id: 4, name: "PVR Orion Mall", location: "Rajajinagar", city: "Bangalore", shows: [{ time: "10:00 AM", format: "3D" }, { time: "1:30 PM", format: "2D" }, { time: "5:30 PM", format: "IMAX" }, { time: "9:00 PM", format: "2D" }] },
-    { _id: 5, name: "SPI Palazzo", location: "Anna Nagar", city: "Chennai", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] },
-    { _id: 6, name: "Prasads IMAX", location: "Khairatabad", city: "Hyderabad", shows: [{ time: "10:00 AM", format: "IMAX" }, { time: "1:30 PM", format: "2D" }, { time: "5:30 PM", format: "IMAX" }, { time: "9:00 PM", format: "2D" }] },
-    { _id: 7, name: "Asian Satyam Mall", location: "Ameerpet", city: "Hyderabad", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:15 PM", format: "3D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "3D" }] },
-    { _id: 8, name: "South City INOX", location: "Prince Anwar Shah Rd", city: "Kolkata", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] }
+    { _id: 5, name: "Nexus Koramangala", location: "Koramangala", city: "Bangalore", shows: [{ time: "12:00 PM", format: "2D" }, { time: "4:15 PM", format: "3D" }, { time: "8:00 PM", format: "2D" }, { time: "10:30 PM", format: "IMAX" }] },
+    { _id: 6, name: "Phoenix Marketcity", location: "Mahadevapura", city: "Bangalore", shows: [{ time: "9:30 AM", format: "IMAX" }, { time: "1:15 PM", format: "2D" }, { time: "5:30 PM", format: "3D" }, { time: "9:30 PM", format: "IMAX" }] },
+    { _id: 7, name: "SPI Palazzo Focus Mall", location: "Anna Nagar", city: "Chennai", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] },
+    { _id: 8, name: "Prasads IMAX", location: "Khairatabad", city: "Hyderabad", shows: [{ time: "10:00 AM", format: "IMAX" }, { time: "1:30 PM", format: "2D" }, { time: "5:30 PM", format: "IMAX" }, { time: "9:00 PM", format: "2D" }] },
+    { _id: 9, name: "Asian Satyam Mall", location: "Ameerpet", city: "Hyderabad", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:15 PM", format: "3D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "3D" }] },
+    { _id: 10, name: "South City INOX", location: "Prince Anwar Shah Rd", city: "Kolkata", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] }
 ];
 
 module.exports = async (req, res) => {
