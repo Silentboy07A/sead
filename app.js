@@ -407,6 +407,14 @@ async function initApp() {
 
     MOVIES = await moviesRes.json();
     THEATRES = await theatresRes.json();
+
+    // Rewrite TMDB poster URLs through local proxy to avoid CORS issues
+    MOVIES = MOVIES.map(m => ({
+      ...m,
+      poster: m.poster && m.poster.includes('image.tmdb.org')
+        ? `/poster?url=${encodeURIComponent(m.poster)}`
+        : m.poster
+    }));
   } catch (error) {
     console.error('Error fetching data:', error);
     showToast('Failed to load data from database.');
@@ -473,9 +481,30 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
     );
   }
   if (lang) filtered = filtered.filter(m => m.language === lang);
-  $('movieGrid').innerHTML = filtered.length ? filtered.map(m => `
+
+  const GENRE_COLORS = {
+    'Action': ['#e50914', '#7b0009'], 'Thriller': ['#1a1a2e', '#e50914'],
+    'Sci-Fi': ['#003366', '#0066cc'], 'Drama': ['#2c3e50', '#4ca1af'],
+    'Comedy': ['#f7971e', '#ffd200'], 'Horror': ['#0d0d0d', '#4a0008'],
+    'Romance': ['#f857a6', '#ff5858'], 'Anime': ['#7f00ff', '#e100ff'],
+    'Survival': ['#355c7d', '#6c5b7b'], 'Documentary': ['#232526', '#414345'],
+    'Biography': ['#4b3832', '#854442'], 'default': ['#1a1a2e', '#16213e']
+  };
+
+  $('movieGrid').innerHTML = filtered.length ? filtered.map(m => {
+    const gc = GENRE_COLORS[m.genre] || GENRE_COLORS.default;
+    const fallbackId = 'fb_' + m.id;
+    const onErr = `this.style.display='none';document.getElementById('${fallbackId}').style.display='flex'`;
+    return `
     <div class="movie-card" data-id="${m.id}">
-      <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="this.style.background='linear-gradient(135deg,#1a1a2e,#16213e)'" loading="lazy">
+      <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
+        <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
+        <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
+          <div style="font-size:2.8rem;margin-bottom:0.6rem">🎬</div>
+          <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
+          <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
+        </div>
+      </div>
       <div class="movie-info">
         <h3>${m.title}</h3>
         <div class="movie-meta">
@@ -486,7 +515,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
         <button class="btn-book" onclick="selectMovie(MOVIES.find(x=>x.id===${m.id}))">Book Now</button>
       </div>
     </div>
-  `).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
+  `}).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
 }
 
 // ========== SEARCH ==========
@@ -793,11 +822,54 @@ function renderTicket(totalAmount, dateStr) {
   $('ticketAmount').textContent = '₹' + totalAmount.toLocaleString();
   $('ticketBookingId').textContent = bookingId;
 
-  // Simple QR placeholder
-  drawQR(bookingId);
+  // QR encodes all ticket details
+  drawQR(bookingId, {
+    movie: m.title,
+    theatre: t.name + ', ' + t.location,
+    date: dateStr,
+    time: s.time + ' (' + s.format + ')',
+    seats: state.selectedSeats.join(', '),
+    amount: '₹' + totalAmount.toLocaleString()
+  });
 
   // Download
-  $('downloadTicket').onclick = () => showToast('📄 PDF download started!');
+  $('downloadTicket').onclick = async () => {
+    try {
+      const btn = $('downloadTicket');
+      btn.innerHTML = '<div class="spinner" style="display:inline-block;width:16px;height:16px;border-width:2px;vertical-align:middle;margin-right:6px"></div> Generating...';
+      btn.disabled = true;
+
+      const ticketEl = $('ticketCard');
+
+      // Use html2canvas to snapshot the ticket card
+      const canvas = await html2canvas(ticketEl, {
+        scale: 2,
+        backgroundColor: '#0d0d1a',
+        useCORS: true,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+      const bookingId = $('ticketBookingId').textContent || 'ticket';
+      pdf.save(`CinTic-${bookingId}.pdf`);
+
+      btn.innerHTML = '📄 Download PDF';
+      btn.disabled = false;
+      showToast('✅ Ticket downloaded!');
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      $('downloadTicket').innerHTML = '📄 Download PDF';
+      $('downloadTicket').disabled = false;
+      showToast('❌ Download failed. Try again.');
+    }
+  };
   $('shareTicket').onclick = () => {
     if (navigator.share && false) {
       navigator.share({ title: 'CinTic Ticket', text: `${m.title} at ${t.name} — ${s.time} on ${dateStr}` });
@@ -808,25 +880,40 @@ function renderTicket(totalAmount, dateStr) {
   };
 }
 
-function drawQR(text) {
+function drawQR(bookingId, ticketInfo) {
   const container = $('qrCanvas').parentElement;
   container.innerHTML = '';
   try {
+    // Encode full ticket details into the QR
+    const qrData = JSON.stringify({
+      id: bookingId,
+      movie: ticketInfo.movie,
+      theatre: ticketInfo.theatre,
+      date: ticketInfo.date,
+      time: ticketInfo.time,
+      seats: ticketInfo.seats,
+      amount: ticketInfo.amount
+    });
     const qr = qrcode(0, 'M');
-    qr.addData('CINTIC-TICKET:' + text);
+    qr.addData(qrData);
     qr.make();
-    container.innerHTML = qr.createImgTag(3, 8);
-    container.querySelector('img').style.borderRadius = '4px';
+    const img = document.createElement('div');
+    img.innerHTML = qr.createImgTag(3, 6);
+    const imgEl = img.querySelector('img');
+    imgEl.style.borderRadius = '8px';
+    imgEl.style.display = 'block';
+    imgEl.style.maxWidth = '140px';
+    container.appendChild(imgEl);
   } catch (e) {
-    // Fallback canvas QR
+    // Fallback: smaller data if QR overflows
     const canvas = document.createElement('canvas');
     canvas.id = 'qrCanvas';
     canvas.width = 120; canvas.height = 120;
     container.appendChild(canvas);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 120, 120);
-    ctx.fillStyle = '#000'; ctx.font = '10px Poppins';
-    ctx.fillText(text, 10, 65);
+    ctx.fillStyle = '#000'; ctx.font = '9px monospace';
+    ctx.fillText('ID: ' + bookingId, 8, 60);
   }
 }
 

@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "CineBook — Movie Ticket Booking App",
   "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
   "dependencies": {
     "dotenv": "^17.3.1",
     "google-auth-library": "^10.6.1",

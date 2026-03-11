@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { connectToDatabase } = require('./utils/db');
 
 module.exports = async (req, res) => {
