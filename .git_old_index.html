@@ -202,22 +202,7 @@
             <div class="nav-links" id="navLinks">
                 <a data-section="heroSection" class="active">Home</a>
                 <a data-section="moviesSection">Movies</a>
-                <a data-section="myBookingsSection" id="myBookingsNav">My Bookings</a>
-
-                <!-- Global Search -->
-                <div class="global-search-container" style="position: relative; margin-left: 1rem;">
-                    <div
-                        style="background: rgba(255,255,255,0.1); border-radius: 2rem; padding: 0.4rem 1rem; display: flex; align-items: center;">
-                        <span style="color: var(--text-muted); margin-right: 0.5rem;">🔍</span>
-                        <input type="text" id="globalSearchInput" placeholder="Search movies..."
-                            style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 0.9rem;">
-                    </div>
-                    <div id="globalSearchResults" class="global-search-dropdown"
-                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--surface); width: 250px; border-radius: 1rem; margin-top: 0.5rem; padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid rgba(255,255,255,0.1); max-height: 400px; overflow-y: auto;">
-                        <!-- Results injected here via JS -->
-                    </div>
-                </div>
-
+                <a id="myBookingsNav">My Bookings</a>
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light theme">
                     <div class="theme-toggle-knob" id="themeKnob">🌙</div>
                 </button>
@@ -227,56 +212,11 @@
                         <span id="navUserName">User</span>
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
-                        <a id="profileBtn">👤 My Profile</a>
-                        <a id="logoutBtn">🚪 Logout</a>
+                        <a id="logoutBtn">Logout</a>
                     </div>
                 </div>
             </div>
         </nav>
-
-        <!-- PROFILE MODAL -->
-        <div id="profileModal"
-            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
-            <div
-                style="background:var(--surface,#1a1a2e);border:1px solid rgba(255,255,255,0.1);border-radius:1.5rem;padding:2.5rem;max-width:420px;width:90%;position:relative;">
-                <button onclick="document.getElementById('profileModal').style.display='none'"
-                    style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--text-muted,#aaa);font-size:1.5rem;cursor:pointer;">✕</button>
-                <div style="text-align:center;margin-bottom:1.5rem;">
-                    <div id="profileAvatar"
-                        style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#e50914,#b0060f);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;margin:0 auto 1rem;">
-                        U</div>
-                    <h2 id="profileName" style="color:var(--text,#fff);margin:0 0 0.3rem;">User</h2>
-                    <p id="profileEmail" style="color:var(--text-muted,#aaa);margin:0;font-size:0.9rem;">user@email.com
-                    </p>
-                </div>
-                <div style="border-radius:1rem;background:rgba(255,255,255,0.04);padding:1.2rem;">
-                    <div
-                        style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.08);">
-                        <span style="color:var(--text-muted,#aaa);">Member since</span>
-                        <span id="profileJoined" style="color:var(--text,#fff);">—</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;padding:0.5rem 0;">
-                        <span style="color:var(--text-muted,#aaa);">Account type</span>
-                        <span style="color:#e50914;font-weight:600;">✦ Member</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TRAILER MODAL -->
-        <div id="trailerModal"
-            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;">
-            <div
-                style="width:90%;max-width:900px;position:relative;background:#000;border-radius:1rem;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.8);">
-                <button id="closeTrailerBtn"
-                    style="position:absolute;top:1rem;right:1.2rem;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:1.5rem;cursor:pointer;width:40px;height:40px;border-radius:50%;z-index:10;display:flex;align-items:center;justify-content:center;">✕</button>
-                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
-                    <iframe id="trailerIframe"
-                        style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen
-                        allow="autoplay; encrypted-media"></iframe>
-                </div>
-            </div>
-        </div>
 
         <!-- HERO SECTION -->
         <section class="page active" id="heroSection">
@@ -293,17 +233,13 @@
                     <button class="btn-primary" id="heroBookBtn">🎬 Book Tickets</button>
                 </div>
             </div>
-        </section>
 
-        <!-- MOVIES SECTION -->
-        <section class="page" id="moviesSection">
             <!-- Search Bar -->
             <div class="search-section">
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="🔍 Search movies, theatres, genres...">
                     <select id="cityFilter">
                         <option value="">All Cities</option>
-                        <option value="_detect_">📍 Detect My Location</option>
                         <option>Mumbai</option>
                         <option>Delhi</option>
                         <option>Bangalore</option>
@@ -324,7 +260,7 @@
             </div>
 
             <!-- Movies by Genre -->
-            <div class="movies-section">
+            <div class="movies-section" id="moviesSection">
                 <h2 class="section-title">Now <span>Showing</span></h2>
                 <div class="genre-tabs" id="genreTabs"></div>
                 <div class="movie-grid" id="movieGrid"></div>
@@ -339,16 +275,6 @@
                     <h2 class="section-title">Select <span>Theatre & Showtime</span></h2>
                 </div>
                 <div class="selected-movie-info" id="selectedMovieInfo"></div>
-
-                <!-- Theatre Search Bar -->
-                <div class="search-section" style="margin-top: 1rem; margin-bottom: 2rem; padding: 0;">
-                    <div class="search-bar"
-                        style="background: var(--surface); border: 1px solid rgba(255,255,255,0.1);">
-                        <input type="text" id="theatreSearchInput"
-                            placeholder="🔍 Search theatres, malls or locations..." style="width: 100%;">
-                    </div>
-                </div>
-
                 <div class="theatre-list" id="theatreList"></div>
             </div>
         </section>
@@ -404,46 +330,35 @@
                 </div>
                 <div class="payment-container">
                     <div class="order-summary" id="orderSummary"></div>
-                    <div class="stripe-checkout-mock">
-                        <div class="stripe-header">
-                            <div class="stripe-badges">
-                                <span class="stripe-test-badge">TEST MODE</span>
-                                <span class="stripe-logo">� Powered by <b>Stripe</b></span>
-                            </div>
-                            <h2>Complete Payment</h2>
+                    <div class="payment-form-card">
+                        <h2>Payment Method</h2>
+                        <div class="payment-methods">
+                            <button class="pay-method-btn active" data-method="card" type="button">💳 Card</button>
+                            <button class="pay-method-btn" data-method="upi" type="button">📱 UPI</button>
+                            <button class="pay-method-btn" data-method="netbanking" type="button">🏦 Net
+                                Banking</button>
                         </div>
-
-                        <div class="stripe-body">
-                            <div class="stripe-section">
-                                <label>Contact</label>
-                                <input type="email" id="paymentEmail" placeholder="Email" class="stripe-input">
+                        <div id="paymentFields">
+                            <div class="payment-field">
+                                <label>Card Number</label>
+                                <input type="text" id="cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19">
                             </div>
-
-                            <div class="stripe-section">
-                                <label>Payment Method</label>
-                                <div class="stripe-card-element">
-                                    <div class="stripe-input-row">
-                                        <input type="text" id="cardNumber" placeholder="Card number" maxlength="19"
-                                            class="stripe-input stripe-input-top">
-                                    </div>
-                                    <div class="stripe-input-row split">
-                                        <input type="text" id="cardExpiry" placeholder="MM / YY" maxlength="5"
-                                            class="stripe-input stripe-input-bl">
-                                        <input type="password" id="cardCvv" placeholder="CVC" maxlength="4"
-                                            class="stripe-input stripe-input-br">
-                                    </div>
+                            <div class="payment-field">
+                                <label>Name on Card</label>
+                                <input type="text" id="cardName" placeholder="Full name">
+                            </div>
+                            <div class="payment-row">
+                                <div class="payment-field">
+                                    <label>Expiry</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="payment-field">
+                                    <label>CVV</label>
+                                    <input type="password" id="cardCvv" placeholder="•••" maxlength="3">
                                 </div>
                             </div>
-
-                            <div class="stripe-section">
-                                <label>Name on card</label>
-                                <input type="text" id="cardName" placeholder="Name on card" class="stripe-input">
-                            </div>
-
                         </div>
-                        <button class="stripe-pay-btn" id="confirmPayBtn"><span>Pay </span><b><span
-                                    id="stripePayAmount"></span></b></button>
-                        <p class="stripe-footer">Your payment is encrypted and secure.</p>
+                        <button class="btn-pay" id="confirmPayBtn">🔒 Confirm & Pay</button>
                     </div>
                 </div>
             </div>
@@ -504,23 +419,9 @@
                 </div>
             </div>
         </section>
-
-        <!-- MY BOOKINGS -->
-        <section class="page" id="myBookingsSection">
-            <div class="theatre-section">
-                <div class="theatre-header">
-                    <h2 class="section-title">My <span>Bookings</span></h2>
-                </div>
-                <div id="myBookingsList" style="display:flex;flex-direction:column;gap:1.5rem;margin-top:2rem;">
-                    <!-- Tickets will be rendered here -->
-                </div>
-            </div>
-        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
 
