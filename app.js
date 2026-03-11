@@ -366,29 +366,35 @@ function updateNavUser() {
     $('navAvatar').textContent = initial;
     $('navUserName').textContent = state.user.name;
 
-    // Wire profile button
-    const profileBtn = $('profileBtn');
-    if (profileBtn) {
-      profileBtn.onclick = () => {
-        // Populate modal
-        $('profileAvatar').textContent = initial;
-        $('profileName').textContent = state.user.name;
-        $('profileEmail').textContent = state.user.email || 'Google Account';
-        $('profileJoined').textContent = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-        // Show modal
-        const modal = $('profileModal');
-        modal.style.display = 'flex';
-        // Close dropdown
-        $('userDropdown').classList.remove('show');
-      };
+    // Toggle dropdown
+    const navUser = $('navUser');
+    const dropdown = $('userDropdown');
+
+    if (navUser && dropdown) {
+      // Remove old listeners to prevent duplicates if called multiple times
+      const newNavUser = navUser.cloneNode(true);
+      navUser.parentNode.replaceChild(newNavUser, navUser);
+
+      newNavUser.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+      });
     }
 
-    // Close profile modal on backdrop click
-    const profileModal = $('profileModal');
-    if (profileModal) {
-      profileModal.addEventListener('click', (e) => {
-        if (e.target === profileModal) profileModal.style.display = 'none';
-      });
+    // Handle Logout
+    const logoutBtn = $('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.onclick = (e) => {
+        e.preventDefault();
+        state.user = null;
+        localStorage.removeItem('cintic_state');
+        window.location.reload();
+      };
     }
   }
 }
