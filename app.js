@@ -23,7 +23,7 @@ let state = {
 // Restore from localStorage
 function loadState() {
   try {
-    const saved = localStorage.getItem('cintic_state');
+    const saved = sessionStorage.getItem('cintic_state');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.user) state.user = parsed.user;
@@ -31,7 +31,7 @@ function loadState() {
   } catch (e) { }
 }
 function saveState() {
-  localStorage.setItem('cintic_state', JSON.stringify({ user: state.user }));
+  sessionStorage.setItem('cintic_state', JSON.stringify({ user: state.user }));
 }
 
 // ========== UTILITY ==========
@@ -392,7 +392,7 @@ function updateNavUser() {
       logoutBtn.onclick = (e) => {
         e.preventDefault();
         state.user = null;
-        localStorage.removeItem('cintic_state');
+        sessionStorage.removeItem('cintic_state');
         window.location.reload();
       };
     }
