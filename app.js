@@ -1356,10 +1356,22 @@ initTheme();
 loadState();
 initAuth();
 
-// Auto-login if user exists
+// Auto-login or check for new user
 if (state.user) {
   $('authPage').classList.remove('active');
   $('mainApp').style.display = 'block';
   updateNavUser();
   initApp();
+} else {
+  // Check if it's the first visit
+  const hasVisited = localStorage.getItem('cintic_visited');
+  if (!hasVisited) {
+    // New user: Show signup tab and a welcome message
+    document.querySelectorAll('.auth-tab')[1].click(); // Signup tab
+    showToast('Welcome! Join CinTic today to book your favorite movies. 🎬');
+    localStorage.setItem('cintic_visited', 'true');
+  } else {
+    // Returning user (not logged in): Default to login tab
+    document.querySelectorAll('.auth-tab')[0].click();
+  }
 }
