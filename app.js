@@ -133,10 +133,16 @@ async function initGoogleAuth() {
 
 async function handleGoogleLogin(response) {
   try {
+    const activeTab = document.querySelector('.auth-tab.active');
+    const mode = activeTab ? activeTab.dataset.tab : 'login';
+
     const res = await fetch('/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential })
+      body: JSON.stringify({
+        credential: response.credential,
+        mode: mode
+      })
     });
 
     const data = await res.json();

@@ -1,7 +1,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { connectToDatabase } = require('./utils/db');
 
-const TMDB_BASE = 'https://image.tmdb.org/t/p/w500/';
+const TMDB_BASE = 'https://image.tmdb.org/t/p/w500';
 
 // All poster paths verified via TMDB API (api.themoviedb.org)
 const MOVIES_SEED = [

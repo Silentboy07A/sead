@@ -36,6 +36,18 @@ module.exports = async (req, res) => {
         const { db } = await connectToDatabase();
         const usersCollection = db.collection('users');
 
+        // Check if user exists
+        const { mode } = req.body; // mode is 'login' or 'signup'
+        const existingUser = await usersCollection.findOne({ email: email });
+
+        if (mode === 'login' && !existingUser) {
+            return res.status(404).json({ error: 'No account found with this email. Please sign up first!' });
+        }
+
+        if (mode === 'signup' && existingUser) {
+            return res.status(409).json({ error: 'An account already exists with this email. Please log in instead!' });
+        }
+
         // 4. Upsert User (Update if exists, Insert if new)
         const result = await usersCollection.findOneAndUpdate(
             { email: email },
