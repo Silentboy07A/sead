@@ -146,7 +146,7 @@ async function handleGoogleLogin(response) {
     if (!state.user.bookings) state.user.bookings = [];
     saveState();
 
-    showToast(`Welcome, ${state.user.name}! 🎬`);
+    showToast(data.isNewUser ? `Welcome to CineBook, ${state.user.name}! 🎬` : `Welcome back, ${state.user.name}! 👋`);
     enterApp();
   } catch (error) {
     console.error('Google Auth Error:', error);

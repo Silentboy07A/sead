@@ -37,8 +37,7 @@ module.exports = async (req, res) => {
         const usersCollection = db.collection('users');
 
         // 4. Upsert User (Update if exists, Insert if new)
-        // In MongoDB driver v5+, findOneAndUpdate returns the document directly
-        const user = await usersCollection.findOneAndUpdate(
+        const result = await usersCollection.findOneAndUpdate(
             { email: email },
             {
                 $set: {
@@ -53,12 +52,20 @@ module.exports = async (req, res) => {
                     bookings: []
                 }
             },
-            { upsert: true, returnDocument: 'after' }
+            {
+                upsert: true,
+                returnDocument: 'after',
+                includeResultMetadata: true
+            }
         );
+
+        const user = result.value;
+        const isNewUser = !result.lastErrorObject.updatedExisting;
 
         // 5. Send User session back to frontend
         res.status(200).json({
-            message: 'Login successful',
+            message: isNewUser ? 'Welcome to CineBook!' : 'Welcome back!',
+            isNewUser: isNewUser,
             user: {
                 id: user._id,
                 name: user.name || name,
