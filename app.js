@@ -371,14 +371,10 @@ function updateNavUser() {
     const dropdown = $('userDropdown');
 
     if (navUser && dropdown) {
-      // Remove old listeners to prevent duplicates if called multiple times
-      const newNavUser = navUser.cloneNode(true);
-      navUser.parentNode.replaceChild(newNavUser, navUser);
-
-      newNavUser.addEventListener('click', (e) => {
+      navUser.onclick = (e) => {
         e.stopPropagation();
         dropdown.classList.toggle('show');
-      });
+      };
 
       // Close dropdown when clicking outside
       document.addEventListener('click', () => {
@@ -528,12 +524,53 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
 function initSearch() {
   $('searchInput').addEventListener('input', applyFilters);
   $('langFilter').addEventListener('change', applyFilters);
-  $('cityFilter').addEventListener('change', applyFilters);
+  $('cityFilter').addEventListener('change', async (e) => {
+    if (e.target.value === '_detect_') {
+      e.target.disabled = true;
+      const originalOptions = Array.from(e.target.options).map(o => o.value);
+
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+        });
+        const { latitude, longitude } = pos.coords;
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
+        const data = await res.json();
+
+        let city = data.address.city || data.address.town || data.address.state_district;
+        if (city) {
+          // Clean up "City" from the end if it exists natively in India (e.g. "Chennai")
+          city = city.replace(/ City$/i, '').trim();
+
+          // Check if this city is in our expected list, or add it dynamically
+          if (!originalOptions.includes(city)) {
+            const opt = document.createElement('option');
+            opt.value = opt.textContent = city;
+            e.target.appendChild(opt);
+          }
+          e.target.value = city;
+          showToast(`📍 Location detected: ${city}`);
+        } else {
+          throw new Error('City not found');
+        }
+      } catch (err) {
+        console.warn('Geolocation failed:', err);
+        showToast('❌ Could not detect location. Please set manually.');
+        e.target.value = '';
+      } finally {
+        e.target.disabled = false;
+        applyFilters();
+      }
+    } else {
+      applyFilters();
+    }
+  });
 }
 function applyFilters() {
   const search = $('searchInput').value;
   const lang = $('langFilter').value;
-  const city = $('cityFilter').value;
+  // If still set to _detect_, treat as empty filter until it resolves
+  const city = $('cityFilter').value === '_detect_' ? '' : $('cityFilter').value;
   const activeGenre = document.querySelector('.genre-tabs .active')?.dataset.genre || 'All';
   renderMovies(activeGenre, search, lang, city);
 }
@@ -580,6 +617,14 @@ function initNavigation() {
 }
 
 function showPage(id) {
+  // Fix for blank screen: moviesSection is a child of heroSection
+  if (id === 'moviesSection') {
+    id = 'heroSection';
+    setTimeout(() => {
+      $('moviesSection')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  }
+
   document.querySelectorAll('#mainApp .page').forEach(p => p.classList.remove('active'));
   $(id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
