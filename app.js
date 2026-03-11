@@ -8,7 +8,7 @@ let MOVIES = [];
 let THEATRES = [];
 
 const SEAT_PRICES = { gold: 150, silver: 200, platinum: 300 };
-const GENRES = ["All", "Action", "Comedy", "Drama", "Thriller", "Sci-Fi", "Romance"];
+const GENRES = ["All", "Action", "Comedy", "Drama", "Horror", "Thriller", "Sci-Fi", "Romance"];
 
 // ========== APP STATE ==========
 const state = {
