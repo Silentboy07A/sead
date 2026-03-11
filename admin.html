@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CinTic Admin Panel — Manage movies, theatres, and showtimes.">
+    <title>CinTic — Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Top Bar -->
+    <header class="admin-header">
+        <div class="admin-logo">
+            <h1>CinTic</h1>
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div class="admin-user">
+            <span id="adminUserName">Admin</span>
+            <a href="/" class="back-link">← Back to App</a>
+            <button id="adminLogout" class="logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <a class="sidebar-link active" data-tab="movies">🎬 Movies</a>
+            <a class="sidebar-link" data-tab="theatres">🍿 Theatres</a>
+        </nav>
+
+        <!-- Content -->
+        <main class="admin-content">
+            <!-- Movies Tab -->
+            <section class="tab-panel active" id="moviesPanel">
+                <div class="panel-header">
+                    <h2>Movies</h2>
+                    <button class="btn-add" id="addMovieBtn">+ Add Movie</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="moviesTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Genre</th>
+                                <th>Language</th>
+                                <th>Rating</th>
+                                <th>Year</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="moviesTableBody">
+                            <tr><td colspan="7" class="loading-cell">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Theatres Tab -->
+            <section class="tab-panel" id="theatresPanel">
+                <div class="panel-header">
+                    <h2>Theatres</h2>
+                    <button class="btn-add" id="addTheatreBtn">+ Add Theatre</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="theatresTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>City</th>
+                                <th>Shows</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="theatresTableBody">
+                            <tr><td colspan="6" class="loading-cell">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Item</h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <form id="modalForm">
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic fields injected here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="modalCancel">Cancel</button>
+                    <button type="submit" class="btn-save" id="modalSave">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

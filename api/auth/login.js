@@ -1,5 +1,6 @@
 const { connectToDatabase } = require('../utils/db');
 const bcrypt = require('bcryptjs');
+const { signToken, buildCookieHeader } = require('../utils/jwt');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -34,12 +35,17 @@ module.exports = async (req, res) => {
             { $set: { last_login: new Date() } }
         );
 
+        // Issue JWT cookie
+        const token = signToken(user._id);
+        res.setHeader('Set-Cookie', buildCookieHeader(token));
+
         res.status(200).json({
             message: 'Login successful!',
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                isAdmin: user.isAdmin || false,
                 bookings: user.bookings || []
             }
         });

@@ -127,7 +127,7 @@
                                 <div class="checklist-item" data-rule="special">✗ One special character</div>
                             </div>
                         </div>
-                        <a href="#" class="forgot-link">Forgot Password?</a>
+                        <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
                         <button type="submit" class="auth-btn primary" id="loginBtn" disabled>Login</button>
                         <div class="auth-divider">or continue with</div>
                         <div id="googleLoginBtn" style="display: flex; justify-content: center; margin-top: 1rem;">
@@ -228,6 +228,7 @@
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
                         <a id="profileBtn">👤 My Profile</a>
+                        <a id="adminNavLink" href="/admin.html" style="display:none">⚙️ Admin Panel</a>
                         <a id="logoutBtn">🚪 Logout</a>
                     </div>
                 </div>
@@ -516,6 +517,38 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgotPasswordModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:var(--surface,#1a1a2e);border:1px solid rgba(255,255,255,0.1);border-radius:1.5rem;padding:2.5rem;max-width:420px;width:90%;position:relative;">
+            <button onclick="document.getElementById('forgotPasswordModal').style.display='none'" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--text-muted,#aaa);font-size:1.5rem;cursor:pointer;">✕</button>
+            <h2 style="font-family:'Playfair Display',serif;color:#fff;margin-bottom:1rem;">Reset Password</h2>
+            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">Enter your email and we'll send you a secure link to reset your password.</p>
+            <form id="forgotPasswordForm">
+                <div class="form-group">
+                    <input type="email" id="forgotEmail" placeholder="Email Address" required style="width:100%;padding:12px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'Poppins',sans-serif;margin-bottom:1rem;outline:none;" onfocus="this.style.borderColor='var(--gold, #f4a261)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                </div>
+                <button type="submit" class="auth-btn primary" id="forgotSubmitBtn">Send Reset Link</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RESET PASSWORD MODAL -->
+    <div id="resetPasswordModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:var(--surface,#1a1a2e);border:1px solid rgba(255,255,255,0.1);border-radius:1.5rem;padding:2.5rem;max-width:420px;width:90%;position:relative;">
+            <button onclick="document.getElementById('resetPasswordModal').style.display='none';window.history.replaceState({}, document.title, '/');" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--text-muted,#aaa);font-size:1.5rem;cursor:pointer;">✕</button>
+            <h2 style="font-family:'Playfair Display',serif;color:#fff;margin-bottom:1rem;">Choose New Password</h2>
+            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">Enter a strong new password below.</p>
+            <form id="resetPasswordForm">
+                <input type="hidden" id="resetToken">
+                <input type="hidden" id="resetEmail">
+                <div class="form-group">
+                    <input type="password" id="resetNewPassword" placeholder="New Password (min 8 chars)" required style="width:100%;padding:12px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'Poppins',sans-serif;margin-bottom:1rem;outline:none;" onfocus="this.style.borderColor='var(--gold, #f4a261)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                </div>
+                <button type="submit" class="auth-btn primary" id="resetSubmitBtn">Update Password</button>
+            </form>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>

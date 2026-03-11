@@ -24,19 +24,9 @@ const state = {
   lockInterval: null
 };
 
-// Restore from localStorage
-function loadState() {
-  try {
-    const saved = sessionStorage.getItem('cintic_state');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.user) state.user = parsed.user;
-    }
-  } catch (e) { }
-}
-function saveState() {
-  sessionStorage.setItem('cintic_state', JSON.stringify({ user: state.user }));
-}
+// State is now managed via JWT cookies — no sessionStorage needed
+function loadState() { /* JWT cookies handle persistence */ }
+function saveState() { /* JWT cookies handle persistence */ }
 
 // ========== UTILITY ==========
 function $(id) { return document.getElementById(id); }
@@ -139,6 +129,7 @@ async function handleGoogleLogin(response) {
     const res = await fetch('/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({
         credential: response.credential,
         mode: mode
@@ -150,7 +141,6 @@ async function handleGoogleLogin(response) {
 
     state.user = data.user;
     if (!state.user.bookings) state.user.bookings = [];
-    saveState();
 
     showToast(data.isNewUser ? `Welcome to CineBook, ${state.user.name}! 🎬` : `Welcome back, ${state.user.name}! 👋`);
     enterApp();
@@ -341,6 +331,7 @@ async function handleLogin(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ email, password })
     });
 
@@ -348,7 +339,6 @@ async function handleLogin(e) {
     if (!res.ok) throw new Error(data.error || 'Login failed');
 
     state.user = data.user;
-    saveState();
     btn.innerHTML = '✓';
     showToast(`Welcome back, ${state.user.name}! 🎬`);
     setTimeout(() => enterApp(), 1000);
@@ -382,6 +372,7 @@ async function handleSignup(e) {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ name, email, password })
     });
 
@@ -389,7 +380,6 @@ async function handleSignup(e) {
     if (!res.ok) throw new Error(data.error || 'Registration failed');
 
     state.user = data.user;
-    saveState();
     btn.innerHTML = '✓';
     showToast(`Welcome, ${state.user.name}! 🎬`);
     setTimeout(() => enterApp(), 1000);
@@ -415,8 +405,110 @@ function updateNavUser() {
     const initial = state.user.name.charAt(0).toUpperCase();
     $('navAvatar').textContent = initial;
     $('navUserName').textContent = state.user.name;
-    // Note: The event listeners for toggling the dropdown and logging out
-    // are now handled once in initNavigation() to prevent duplication.
+    // Show admin link if user is admin
+    const adminLink = $('adminNavLink');
+    if (adminLink) adminLink.style.display = state.user.isAdmin ? 'block' : 'none';
+  }
+}
+
+// ========== PASSWORD RESET LOGIC ==========
+function initPasswordReset() {
+  const forgotLink = $('forgotPasswordLink');
+  const forgotModal = $('forgotPasswordModal');
+  const forgotForm = $('forgotPasswordForm');
+
+  if (forgotLink && forgotModal && forgotForm) {
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      forgotModal.style.display = 'flex';
+      $('forgotEmail').focus();
+    });
+
+    forgotForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('forgotEmail').value;
+      const btn = $('forgotSubmitBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showToast('✉️ ' + data.message);
+        forgotModal.style.display = 'none';
+        forgotForm.reset();
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // Check for reset token in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get('reset');
+  const resetEmail = urlParams.get('email');
+
+  if (resetToken && resetEmail) {
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    // Show reset modal
+    const resetModal = $('resetPasswordModal');
+    if (resetModal) {
+      resetModal.style.display = 'flex';
+      $('resetToken').value = resetToken;
+      $('resetEmail').value = resetEmail;
+      $('resetNewPassword').focus();
+    }
+  }
+
+  const resetForm = $('resetPasswordForm');
+  if (resetForm) {
+    resetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('resetEmail').value;
+      const token = $('resetToken').value;
+      const newPassword = $('resetNewPassword').value;
+      
+      const btn = $('resetSubmitBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Updating...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, token, newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showToast('✅ ' + data.message);
+        $('resetPasswordModal').style.display = 'none';
+        resetForm.reset();
+        
+        // Ensure user is on login tab
+        document.querySelectorAll('.auth-tab')[0].click();
+        $('loginEmail').value = email;
+        $('loginPassword').focus();
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
   }
 }
 
@@ -621,10 +713,12 @@ function initNavigation() {
   });
 
   // Logout
-  $('logoutBtn').addEventListener('click', (e) => {
+  $('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
+    try {
+      await fetch('/api/auth/logout', { credentials: 'same-origin' });
+    } catch (err) { console.warn('Logout fetch failed:', err); }
     state.user = null;
-    sessionStorage.removeItem('cintic_state');
     window.location.reload();
   });
 
@@ -1392,25 +1486,33 @@ function applyTheme(theme) {
 
 // ========== INIT ==========
 initTheme();
-loadState();
 initAuth();
+initPasswordReset();
 
-// Auto-login or check for new user
-if (state.user) {
-  $('authPage').classList.remove('active');
-  $('mainApp').style.display = 'block';
-  updateNavUser();
-  initApp();
-} else {
-  // Check if it's the first visit
+// Try to auto-login via JWT cookie
+(async function initSession() {
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+    if (res.ok) {
+      const data = await res.json();
+      state.user = data.user;
+      $('authPage').classList.remove('active');
+      $('mainApp').style.display = 'block';
+      updateNavUser();
+      initApp();
+      return;
+    }
+  } catch (err) {
+    console.warn('Session check failed:', err);
+  }
+
+  // No valid session — show auth page
   const hasVisited = localStorage.getItem('cintic_visited');
   if (!hasVisited) {
-    // New user: Show signup tab and a welcome message
-    document.querySelectorAll('.auth-tab')[1].click(); // Signup tab
+    document.querySelectorAll('.auth-tab')[1].click();
     showToast('Welcome! Join CinTic today to book your favorite movies. 🎬');
     localStorage.setItem('cintic_visited', 'true');
   } else {
-    // Returning user (not logged in): Default to login tab
     document.querySelectorAll('.auth-tab')[0].click();
   }
-}
+})();

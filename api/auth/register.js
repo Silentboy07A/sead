@@ -1,5 +1,6 @@
 const { connectToDatabase } = require('../utils/db');
 const bcrypt = require('bcryptjs');
+const { signToken, buildCookieHeader } = require('../utils/jwt');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -30,6 +31,7 @@ module.exports = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            isAdmin: false,
             created_at: new Date(),
             last_login: new Date(),
             genre_preferences: [],
@@ -37,13 +39,18 @@ module.exports = async (req, res) => {
         };
 
         const result = await usersCollection.insertOne(newUser);
-        
+
+        // Issue JWT cookie
+        const token = signToken(result.insertedId);
+        res.setHeader('Set-Cookie', buildCookieHeader(token));
+
         res.status(201).json({
             message: 'Registration successful!',
             user: {
                 id: result.insertedId,
                 name: newUser.name,
-                email: newUser.email
+                email: newUser.email,
+                isAdmin: false
             }
         });
 

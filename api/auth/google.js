@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { connectToDatabase } = require('../utils/db');
 const { OAuth2Client } = require('google-auth-library');
+const { signToken, buildCookieHeader } = require('../utils/jwt');
 
 // Use env var, cleaned of newlines. Fallback to hardcoded value if env var is missing or corrupted.
 const GOOGLE_CLIENT_ID = ((process.env.GOOGLE_CLIENT_ID || '').trim())
@@ -59,6 +60,7 @@ module.exports = async (req, res) => {
                 },
                 $setOnInsert: {
                     googleId: googleId,
+                    isAdmin: false,
                     created_at: new Date(),
                     genre_preferences: [],
                     bookings: []
@@ -74,7 +76,11 @@ module.exports = async (req, res) => {
         const user = result.value;
         const isNewUser = !result.lastErrorObject.updatedExisting;
 
-        // 5. Send User session back to frontend
+        // 5. Issue JWT cookie
+        const token = signToken(user._id);
+        res.setHeader('Set-Cookie', buildCookieHeader(token));
+
+        // 6. Send User session back to frontend
         res.status(200).json({
             message: isNewUser ? 'Welcome to CineBook!' : 'Welcome back!',
             isNewUser: isNewUser,
@@ -82,7 +88,8 @@ module.exports = async (req, res) => {
                 id: user._id,
                 name: user.name || name,
                 email: user.email || email,
-                picture: user.picture || picture
+                picture: user.picture || picture,
+                isAdmin: user.isAdmin || false
             }
         });
 
