@@ -320,7 +320,7 @@ function updateSignupBtn() {
   $('signupBtn').disabled = !(nameOk && emailOk && passOk && confOk);
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
   const emailOk = validateLoginEmail();
   const passOk = validatePasswordField('loginPassword', 'loginPasswordError', 'loginStrengthBar', 'loginStrengthLabel', 'loginChecklist');
@@ -330,20 +330,39 @@ function handleLogin(e) {
     return;
   }
   const btn = $('loginBtn');
+  const originalHtml = btn.innerHTML;
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
-  setTimeout(() => {
+
+  try {
     const email = $('loginEmail').value;
-    const name = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    state.user = { name, email, bookings: [] };
+    const password = $('loginPassword').value;
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    state.user = data.user;
     saveState();
     btn.innerHTML = '✓';
-    showToast('Welcome back, ' + name + '! 🎬');
-    setTimeout(() => enterApp(), 1500);
-  }, 1500);
+    showToast(`Welcome back, ${state.user.name}! 🎬`);
+    setTimeout(() => enterApp(), 1000);
+  } catch (error) {
+    console.error('Login error:', error);
+    showToast(error.message);
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+    $('authFormCard').classList.add('shake');
+    setTimeout(() => $('authFormCard').classList.remove('shake'), 500);
+  }
 }
 
-function handleSignup(e) {
+async function handleSignup(e) {
   e.preventDefault();
   if ($('signupBtn').disabled) {
     $('authFormCard').classList.add('shake');
@@ -351,17 +370,37 @@ function handleSignup(e) {
     return;
   }
   const btn = $('signupBtn');
+  const originalHtml = btn.innerHTML;
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
-  setTimeout(() => {
+
+  try {
     const name = $('signupName').value;
     const email = $('signupEmail').value;
-    state.user = { name, email, bookings: [] };
+    const password = $('signupPassword').value;
+
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+    state.user = data.user;
     saveState();
     btn.innerHTML = '✓';
-    showToast('Welcome, ' + name + '! 🎬');
-    setTimeout(() => enterApp(), 1500);
-  }, 1500);
+    showToast(`Welcome, ${state.user.name}! 🎬`);
+    setTimeout(() => enterApp(), 1000);
+  } catch (error) {
+    console.error('Signup error:', error);
+    showToast(error.message);
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+    $('authFormCard').classList.add('shake');
+    setTimeout(() => $('authFormCard').classList.remove('shake'), 500);
+  }
 }
 
 function enterApp() {
