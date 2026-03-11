@@ -139,6 +139,7 @@ async function handleGoogleLogin(response) {
     if (!res.ok) throw new Error(data.error || 'Google login failed');
 
     state.user = data.user;
+    if (!state.user.bookings) state.user.bookings = [];
     saveState();
 
     showToast(`Welcome, ${state.user.name}! 🎬`);
@@ -324,7 +325,7 @@ function handleLogin(e) {
   setTimeout(() => {
     const email = $('loginEmail').value;
     const name = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    state.user = { name, email };
+    state.user = { name, email, bookings: [] };
     saveState();
     btn.innerHTML = '✓';
     showToast('Welcome back, ' + name + '! 🎬');
@@ -345,7 +346,7 @@ function handleSignup(e) {
   setTimeout(() => {
     const name = $('signupName').value;
     const email = $('signupEmail').value;
-    state.user = { name, email };
+    state.user = { name, email, bookings: [] };
     saveState();
     btn.innerHTML = '✓';
     showToast('Welcome, ' + name + '! 🎬');
@@ -590,6 +591,9 @@ function initNavigation() {
 }
 
 function showPage(id) {
+  if (id === 'myBookingsSection') {
+    renderMyBookings();
+  }
   document.querySelectorAll('#mainApp .page').forEach(p => p.classList.remove('active'));
   $(id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
@@ -852,7 +856,24 @@ function renderPayment() {
     $('confirmPayBtn').innerHTML = '<div class="spinner"></div> Processing...';
     $('confirmPayBtn').disabled = true;
     setTimeout(() => {
-      renderTicket(total + convFee, dateStr);
+      const bookingId = 'CB' + Date.now().toString(36).toUpperCase();
+
+      if (state.user) {
+        if (!state.user.bookings) state.user.bookings = [];
+        state.user.bookings.unshift({
+          id: bookingId,
+          movie: state.selectedMovie.title,
+          poster: state.selectedMovie.poster,
+          theatre: state.selectedTheatre.name + ', ' + state.selectedTheatre.location,
+          date: dateStr,
+          time: state.selectedShow.time + ' (' + state.selectedShow.format + ')',
+          seats: state.selectedSeats.join(', '),
+          amount: total + convFee
+        });
+        saveState();
+      }
+
+      renderTicket(total + convFee, dateStr, bookingId);
       showPage('ticketSection');
       $('confirmPayBtn').innerHTML = '🔒 Confirm & Pay';
       $('confirmPayBtn').disabled = false;
@@ -861,11 +882,11 @@ function renderPayment() {
 }
 
 // ========== E-TICKET ==========
-function renderTicket(totalAmount, dateStr) {
+function renderTicket(totalAmount, dateStr, passBookingId) {
   const m = state.selectedMovie;
   const t = state.selectedTheatre;
   const s = state.selectedShow;
-  const bookingId = 'CB' + Date.now().toString(36).toUpperCase();
+  const bookingId = passBookingId || ('CB' + Date.now().toString(36).toUpperCase());
 
   $('ticketMovieName').textContent = m.title;
   $('ticketTheatre').textContent = t.name + ', ' + t.location;
@@ -968,6 +989,32 @@ function drawQR(bookingId, ticketInfo) {
     ctx.fillStyle = '#000'; ctx.font = '9px monospace';
     ctx.fillText('ID: ' + bookingId, 8, 60);
   }
+}
+// ========== MY BOOKINGS ==========
+function renderMyBookings() {
+  const container = $('myBookingsList');
+  if (!container) return;
+  if (!state.user || !state.user.bookings || state.user.bookings.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:4rem;">No bookings found.</div>';
+    return;
+  }
+
+  container.innerHTML = state.user.bookings.map(b => `
+    <div class="ticket-card" style="margin: 0 auto; margin-bottom: 2rem;">
+      <div class="ticket-card-header">
+        <h3 style="margin:0">${b.movie}</h3>
+        <span class="ticket-logo">CinTic</span>
+      </div>
+      <div class="ticket-card-body">
+        <div class="ticket-field"><div class="tf-label">Theatre</div><div class="tf-value">${b.theatre}</div></div>
+        <div class="ticket-field"><div class="tf-label">Date</div><div class="tf-value">${b.date}</div></div>
+        <div class="ticket-field"><div class="tf-label">Time</div><div class="tf-value">${b.time}</div></div>
+        <div class="ticket-field"><div class="tf-label">Seats</div><div class="tf-value">${b.seats}</div></div>
+        <div class="ticket-field"><div class="tf-label">Amount Paid</div><div class="tf-value">₹${b.amount.toLocaleString()}</div></div>
+        <div class="ticket-field"><div class="tf-label">Booking ID</div><div class="tf-value">${b.id}</div></div>
+      </div>
+    </div>
+  `).join('');
 }
 
 // ========== THEME TOGGLE ==========

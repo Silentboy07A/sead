@@ -202,7 +202,7 @@
             <div class="nav-links" id="navLinks">
                 <a data-section="heroSection" class="active">Home</a>
                 <a data-section="moviesSection">Movies</a>
-                <a id="myBookingsNav">My Bookings</a>
+                <a data-section="myBookingsSection" id="myBookingsNav">My Bookings</a>
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light theme">
                     <div class="theme-toggle-knob" id="themeKnob">🌙</div>
                 </button>
@@ -447,6 +447,18 @@
                     <button class="btn-download" id="downloadTicket">📄 Download PDF</button>
                     <button class="btn-share" id="shareTicket">🔗 Share</button>
                     <button class="btn-primary" id="backToHome" style="margin-left:auto">← Back to Home</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MY BOOKINGS -->
+        <section class="page" id="myBookingsSection">
+            <div class="theatre-section">
+                <div class="theatre-header">
+                    <h2 class="section-title">My <span>Bookings</span></h2>
+                </div>
+                <div id="myBookingsList" style="display:flex;flex-direction:column;gap:1.5rem;margin-top:2rem;">
+                    <!-- Tickets will be rendered here -->
                 </div>
             </div>
         </section>
