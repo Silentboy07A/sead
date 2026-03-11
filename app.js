@@ -579,6 +579,18 @@ function initNavigation() {
     window.location.reload();
   });
 
+  // Profile Modal
+  $('profileBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (state.user) {
+      $('profileName').textContent = state.user.name;
+      $('profileEmail').textContent = state.user.email;
+      $('profileAvatar').textContent = state.user.name.charAt(0).toUpperCase();
+      $('profileJoined').textContent = 'Today';
+    }
+    $('profileModal').style.display = 'flex';
+  });
+
   // Back buttons
   $('backToMovies').addEventListener('click', () => showPage('heroSection'));
   $('backToTheatres').addEventListener('click', () => showPage('theatreSection'));
