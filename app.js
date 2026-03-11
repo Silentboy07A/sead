@@ -802,6 +802,43 @@ function renderPayment() {
 
   // Confirm payment
   $('confirmPayBtn').onclick = () => {
+    const cardNum = $('cardNumber').value.replace(/\s+/g, '');
+    const cardExp = $('cardExpiry').value;
+    const cardCvv = $('cardCvv').value;
+    const cardName = $('cardName').value;
+
+    if (cardNum.length !== 16) {
+      showToast('Card number must be 16 digits');
+      return;
+    }
+    if (!/^\d{2}\/\d{2}$/.test(cardExp)) {
+      showToast('Invalid expiry format (MM/YY)');
+      return;
+    }
+    const [mm, yy] = cardExp.split('/');
+    const month = parseInt(mm, 10);
+    const year = parseInt('20' + yy, 10);
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    if (month < 1 || month > 12) {
+      showToast('Invalid expiry month');
+      return;
+    }
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+      showToast('Card has expired');
+      return;
+    }
+    if (cardCvv.length < 3) {
+      showToast('Invalid CVV');
+      return;
+    }
+    if (!cardName.trim()) {
+      showToast('Please enter name on card');
+      return;
+    }
+
     $('confirmPayBtn').innerHTML = '<div class="spinner"></div> Processing...';
     $('confirmPayBtn').disabled = true;
     setTimeout(() => {
