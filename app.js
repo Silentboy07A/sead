@@ -365,33 +365,8 @@ function updateNavUser() {
     const initial = state.user.name.charAt(0).toUpperCase();
     $('navAvatar').textContent = initial;
     $('navUserName').textContent = state.user.name;
-
-    // Toggle dropdown
-    const navUser = $('navUser');
-    const dropdown = $('userDropdown');
-
-    if (navUser && dropdown) {
-      navUser.onclick = (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle('show');
-      };
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', () => {
-        dropdown.classList.remove('show');
-      });
-    }
-
-    // Handle Logout
-    const logoutBtn = $('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.onclick = (e) => {
-        e.preventDefault();
-        state.user = null;
-        sessionStorage.removeItem('cintic_state');
-        window.location.reload();
-      };
-    }
+    // Note: The event listeners for toggling the dropdown and logging out
+    // are now handled once in initNavigation() to prevent duplication.
   }
 }
 
@@ -584,25 +559,23 @@ function initNavigation() {
   $('navLogo').addEventListener('click', () => showPage('heroSection'));
   $('navToggle').addEventListener('click', () => $('navLinks').classList.toggle('open'));
 
-  // User dropdown
+  // User dropdown toggle
   $('navUser').addEventListener('click', (e) => {
     e.stopPropagation();
     $('userDropdown').classList.toggle('show');
   });
-  document.addEventListener('click', () => $('userDropdown').classList.remove('show'));
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', () => {
+    $('userDropdown').classList.remove('show');
+  });
 
   // Logout
-  $('logoutBtn').addEventListener('click', () => {
+  $('logoutBtn').addEventListener('click', (e) => {
+    e.preventDefault();
     state.user = null;
-    localStorage.removeItem('cintic_state');
-    $('mainApp').style.display = 'none';
-    $('authPage').classList.add('active');
-    // Reset forms
-    $('loginForm').reset();
-    $('signupForm').reset();
-    $('loginBtn').disabled = true;
-    $('signupBtn').disabled = true;
-    showToast('Logged out successfully');
+    sessionStorage.removeItem('cintic_state');
+    window.location.reload();
   });
 
   // Back buttons
@@ -617,14 +590,6 @@ function initNavigation() {
 }
 
 function showPage(id) {
-  // Fix for blank screen: moviesSection is a child of heroSection
-  if (id === 'moviesSection') {
-    id = 'heroSection';
-    setTimeout(() => {
-      $('moviesSection')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }
-
   document.querySelectorAll('#mainApp .page').forEach(p => p.classList.remove('active'));
   $(id).classList.add('active');
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
