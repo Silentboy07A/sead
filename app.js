@@ -579,6 +579,88 @@ function initNavigation() {
     window.location.reload();
   });
 
+  // Global Search Logic
+  const globalInput = $('globalSearchInput');
+  const globalResults = $('globalSearchResults');
+
+  if (globalInput && globalResults) {
+    globalInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        globalResults.style.display = 'none';
+        return;
+      }
+
+      const matchedMovies = MOVIES.filter(m =>
+        m.title.toLowerCase().includes(query) ||
+        m.genre.toLowerCase().includes(query)
+      ).slice(0, 5); // top 5 results
+
+      const matchedTheatres = THEATRES.filter(t =>
+        t.name.toLowerCase().includes(query) ||
+        t.location.toLowerCase().includes(query) ||
+        t.city.toLowerCase().includes(query)
+      ).slice(0, 3);
+
+      let html = '';
+      if (matchedMovies.length > 0) {
+        html += '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;">Movies</div>';
+        matchedMovies.forEach(m => {
+          html += `
+            <div class="global-search-item fade-in" onclick="selectMovieFromGlobal(${m.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
+              <img src="${m.poster}" style="width:30px;height:40px;border-radius:4px;object-fit:cover;">
+              <div>
+                <div style="font-size:0.9rem;font-weight:500;">${m.title}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${m.genre}</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      if (matchedTheatres.length > 0) {
+        if (html !== '') html += '<div style="margin:0.5rem 0;border-top:1px solid rgba(255,255,255,0.1);"></div>';
+        html += '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;">Theatres</div>';
+        matchedTheatres.forEach(t => {
+          html += `
+            <div class="global-search-item fade-in" onclick="selectTheatreFromGlobal(${t.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
+              <div style="font-size:1.2rem;opacity:0.6;">🍿</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:500;">${t.name}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${t.location}, ${t.city}</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      if (html === '') {
+        html = '<div style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No results found.</div>';
+      }
+
+      globalResults.innerHTML = html;
+      globalResults.style.display = 'block';
+    });
+
+    // Add styles dynamically for hover effect
+    if (!document.getElementById('globalSearchStyles')) {
+      const style = document.createElement('style');
+      style.id = 'globalSearchStyles';
+      style.innerHTML = `
+        .global-search-item:hover { background: rgba(255,255,255,0.05); }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (globalInput && globalResults && !globalInput.contains(e.target) && !globalResults.contains(e.target)) {
+      globalResults.style.display = 'none';
+      globalInput.value = '';
+    }
+  });
+
   // Profile Modal
   $('profileBtn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -600,6 +682,37 @@ function initNavigation() {
     state.selectedSeats = [];
     showPage('heroSection');
   });
+}
+
+// ========== GLOBAL SEARCH HELPERS ==========
+function selectMovieFromGlobal(movieId) {
+  const movie = MOVIES.find(m => m.id === movieId);
+  if (movie) {
+    if ($('globalSearchResults')) $('globalSearchResults').style.display = 'none';
+    if ($('globalSearchInput')) $('globalSearchInput').value = '';
+    selectMovie(movie);
+  }
+}
+
+function selectTheatreFromGlobal(theatreId) {
+  if ($('globalSearchResults')) $('globalSearchResults').style.display = 'none';
+  if ($('globalSearchInput')) $('globalSearchInput').value = '';
+
+  // If they haven't picked a movie yet, they can't book. Let's redirect to home to pick one
+  if (!state.selectedMovie) {
+    alert('Please select a movie first to see showtimes at this theatre.');
+    showPage('heroSection');
+    return;
+  }
+
+  // If they have a movie, we can re-render theatres and scroll them to it
+  showPage('theatreSection');
+  const searchInput = $('theatreSearchInput');
+  const theatre = THEATRES.find(t => t.id === theatreId);
+  if (searchInput && theatre) {
+    searchInput.value = theatre.name;
+    renderTheatres();
+  }
 }
 
 function showPage(id) {

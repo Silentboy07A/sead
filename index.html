@@ -203,6 +203,21 @@
                 <a data-section="heroSection" class="active">Home</a>
                 <a data-section="moviesSection">Movies</a>
                 <a data-section="myBookingsSection" id="myBookingsNav">My Bookings</a>
+
+                <!-- Global Search -->
+                <div class="global-search-container" style="position: relative; margin-left: 1rem;">
+                    <div
+                        style="background: rgba(255,255,255,0.1); border-radius: 2rem; padding: 0.4rem 1rem; display: flex; align-items: center;">
+                        <span style="color: var(--text-muted); margin-right: 0.5rem;">🔍</span>
+                        <input type="text" id="globalSearchInput" placeholder="Search movies..."
+                            style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 0.9rem;">
+                    </div>
+                    <div id="globalSearchResults" class="global-search-dropdown"
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--surface); width: 250px; border-radius: 1rem; margin-top: 0.5rem; padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid rgba(255,255,255,0.1); max-height: 400px; overflow-y: auto;">
+                        <!-- Results injected here via JS -->
+                    </div>
+                </div>
+
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light theme">
                     <div class="theme-toggle-knob" id="themeKnob">🌙</div>
                 </button>

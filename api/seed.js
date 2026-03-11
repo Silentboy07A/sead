@@ -31,6 +31,10 @@ const MOVIES_SEED = [
     { _id: 24, title: "Demon Slayer: Mugen Train", year: 2020, genre: "Anime", language: "Japanese", rating: 8.3, duration: "1h 57m", description: "Tanjiro and friends join the Flame Hashira Rengoku on a mysterious train.", poster: TMDB_BASE + "/h8Rb9gBr48ODIwYUttZNYeMWeUU.jpg" },
     { _id: 25, title: "The Platform", year: 2019, genre: "Sci-Fi", language: "Spanish", rating: 7.0, duration: "1h 34m", description: "A vertical prison with one food platform and two prisoners per level.", poster: TMDB_BASE + "/iXvQnzy6JCAx1PiQEKXuTY04ZHl.jpg" },
     { _id: 26, title: "Money Heist: The Phenomenon", year: 2020, genre: "Documentary", language: "Spanish", rating: 7.6, duration: "1h 36m", description: "A look at how the Spanish heist series became a global sensation.", poster: TMDB_BASE + "/AboUXTrDWEi0PuZUqaft0iwBTm7.jpg" },
+    { _id: 27, title: "F1", year: 2025, genre: "Action", language: "English", rating: 8.0, duration: "2h 30m", description: "A former Formula 1 driver makes a comeback to mentor a young teammate.", poster: TMDB_BASE + "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
+    { _id: 28, title: "Dhurandhar", year: 2025, genre: "Action", language: "Hindi", rating: 7.9, duration: "2h 20m", description: "An undercover agent embarks on a high-stakes mission across international borders.", poster: TMDB_BASE + "/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg" },
+    { _id: 29, title: "Kantara: Chapter 1", year: 2025, genre: "Action", language: "Kannada", rating: 8.5, duration: "2h 45m", description: "A prequel exploring the origins of the Panjurli deity and the conflict over forest lands.", poster: TMDB_BASE + "/t5ePZYRibJ0EEK1FK3GhihVkDW5.jpg" },
+    { _id: 30, title: "Su", year: 2024, genre: "Drama", language: "Tamil", rating: 7.4, duration: "2h 10m", description: "A gripping tale of survival and self-discovery in the modern urban landscape.", poster: TMDB_BASE + "/yx7AYFLoupzBfdfEAlDFuOiei2A.jpg" }
 ];
 
 const THEATRES_SEED = [
