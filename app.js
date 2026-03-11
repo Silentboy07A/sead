@@ -455,7 +455,7 @@ function renderGenreTabs() {
 // ========== MOVIE GRID ==========
 function renderMovies(genre, searchTerm = '', lang = '', city = '') {
   let filtered = MOVIES;
-  if (genre && genre !== 'All') filtered = filtered.filter(m => m.genre === genre);
+  if (genre && genre !== 'All') filtered = filtered.filter(m => m.genre.includes(genre));
   if (searchTerm) {
     const s = searchTerm.toLowerCase();
     filtered = filtered.filter(m =>
