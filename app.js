@@ -10,7 +10,6 @@ let THEATRES = [];
 const SEAT_PRICES = { gold: 150, silver: 200, platinum: 300 };
 const GENRES = ["All", "Action", "Comedy", "Drama", "Horror", "Thriller", "Sci-Fi", "Romance"];
 
-// ========== APP STATE ==========
 const state = {
   user: null,
   movies: [],
@@ -22,7 +21,8 @@ const state = {
   takenSeats: [], // mock taken
   lockedSeats: [], // active real-time locks
   lockExpires: null,
-  lockInterval: null
+  lockInterval: null,
+  activePersona: 'Cinephile'
 };
 
 const SNACKS = [
@@ -839,6 +839,13 @@ function initNavigation() {
       $('profileEmail').textContent = state.user.email;
       $('profileAvatar').textContent = state.user.name.charAt(0).toUpperCase();
       $('profileJoined').textContent = 'Today';
+      
+      // Update points UI
+      const points = state.user.points || 0;
+      const progress = Math.min(100, (points / 1000) * 100);
+      $('profilePoints').textContent = points.toLocaleString();
+      $('pointsProgress').style.width = progress + '%';
+      $('pointsToNext').textContent = points >= 1000 ? 'You have a free snack!' : `${1000 - points} more to free snack`;
     }
     if ($('userDropdown')) $('userDropdown').classList.remove('show');
     $('profileModal').style.display = 'flex';
@@ -887,7 +894,15 @@ function initNavigation() {
     showPage('paymentSection');
   });
 
-  // confirmSnacks click listener is now handled dynamically in showPage
+  // Persona Selection
+  document.querySelectorAll('.persona-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.activePersona = btn.dataset.persona;
+      recommendSeats(); // Auto-update recommendation
+    });
+  });
 }
 
 // ========== GLOBAL SEARCH HELPERS ==========
@@ -1228,6 +1243,15 @@ function updateSnackQty(id, delta) {
   
   if (navigator.vibrate) navigator.vibrate(5);
   renderSnacks();
+
+  // Add pop animation to the changed card
+  const card = document.querySelector(`.snack-card[onclick*="'${id}'"]`) || 
+               document.querySelector(`.snack-card:has(button[onclick*="'${id}'"])`);
+  if (card) {
+    card.classList.remove('pop-anim');
+    void card.offsetWidth; // trigger reflow
+    card.classList.add('pop-anim');
+  }
 }
 
 function updateSnacksSummary() {
@@ -1342,27 +1366,53 @@ function updateSeatSummary() {
 function recommendSeats() {
   const n = parseInt($('groupSize').value) || 2;
   const genre = state.selectedMovie?.genre || 'Drama';
+  const persona = state.activePersona || 'Cinephile';
   state.selectedSeats = [];
+  
   const rows = 'ABCDEFGHIJ'.split('');
-  let targetRows;
-  if (['Action', 'Thriller'].includes(genre)) {
-    targetRows = ['D', 'E', 'F', 'G'];
-  } else {
-    targetRows = ['E', 'F', 'D', 'G'];
+  let targetRows = [];
+
+  // Persona-based row targeting
+  if (persona === 'Couple') {
+    targetRows = ['J', 'I', 'H']; // Back rows (Platinum)
+  } else if (persona === 'Cinephile') {
+    targetRows = ['F', 'E', 'G', 'D']; // Center-middle (Prime viewing)
+  } else { // Family
+    targetRows = ['D', 'E', 'F', 'G']; // Silver rows (Balanced)
   }
+
   let found = false;
   for (const row of targetRows) {
     if (found) break;
     const available = [];
     for (let s = 1; s <= 10; s++) {
       const seatId = row + s;
-      if (!state.takenSeats.includes(seatId)) available.push(seatId);
+      if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) {
+        available.push(seatId);
+      }
     }
-    if (n <= 3) {
+
+    if (persona === 'Couple' && n === 2) {
+      // Prefer corners for couples
+      const corners = available.filter(s => { const num = parseInt(s.slice(1)); return num <= 2 || num >= 9; });
+      if (corners.length >= 2) {
+        // Find consecutive corner seats
+        for (let i = 0; i < corners.length - 1; i++) {
+          const n1 = parseInt(corners[i].slice(1));
+          const n2 = parseInt(corners[i+1].slice(1));
+          if (n2 === n1 + 1) { state.selectedSeats = [corners[i], corners[i+1]]; found = true; break; }
+        }
+      }
+    }
+
+    if (!found && persona === 'Cinephile') {
+      // Prefer exact center (5,6)
       const center = available.filter(s => { const num = parseInt(s.slice(1)); return num >= 4 && num <= 7; });
       if (center.length >= n) { state.selectedSeats = center.slice(0, n); found = true; }
     }
-    if (!found && n >= 4) {
+
+    if (!found) {
+      // Standard consecutive logic
       for (let i = 0; i <= available.length - n; i++) {
         const chunk = available.slice(i, i + n);
         const nums = chunk.map(s => parseInt(s.slice(1)));
@@ -1370,20 +1420,27 @@ function recommendSeats() {
         if (consecutive) { state.selectedSeats = chunk; found = true; break; }
       }
     }
-    if (!found && available.length >= n) { state.selectedSeats = available.slice(0, n); found = true; }
   }
+
   if (!found) {
+    // Fallback to any row
     for (const row of rows) {
+      if (found) break;
       const available = [];
       for (let s = 1; s <= 10; s++) {
         const seatId = row + s;
-        if (!state.takenSeats.includes(seatId)) available.push(seatId);
+        if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) available.push(seatId);
       }
       if (available.length >= n) { state.selectedSeats = available.slice(0, n); found = true; break; }
     }
   }
-  if (found) showToast(`Recommended ${n} seats!`);
-  else showToast('Not enough seats available');
+
+  if (found) {
+    if (navigator.vibrate) navigator.vibrate(10);
+    showToast(`Recommended ${n} seats for ${persona}! ✨`);
+  } else {
+    showToast('Not enough consecutive seats found.');
+  }
   renderSeats();
 }
 
@@ -1417,7 +1474,7 @@ function renderPayment() {
   const dateStr = today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
   $('orderSummary').innerHTML = `
-    <h2>Order Summary</h2>
+    <h2>Summary</h2>
     <div class="order-detail"><span class="label">Movie</span><span>${m.title}</span></div>
     <div class="order-detail"><span class="label">Theatre</span><span>${t.name}</span></div>
     <div class="order-detail"><span class="label">Date</span><span>${dateStr}</span></div>
@@ -1499,6 +1556,11 @@ function renderPayment() {
 
       if (state.user) {
         if (!state.user.bookings) state.user.bookings = [];
+        
+        // Award CinePoints (10% of booking total)
+        const pointsEarned = Math.floor(finalTotal * 0.1);
+        state.user.points = (state.user.points || 0) + pointsEarned;
+        
         state.user.bookings.unshift({
           id: bookingId,
           movie: state.selectedMovie.title,
@@ -1507,9 +1569,11 @@ function renderPayment() {
           date: dateStr,
           time: state.selectedShow.time + ' (' + state.selectedShow.format + ')',
           seats: state.selectedSeats.join(', '),
-          amount: finalTotal
+          amount: finalTotal,
+          pointsEarned: pointsEarned
         });
         saveState();
+        showToast(`Congrats! You earned ${pointsEarned} CinePoints! 🌟`);
       }
 
       renderTicket(finalTotal, dateStr, bookingId);
@@ -1584,12 +1648,9 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
     }
   };
   $('shareTicket').onclick = () => {
-    if (navigator.share && false) {
-      navigator.share({ title: 'CinTic Ticket', text: `${m.title} at ${t.name} — ${s.time} on ${dateStr}` });
-    } else {
-      navigator.clipboard.writeText(`CinTic Ticket: ${m.title} at ${t.name}, ${s.time}, Seats: ${state.selectedSeats.join(', ')}`);
-      showToast('Ticket link copied!');
-    }
+    const shareUrl = `${window.location.origin}${window.location.pathname}?movie=${btoa(m.title)}&theatre=${btoa(t.name)}`;
+    navigator.clipboard.writeText(`🍿 Movie Night Invitation!\n\nI just booked tickets for "${m.title}" at ${t.name}.\nJoin me for the ${s.time} show!\n\nBook here: ${shareUrl}`);
+    showToast('Invitation link copied! Share it with friends. 👥');
   };
 }
 
