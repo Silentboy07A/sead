@@ -1365,20 +1365,18 @@ function updateSeatSummary() {
 // ========== SMART RECOMMENDATION ==========
 function recommendSeats() {
   const n = parseInt($('groupSize').value) || 2;
-  const genre = state.selectedMovie?.genre || 'Drama';
   const persona = state.activePersona || 'Cinephile';
   state.selectedSeats = [];
   
   const rows = 'ABCDEFGHIJ'.split('');
   let targetRows = [];
 
-  // Persona-based row targeting
   if (persona === 'Couple') {
     targetRows = ['J', 'I', 'H']; // Back rows (Platinum)
   } else if (persona === 'Cinephile') {
-    targetRows = ['F', 'E', 'G', 'D']; // Center-middle (Prime viewing)
-  } else { // Family
-    targetRows = ['D', 'E', 'F', 'G']; // Silver rows (Balanced)
+    targetRows = ['F', 'E', 'G', 'D']; // Center-middle
+  } else { // Family or Friends
+    targetRows = ['D', 'E', 'F', 'G', 'C', 'B']; // Silver/Gold mid sections
   }
 
   let found = false;
@@ -1393,37 +1391,47 @@ function recommendSeats() {
     }
 
     if (persona === 'Couple' && n === 2) {
-      // Prefer corners for couples
-      const corners = available.filter(s => { const num = parseInt(s.slice(1)); return num <= 2 || num >= 9; });
-      if (corners.length >= 2) {
-        // Find consecutive corner seats
-        for (let i = 0; i < corners.length - 1; i++) {
-          const n1 = parseInt(corners[i].slice(1));
-          const n2 = parseInt(corners[i+1].slice(1));
-          if (n2 === n1 + 1) { state.selectedSeats = [corners[i], corners[i+1]]; found = true; break; }
-        }
-      }
-    }
+      // Strictly look for 2 corner seats: (1,2) or (9,10)
+      const leftCorner = [row + '1', row + '2'];
+      const rightCorner = [row + '9', row + '10'];
+      
+      const leftAvail = leftCorner.every(s => available.includes(s));
+      const rightAvail = rightCorner.every(s => available.includes(s));
 
-    if (!found && persona === 'Cinephile') {
-      // Prefer exact center (5,6)
-      const center = available.filter(s => { const num = parseInt(s.slice(1)); return num >= 4 && num <= 7; });
-      if (center.length >= n) { state.selectedSeats = center.slice(0, n); found = true; }
-    }
-
-    if (!found) {
-      // Standard consecutive logic
+      if (leftAvail) { state.selectedSeats = leftCorner; found = true; }
+      else if (rightAvail) { state.selectedSeats = rightCorner; found = true; }
+    } else if (persona === 'Cinephile') {
+      // Center seats priority (seats 4-7)
       for (let i = 0; i <= available.length - n; i++) {
         const chunk = available.slice(i, i + n);
         const nums = chunk.map(s => parseInt(s.slice(1)));
         const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
-        if (consecutive) { state.selectedSeats = chunk; found = true; break; }
+        if (consecutive) {
+          // Check if at least one seat is a "prime" center seat (4-7)
+          if (nums.some(num => num >= 4 && num <= 7)) {
+            state.selectedSeats = chunk;
+            found = true;
+            break;
+          }
+        }
+      }
+    } else {
+      // Family/Friends - Strictly together (consecutive in same row)
+      for (let i = 0; i <= available.length - n; i++) {
+        const chunk = available.slice(i, i + n);
+        const nums = chunk.map(s => parseInt(s.slice(1)));
+        const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
+        if (consecutive) {
+          state.selectedSeats = chunk;
+          found = true;
+          break;
+        }
       }
     }
   }
 
+  // Final fallback if persona-specific logic fails: search any row for ANY n consecutive seats
   if (!found) {
-    // Fallback to any row
     for (const row of rows) {
       if (found) break;
       const available = [];
@@ -1431,15 +1439,24 @@ function recommendSeats() {
         const seatId = row + s;
         if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) available.push(seatId);
       }
-      if (available.length >= n) { state.selectedSeats = available.slice(0, n); found = true; break; }
+      for (let i = 0; i <= available.length - n; i++) {
+        const chunk = available.slice(i, i + n);
+        const nums = chunk.map(s => parseInt(s.slice(1)));
+        const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
+        if (consecutive) {
+          state.selectedSeats = chunk;
+          found = true;
+          break;
+        }
+      }
     }
   }
 
   if (found) {
     if (navigator.vibrate) navigator.vibrate(10);
-    showToast(`Recommended ${n} seats for ${persona}! ✨`);
+    showToast(`Found ${n} seats for ${persona}! Togetherness guaranteed.`);
   } else {
-    showToast('Not enough consecutive seats found.');
+    showToast('Could not find enough consecutive seats. Try a smaller group!');
   }
   renderSeats();
 }
