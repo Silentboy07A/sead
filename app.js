@@ -559,12 +559,13 @@ async function initApp() {
     THEATRES = await theatresRes.json();
 
     // Rewrite TMDB poster URLs through local proxy to avoid CORS issues
-    MOVIES = MOVIES.map(m => ({
-      ...m,
-      poster: m.poster && m.poster.includes('image.tmdb.org')
-        ? `/api/poster?url=${encodeURIComponent(m.poster)}`
-        : m.poster
-    }));
+    MOVIES = MOVIES.map(m => {
+      let posterUrl = m.poster;
+      if (posterUrl && (posterUrl.includes('image.tmdb.org') || posterUrl.startsWith('https://image.tmdb.org'))) {
+        posterUrl = `/api/poster?url=${encodeURIComponent(posterUrl)}`;
+      }
+      return { ...m, poster: posterUrl };
+    });
   } catch (error) {
     console.error('Error fetching data:', error);
     showToast('Failed to load data from database.');
@@ -598,7 +599,10 @@ function generateTakenSeats() {
 // ========== HERO ==========
 function renderHero() {
   const m = MOVIES[0];
-  $('heroBg').style.backgroundImage = `url(${m.poster})`;
+  if (!m) return;
+  const posterUrl = m.poster.startsWith('/') ? m.poster : `/api/poster?url=${encodeURIComponent(m.poster)}`;
+  
+  $('heroBg').style.backgroundImage = `url(${posterUrl})`;
   $('heroTitle').textContent = m.title;
   $('heroRating').textContent = 'Rating ' + m.rating;
   $('heroDuration').textContent = m.duration + ' • ' + m.language;
@@ -648,7 +652,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
     return `
     <div class="movie-card" data-id="${m.id}">
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
-        <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
+        <img class="movie-poster" src="/api/poster?url=${encodeURIComponent(m.poster)}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
           <div style="font-size:2.8rem;margin-bottom:0.6rem">🎬</div>
           <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
@@ -803,7 +807,7 @@ function initNavigation() {
         matchedMovies.forEach(m => {
           html += `
             <div class="global-search-item fade-in" onclick="selectMovieFromGlobal(${m.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
-              <img src="${m.poster}" style="width:30px;height:40px;border-radius:4px;object-fit:cover;">
+              <img src="/api/poster?url=${encodeURIComponent(m.poster)}" style="width:30px;height:40px;border-radius:4px;object-fit:cover;">
               <div>
                 <div style="font-size:0.9rem;font-weight:500;">${m.title}</div>
                 <div style="font-size:0.75rem;color:var(--text-muted);">${m.genre}</div>
@@ -1084,10 +1088,10 @@ function selectMovie(movie) {
 function renderTheatres() {
   const m = state.selectedMovie;
   if ($('selectedMovieInfo')) {
-    $('selectedMovieInfo').style.setProperty('--movie-bg', `url(${m.poster})`);
+    $('selectedMovieInfo').style.setProperty('--movie-bg', `url(/api/poster?url=${encodeURIComponent(m.poster)})`);
   }
   $('selectedMovieInfo').innerHTML = `
-    <img src="${m.poster}" alt="${m.title}" onerror="this.style.background='#1a1a2e'">
+    <img src="/api/poster?url=${encodeURIComponent(m.poster)}" alt="${m.title}" onerror="this.style.background='#1a1a2e'">
     <div class="movie-details">
       <h3>${m.title}</h3>
       <p>${m.genre} • ${m.language} • ${m.duration} • Rating ${m.rating}</p>
