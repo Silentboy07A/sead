@@ -451,7 +451,11 @@ function initPasswordReset() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        showToast(data.message);
+        if (data.testMode && data.resetLink) {
+          showToast(`Test Link: <a href="${data.resetLink}" style="color:var(--gold);text-decoration:underline;">Click here to Reset</a>`, 10000);
+        } else {
+          showToast(data.message);
+        }
         forgotModal.style.display = 'none';
         forgotForm.reset();
       } catch (err) {
@@ -1596,10 +1600,14 @@ function drawQR(bookingId, ticketInfo) {
       seats: ticketInfo.seats
     });
 
-    const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-    const verifyUrl = `${baseUrl}verify.html?data=${btoa(ticketDetails)}`;
+    const path = window.location.pathname.endsWith('index.html') 
+      ? window.location.pathname.replace('index.html', '') 
+      : window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+    
+    const baseUrl = window.location.origin + path;
+    const verifyUrl = `${baseUrl}verify.html?data=${encodeURIComponent(btoa(ticketDetails))}`;
 
-    const qr = qrcode(0, 'L'); // 'L' error correction for longer URLs
+    const qr = qrcode(0, 'L'); // 'L' for least density/easiest scanning
     qr.addData(verifyUrl);
     qr.make();
     const img = document.createElement('div');

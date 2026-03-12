@@ -86,6 +86,7 @@ module.exports = async (req, res) => {
 
         res.status(200).json({
             message: 'If an account with that email exists, a reset link has been sent.',
+            ...(process.env.SMTP_HOST ? {} : { resetLink, testMode: true }),
             ...(previewUrl ? { previewUrl } : {})
         });
 

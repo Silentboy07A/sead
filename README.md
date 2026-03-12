@@ -39,6 +39,13 @@ CinTic is a modern, responsive, single-page application for booking movie ticket
    GOOGLE_CLIENT_ID=your_google_oauth_client_id
    GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
    APP_URL=http://localhost:3000
+   
+   # Optional: Email (SMTP) for Password Reset
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   SMTP_SECURE=false
    ```
 4. Start the development server (using Vercel CLI to emulate the serverless environment):
    ```bash
