@@ -535,7 +535,17 @@ function initPasswordReset() {
 
 // ========== MAIN APP INIT ==========
 async function initApp() {
-  $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem"><div class="spinner" style="margin:0 auto;width:40px;height:40px;border-width:4px"></div><p style="margin-top:1rem;color:var(--text-muted)">Loading movies...</p></div>';
+  const grid = $('movieGrid');
+  grid.innerHTML = Array(8).fill(0).map(() => `
+    <div class="movie-card skeleton">
+      <div class="skeleton-shimmer"></div>
+      <div style="height:350px;" class="skeleton-box"></div>
+      <div style="padding:1.5rem">
+        <div style="height:20px;width:70%;margin-bottom:10px;" class="skeleton-box"></div>
+        <div style="height:15px;width:40%;" class="skeleton-box"></div>
+      </div>
+    </div>
+  `).join('');
 
   try {
     const [moviesRes, theatresRes] = await Promise.all([
@@ -644,18 +654,44 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
           <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
           <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
         </div>
+        <div class="movie-overlay">
+          <div class="overlay-content">
+            <button class="play-btn" onclick="openTrailer('${m.trailerId}', event)">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <p>${m.description.substring(0, 80)}...</p>
+          </div>
+        </div>
+        <div class="rating-badge">${m.rating}</div>
       </div>
       <div class="movie-info">
         <h3>${m.title}</h3>
         <div class="movie-meta">
-          <span class="rating">Rating ${m.rating}</span>
-          <span>${m.genre}</span>
-          <span>${m.language}</span>
+          <span>${m.year} • ${m.language}</span>
+          <span class="genre-tag">${m.genre}</span>
         </div>
-        <button class="btn-book" onclick="selectMovie(MOVIES.find(x=>x.id===${m.id}))">Book Now</button>
+        <button class="book-btn" onclick="selectMovie(${m.id})">Book Now</button>
       </div>
     </div>
   `}).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
+
+  // Add 3D Tilt logic after elements are rendered
+  document.querySelectorAll('.movie-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = (centerY - y) / 10;
+      const rotateY = (x - centerX) / 10;
+      card.style.transform = `perspective(1000px) translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(1000px) translateY(0) rotateX(0deg) rotateY(0deg)';
+    });
+  });
 }
 
 // ========== SEARCH ==========
