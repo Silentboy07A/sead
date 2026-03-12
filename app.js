@@ -18,11 +18,21 @@ const state = {
   selectedTheatre: null,
   selectedShow: null,
   selectedSeats: [],
+  selectedSnacks: {}, // { snackId: quantity }
   takenSeats: [], // mock taken
   lockedSeats: [], // active real-time locks
   lockExpires: null,
   lockInterval: null
 };
+
+const SNACKS = [
+  { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'https://images.unsplash.com/photo-1572177191856-3cde618dee1f?w=200&h=200&fit=crop', category: 'Snacks' },
+  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop', category: 'Snacks' },
+  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop', category: 'Beverages' },
+  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=200&h=200&fit=crop', category: 'Snacks' },
+  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop', category: 'Snacks' },
+  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1491466424936-e304919aada7?w=200&h=200&fit=crop', category: 'Value Combos' }
+];
 
 // State is now managed via JWT cookies — no sessionStorage needed
 function loadState() { /* JWT cookies handle persistence */ }
@@ -851,10 +861,24 @@ function initNavigation() {
   $('backToMovies').addEventListener('click', () => showPage('heroSection'));
   $('backToTheatres').addEventListener('click', () => showPage('theatreSection'));
   $('backToSeats').addEventListener('click', () => showPage('seatSection'));
+  $('backToSeatsFromSnacks').addEventListener('click', () => showPage('seatSection'));
   $('backToHome').addEventListener('click', () => {
     state.selectedMovie = null;
     state.selectedSeats = [];
+    state.selectedSnacks = {};
     showPage('heroSection');
+  });
+
+  // Snacks Navigation
+  $('skipSnacks').addEventListener('click', () => {
+    state.selectedSnacks = {};
+    renderPayment();
+    showPage('paymentSection');
+  });
+
+  $('confirmSnacks').addEventListener('click', () => {
+    renderPayment();
+    showPage('paymentSection');
   });
 }
 
@@ -1083,11 +1107,11 @@ function renderSeats() {
 
   // Recommend button
   $('recommendBtn').onclick = recommendSeats;
-  // Proceed
-  $('proceedToPayment').onclick = async () => {
+  // Proceed to Snacks
+  $('proceedToSnacks').onclick = async () => {
     if (state.selectedSeats.length === 0) { showToast('Please select at least one seat'); return; }
 
-    const btn = $('proceedToPayment');
+    const btn = $('proceedToSnacks');
     const originalText = btn.innerHTML;
     btn.innerHTML = 'Locking Seats... <div class="spinner" style="display:inline-block;width:14px;height:14px;border-width:2px;margin-left:8px;"></div>';
     btn.style.opacity = '0.7';
@@ -1114,11 +1138,10 @@ function renderSeats() {
       if (res.ok) {
         state.lockExpires = new Date(data.expiresAt).getTime();
         startLockTimer();
-        renderPayment();
-        showPage('paymentSection');
+        renderSnacks();
+        showPage('snacksSection');
       } else {
         showToast(data.message || 'Failed to lock seats. Someone else may have grabbed them!');
-        // Re-check locks
         selectShow(state.selectedTheatre.id, showIndex);
       }
     } catch (e) {
@@ -1128,6 +1151,72 @@ function renderSeats() {
       showToast('Network error while locking seats.');
     }
   };
+}
+
+// ========== SNACKS RENDERING ==========
+function renderSnacks() {
+  const grid = $('snacksGrid');
+  if (!grid) return;
+
+  grid.innerHTML = SNACKS.map(s => {
+    const qty = state.selectedSnacks[s.id] || 0;
+    return `
+      <div class="snack-card ${qty > 0 ? 'selected' : ''}">
+        <div class="snack-img">
+          <img src="${s.image}" alt="${s.name}">
+          <div class="snack-cat">${s.category}</div>
+        </div>
+        <div class="snack-info">
+          <h4>${s.name}</h4>
+          ${s.desc ? `<p>${s.desc}</p>` : ''}
+          <div class="snack-price-row">
+            <span class="price">₹${s.price}</span>
+            <div class="snack-qty-control">
+              <button onclick="updateSnackQty('${s.id}', -1)">-</button>
+              <span>${qty}</span>
+              <button onclick="updateSnackQty('${s.id}', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateSnacksSummary();
+}
+
+function updateSnackQty(id, delta) {
+  const current = state.selectedSnacks[id] || 0;
+  const next = Math.max(0, current + delta);
+  if (next === 0) delete state.selectedSnacks[id];
+  else state.selectedSnacks[id] = next;
+  
+  if (navigator.vibrate) navigator.vibrate(5);
+  renderSnacks();
+}
+
+function updateSnacksSummary() {
+  let total = 0;
+  let count = 0;
+  Object.entries(state.selectedSnacks).forEach(([id, qty]) => {
+    const snack = SNACKS.find(s => s.id === id);
+    if (snack) {
+      total += snack.price * qty;
+      count += qty;
+    }
+  });
+
+  $('snacksCount').textContent = `${count} item${count !== 1 ? 's' : ''} added`;
+  $('snacksTotal').textContent = `Total: ₹${total.toLocaleString()}`;
+  
+  const confirmBtn = $('confirmSnacks');
+  if (count > 0) {
+    confirmBtn.textContent = 'Add & Continue →';
+    confirmBtn.classList.add('pulse');
+  } else {
+    confirmBtn.textContent = 'Continue →';
+    confirmBtn.classList.remove('pulse');
+  }
 }
 
 // ========== LOCK TIMER ==========
@@ -1277,6 +1366,18 @@ function renderPayment() {
     total += SEAT_PRICES[cat];
   });
   const convFee = Math.round(total * 0.05);
+
+  let snacksTotal = 0;
+  let snacksHtml = '';
+  Object.entries(state.selectedSnacks).forEach(([id, qty]) => {
+    const snack = SNACKS.find(s => s.id === id);
+    if (snack) {
+      const sub = snack.price * qty;
+      snacksTotal += sub;
+      snacksHtml += `<div class="order-detail"><span class="label">${snack.name} (x${qty})</span><span>₹${sub.toLocaleString()}</span></div>`;
+    }
+  });
+
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -1288,11 +1389,12 @@ function renderPayment() {
     <div class="order-detail"><span class="label">Time</span><span>${s.time} (${s.format})</span></div>
     <div class="order-detail"><span class="label">Seats</span><span>${state.selectedSeats.join(', ')}</span></div>
     <div class="order-detail"><span class="label">Tickets</span><span>₹${total.toLocaleString()}</span></div>
+    ${snacksHtml}
     <div class="order-detail"><span class="label">Convenience Fee</span><span>₹${convFee}</span></div>
-    <div class="order-total"><span>Total</span><span class="price">₹${(total + convFee).toLocaleString()}</span></div>
+    <div class="order-total"><span>Total</span><span class="price">₹${(total + snacksTotal + convFee).toLocaleString()}</span></div>
   `;
 
-  const finalTotal = total + convFee;
+  const finalTotal = total + snacksTotal + convFee;
   if ($('stripePayAmount')) $('stripePayAmount').textContent = `₹${finalTotal.toLocaleString()}`;
 
   // Card masking
