@@ -27,11 +27,11 @@ const state = {
 
 const SNACKS = [
   { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'https://images.unsplash.com/photo-1572177191856-3cde618dee1f?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop', category: 'Beverages' },
-  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1491466424936-e304919aada7?w=200&h=200&fit=crop', category: 'Value Combos' }
+  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1578328819058-b69f3aede7c6?w=400&h=400&fit=crop', category: 'Snacks' },
+  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=400&fit=crop', category: 'Beverages' },
+  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=400&fit=crop', category: 'Snacks' },
+  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop', category: 'Snacks' },
+  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1594438090230-60137185dec6?w=400&h=400&fit=crop', category: 'Value Combos' }
 ];
 
 // State is now managed via JWT cookies — no sessionStorage needed
@@ -552,7 +552,7 @@ async function initApp() {
     MOVIES = MOVIES.map(m => ({
       ...m,
       poster: m.poster && m.poster.includes('image.tmdb.org')
-        ? `/poster?url=${encodeURIComponent(m.poster)}`
+        ? `/api/poster?url=${encodeURIComponent(m.poster)}`
         : m.poster
     }));
   } catch (error) {
@@ -660,7 +660,11 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
 
 // ========== SEARCH ==========
 function initSearch() {
-  $('searchInput').addEventListener('input', applyFilters);
+  $('globalSearchInput').addEventListener('input', () => {
+    if ($('moviesSection').classList.contains('active')) {
+      applyFilters();
+    }
+  });
   $('langFilter').addEventListener('change', applyFilters);
   $('cityFilter').addEventListener('change', async (e) => {
     if (e.target.value === '_detect_') {
@@ -705,7 +709,8 @@ function initSearch() {
   });
 }
 function applyFilters() {
-  const search = $('searchInput').value;
+  const searchInput = $('globalSearchInput');
+  const search = searchInput ? searchInput.value : '';
   const lang = $('langFilter').value;
   // If still set to _detect_, treat as empty filter until it resolves
   const city = $('cityFilter').value === '_detect_' ? '' : $('cityFilter').value;
@@ -806,6 +811,13 @@ function initNavigation() {
 
       if (html === '') {
         html = '<div style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No results found.</div>';
+      } else {
+        html += `
+          <div style="margin:0.5rem 0;border-top:1px solid rgba(255,255,255,0.1);"></div>
+          <div class="global-search-item" onclick="viewAllResults()" style="padding:0.6rem;border-radius:0.5rem;cursor:pointer;text-align:center;color:var(--red);font-weight:600;font-size:0.85rem;">
+            View all results for "${query}"
+          </div>
+        `;
       }
 
       globalResults.innerHTML = html;
@@ -932,6 +944,14 @@ function selectTheatreFromGlobal(theatreId) {
     searchInput.value = theatre.name;
     renderTheatres();
   }
+}
+
+function viewAllResults() {
+  const query = $('globalSearchInput').value;
+  if ($('globalSearchResults')) $('globalSearchResults').style.display = 'none';
+  showPage('moviesSection');
+  applyFilters();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ========== TRAILER LOGIC ==========
