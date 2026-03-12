@@ -1240,17 +1240,15 @@ ul {
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease-out;
+  transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
   cursor: pointer;
   position: relative;
-  transform-style: preserve-3d;
-  perspective: 1000px;
 }
 
 .movie-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-5px);
   border-color: var(--red);
-  box-shadow: 0 20px 40px rgba(230, 57, 70, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 .movie-card.skeleton {
@@ -2719,9 +2717,10 @@ ul {
     overflow: hidden;
   }
   
-  .movie-card:active {
+  /* Removed scale on click to make it feel less intense */
+  /* .movie-card:active {
     transform: scale(0.95);
-  }
+  } */
 
   .movie-poster {
     border-radius: 12px 12px 0 0;
@@ -2934,7 +2933,8 @@ ul {
   overflow: visible !important; /* Allow neon glow to exceed bounds */
 }
 
-.movie-card::after {
+/* Removed intense neon glow to focus on movie posters */
+/* .movie-card::after {
   content: '';
   position: absolute;
   inset: -2px;
@@ -2956,7 +2956,7 @@ ul {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
+} */
 
 .snack-card.pop-anim {
   animation: popcornPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
