@@ -2768,6 +2768,25 @@ ul {
   color: #fff;
   box-shadow: 0 5px 15px rgba(230, 57, 70, 0.4);
 }
+@media (max-width: 768px) {
+  .auth-left {
+    display: none;
+  }
+  
+  .auth-right {
+    padding: 1.5rem;
+  }
+  
+  .auth-form-card {
+    padding: 1.5rem;
+    margin: 10px;
+    z-index: 10;
+  }
+  
+  .auth-tabs {
+    margin-bottom: 2rem;
+  }
+}
 
 @media (max-width: 480px) {
   .hero-content h1 {

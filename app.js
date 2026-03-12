@@ -80,8 +80,8 @@ function initAuth() {
   // Real-time validation — Login
   $('loginEmail').addEventListener('input', () => validateLoginEmail());
   $('loginEmail').addEventListener('blur', () => validateLoginEmail());
-  $('loginPassword').addEventListener('input', () => { validatePasswordField('loginPassword', 'loginPasswordError', 'loginStrengthBar', 'loginStrengthLabel', 'loginChecklist'); updateLoginBtn(); });
-  $('loginPassword').addEventListener('blur', () => validatePasswordField('loginPassword', 'loginPasswordError', 'loginStrengthBar', 'loginStrengthLabel', 'loginChecklist'));
+  $('loginPassword').addEventListener('input', () => { updateLoginBtn(); });
+  $('loginPassword').addEventListener('blur', () => { if (!$('loginPassword').value) $('loginPassword').classList.remove('valid', 'invalid'); });
 
   // Real-time validation — Signup
   $('signupName').addEventListener('input', () => { validateName(); updateSignupBtn(); });
@@ -316,7 +316,7 @@ function validateConfirm() {
 
 function updateLoginBtn() {
   const emailOk = checkEmail($('loginEmail').value).valid;
-  const passOk = checkPassword($('loginPassword').value).allPassed;
+  const passOk = $('loginPassword').value.length > 0;
   $('loginBtn').disabled = !(emailOk && passOk);
 }
 function updateSignupBtn() {
