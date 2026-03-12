@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinTic — Verify Ticket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #0a0a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .verify-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        .verify-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .verify-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--red), var(--gold));
+        }
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        .v-movie {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        .v-theatre {
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        .v-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: left;
+            margin-bottom: 2rem;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+        }
+        .v-item label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .v-item p {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .v-item.full {
+            grid-column: span 2;
+        }
+        .v-seats {
+            font-size: 1.2rem !important;
+            color: var(--red) !important;
+        }
+        .btn-home {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container" id="verifyContainer" style="display:none">
+        <div class="verify-card">
+            <div class="verified-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Valid Ticket
+            </div>
+            
+            <h1 class="v-movie" id="vMovie">—</h1>
+            <p class="v-theatre" id="vTheatre">—</p>
+
+            <div class="v-grid">
+                <div class="v-item">
+                    <label>Date</label>
+                    <p id="vDate">—</p>
+                </div>
+                <div class="v-item">
+                    <label>Time</label>
+                    <p id="vTime">—</p>
+                </div>
+                <div class="v-item full">
+                    <label>Seats</label>
+                    <p class="v-seats" id="vSeats">—</p>
+                </div>
+                <div class="v-item full">
+                    <label>Booking ID</label>
+                    <p id="vBookingId">—</p>
+                </div>
+            </div>
+
+            <button class="btn-home" onclick="location.href='/'">Go to Home</button>
+        </div>
+    </div>
+
+    <div id="errorMsg" style="color:var(--text-muted); text-align:center; display:none">
+        <h2>Invalid Ticket</h2>
+        <p>This QR code does not contain a valid CinTic ticket.</p>
+        <button class="btn-home" style="margin-top:20px" onclick="location.href='/'">Back to CinTic</button>
+    </div>
+
+    <script>
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataStr = urlParams.get('data');
+            
+            if (!dataStr) {
+                document.getElementById('errorMsg').style.display = 'block';
+                return;
+            }
+
+            try {
+                // Decode from Base64
+                const json = atob(dataStr);
+                const ticket = JSON.parse(json);
+
+                document.getElementById('vMovie').textContent = ticket.movie;
+                document.getElementById('vTheatre').textContent = ticket.theatre;
+                document.getElementById('vDate').textContent = ticket.date;
+                document.getElementById('vTime').textContent = ticket.time;
+                document.getElementById('vSeats').textContent = ticket.seats;
+                document.getElementById('vBookingId').textContent = ticket.id;
+
+                document.getElementById('verifyContainer').style.display = 'block';
+            } catch (e) {
+                console.error('Decoding failed', e);
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>

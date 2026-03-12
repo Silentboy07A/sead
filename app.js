@@ -1586,18 +1586,21 @@ function drawQR(bookingId, ticketInfo) {
   const container = $('qrCanvas').parentElement;
   container.innerHTML = '';
   try {
-    // Encode full ticket details into the QR
-    const qrData = JSON.stringify({
+    // Encode full ticket details into a URL for easy verification
+    const ticketDetails = JSON.stringify({
       id: bookingId,
       movie: ticketInfo.movie,
       theatre: ticketInfo.theatre,
       date: ticketInfo.date,
       time: ticketInfo.time,
-      seats: ticketInfo.seats,
-      amount: ticketInfo.amount
+      seats: ticketInfo.seats
     });
-    const qr = qrcode(0, 'M');
-    qr.addData(qrData);
+
+    const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+    const verifyUrl = `${baseUrl}verify.html?data=${btoa(ticketDetails)}`;
+
+    const qr = qrcode(0, 'L'); // 'L' error correction for longer URLs
+    qr.addData(verifyUrl);
     qr.make();
     const img = document.createElement('div');
     img.innerHTML = qr.createImgTag(3, 6);
