@@ -142,7 +142,7 @@ async function handleGoogleLogin(response) {
     state.user = data.user;
     if (!state.user.bookings) state.user.bookings = [];
 
-    showToast(data.isNewUser ? `Welcome to CineBook, ${state.user.name}! 🎬` : `Welcome back, ${state.user.name}! 👋`);
+    showToast(data.isNewUser ? `Welcome to CineBook, ${state.user.name}!` : `Welcome back, ${state.user.name}!`);
     enterApp();
   } catch (error) {
     console.error('Google Auth Error:', error);
@@ -153,8 +153,8 @@ async function handleGoogleLogin(response) {
 function togglePassword(inputId, toggleId) {
   const inp = $(inputId);
   const tog = $(toggleId);
-  if (inp.type === 'password') { inp.type = 'text'; tog.textContent = '🙈'; }
-  else { inp.type = 'password'; tog.textContent = '👁'; }
+  if (inp.type === 'password') { inp.type = 'text'; tog.textContent = 'Hide'; }
+  else { inp.type = 'password'; tog.textContent = 'Show'; }
 }
 
 // Email validation logic
@@ -340,7 +340,7 @@ async function handleLogin(e) {
 
     state.user = data.user;
     btn.innerHTML = '✓';
-    showToast(`Welcome back, ${state.user.name}! 🎬`);
+    showToast(`Welcome back, ${state.user.name}!`);
     setTimeout(() => enterApp(), 1000);
   } catch (error) {
     console.error('Login error:', error);
@@ -381,7 +381,7 @@ async function handleSignup(e) {
 
     state.user = data.user;
     btn.innerHTML = '✓';
-    showToast(`Welcome, ${state.user.name}! 🎬`);
+    showToast(`Welcome, ${state.user.name}!`);
     setTimeout(() => enterApp(), 1000);
   } catch (error) {
     console.error('Signup error:', error);
@@ -441,11 +441,11 @@ function initPasswordReset() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        showToast('✉️ ' + data.message);
+        showToast(data.message);
         forgotModal.style.display = 'none';
         forgotForm.reset();
       } catch (err) {
-        showToast('❌ ' + err.message);
+        showToast(err.message);
       } finally {
         btn.textContent = originalText;
         btn.disabled = false;
@@ -494,7 +494,7 @@ function initPasswordReset() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        showToast('✅ ' + data.message);
+        showToast(data.message);
         $('resetPasswordModal').style.display = 'none';
         resetForm.reset();
         
@@ -503,7 +503,7 @@ function initPasswordReset() {
         $('loginEmail').value = email;
         $('loginPassword').focus();
       } catch (err) {
-        showToast('❌ ' + err.message);
+        showToast(err.message);
       } finally {
         btn.textContent = originalText;
         btn.disabled = false;
@@ -514,7 +514,7 @@ function initPasswordReset() {
 
 // ========== MAIN APP INIT ==========
 async function initApp() {
-  $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem"><div class="spinner" style="margin:0 auto;width:40px;height:40px;border-width:4px"></div><p style="margin-top:1rem;color:var(--text-muted)">Loading movies from database...</p></div>';
+  $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem"><div class="spinner" style="margin:0 auto;width:40px;height:40px;border-width:4px"></div><p style="margin-top:1rem;color:var(--text-muted)">Loading movies...</p></div>';
 
   try {
     const [moviesRes, theatresRes] = await Promise.all([
@@ -537,7 +537,7 @@ async function initApp() {
   } catch (error) {
     console.error('Error fetching data:', error);
     showToast('Failed to load data from database.');
-    $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--red)">Failed to load data. Please try again.</div>';
+    $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--red)">Failed to load data.</div>';
     return;
   }
 
@@ -569,7 +569,7 @@ function renderHero() {
   const m = MOVIES[0];
   $('heroBg').style.backgroundImage = `url(${m.poster})`;
   $('heroTitle').textContent = m.title;
-  $('heroRating').textContent = '★ ' + m.rating;
+  $('heroRating').textContent = 'Rating ' + m.rating;
   $('heroDuration').textContent = m.duration + ' • ' + m.language;
   $('heroDesc').textContent = m.description;
   $('heroGenreTags').innerHTML = `<span class="genre-tag">${m.genre}</span><span class="genre-tag">${m.language}</span>`;
@@ -619,7 +619,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
         <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
-          <div style="font-size:2.8rem;margin-bottom:0.6rem">🎬</div>
+          <div style="font-size:2.8rem;margin-bottom:0.6rem"></div>
           <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
           <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
         </div>
@@ -627,7 +627,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
       <div class="movie-info">
         <h3>${m.title}</h3>
         <div class="movie-meta">
-          <span class="rating">★ ${m.rating}</span>
+          <span class="rating">Rating ${m.rating}</span>
           <span>${m.genre}</span>
           <span>${m.language}</span>
         </div>
@@ -672,7 +672,7 @@ function initSearch() {
         }
       } catch (err) {
         console.warn('Geolocation failed:', err);
-        showToast('❌ Could not detect location. Please set manually.');
+        showToast('Could not detect location.');
         e.target.value = '';
       } finally {
         e.target.disabled = false;
@@ -773,7 +773,7 @@ function initNavigation() {
         matchedTheatres.forEach(t => {
           html += `
             <div class="global-search-item fade-in" onclick="selectTheatreFromGlobal(${t.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
-              <div style="font-size:1.2rem;opacity:0.6;">🍿</div>
+              <div style="font-size:1.2rem;opacity:0.6;"></div>
               <div>
                 <div style="font-size:0.9rem;font-weight:500;">${t.name}</div>
                 <div style="font-size:0.75rem;color:var(--text-muted);">${t.location}, ${t.city}</div>
@@ -917,8 +917,8 @@ function renderTheatres() {
     <img src="${m.poster}" alt="${m.title}" onerror="this.style.background='#1a1a2e'">
     <div>
       <h3 style="font-family:'Poppins';font-weight:600">${m.title}</h3>
-      <p style="font-size:0.85rem;color:var(--text-muted)">${m.genre} • ${m.language} • ${m.duration} • ★ ${m.rating}</p>
-      ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.5rem 1rem; font-size:0.85rem;">▶ Watch Trailer</button>` : ''}
+      <p style="font-size:0.85rem;color:var(--text-muted)">${m.genre} • ${m.language} • ${m.duration} • Rating ${m.rating}</p>
+      ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.5rem 1rem; font-size:0.85rem;">Watch Trailer</button>` : ''}
     </div>
   `;
   const city = $('cityFilter').value;
@@ -941,7 +941,7 @@ function renderTheatres() {
     $('theatreList').innerHTML = theatres.map(t => `
       <div class="theatre-card">
         <h3>${t.name}</h3>
-        <p class="location">📍 ${t.location}, ${t.city}</p>
+        <p class="location">${t.location}, ${t.city}</p>
         <div class="show-times">
           ${t.shows.map((s, i) => `
             <div class="show-badge" onclick="selectShow(${t.id}, ${i})" data-theatre="${t.id}" data-show="${i}">
@@ -1108,7 +1108,7 @@ function startLockTimer() {
 
     if (distance < 0) {
       clearInterval(state.lockInterval);
-      if (timerDiv) timerDiv.innerHTML = '🕒 Seat lock expired! Redirecting...';
+      if (timerDiv) timerDiv.innerHTML = 'Seat lock expired!';
       setTimeout(() => {
         showToast('Seat lock expired. Please select seats again.');
         const showIndex = state.selectedTheatre.shows.indexOf(state.selectedShow);
@@ -1120,7 +1120,7 @@ function startLockTimer() {
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
     if (timerDiv) {
-      timerDiv.innerHTML = `🕒 Seats locked for: <span>${minutes}:${seconds < 10 ? '0' : ''}${seconds}</span>`;
+      timerDiv.innerHTML = `Seats locked for: <span>${minutes}:${seconds < 10 ? '0' : ''}${seconds}</span>`;
     }
   }, 1000);
 }
@@ -1204,7 +1204,7 @@ function recommendSeats() {
       if (available.length >= n) { state.selectedSeats = available.slice(0, n); found = true; break; }
     }
   }
-  if (found) showToast(`✨ Recommended ${n} seats for ${genre}!`);
+  if (found) showToast(`Recommended ${n} seats!`);
   else showToast('Not enough seats available');
   renderSeats();
 }
@@ -1382,14 +1382,14 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
       const bookingId = $('ticketBookingId').textContent || 'ticket';
       pdf.save(`CinTic-${bookingId}.pdf`);
 
-      btn.innerHTML = '📄 Download PDF';
+      btn.innerHTML = 'Download PDF';
       btn.disabled = false;
-      showToast('✅ Ticket downloaded!');
+      showToast('Ticket downloaded!');
     } catch (err) {
       console.error('PDF generation failed:', err);
-      $('downloadTicket').innerHTML = '📄 Download PDF';
+      $('downloadTicket').innerHTML = 'Download PDF';
       $('downloadTicket').disabled = false;
-      showToast('❌ Download failed. Try again.');
+      showToast('Download failed.');
     }
   };
   $('shareTicket').onclick = () => {
@@ -1397,7 +1397,7 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
       navigator.share({ title: 'CinTic Ticket', text: `${m.title} at ${t.name} — ${s.time} on ${dateStr}` });
     } else {
       navigator.clipboard.writeText(`CinTic Ticket: ${m.title} at ${t.name}, ${s.time}, Seats: ${state.selectedSeats.join(', ')}`);
-      showToast('🔗 Ticket link copied!');
+      showToast('Ticket link copied!');
     }
   };
 }
@@ -1481,7 +1481,7 @@ function initTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const knob = $('themeKnob');
-  if (knob) knob.textContent = theme === 'dark' ? '🌙' : '☀️';
+  if (knob) knob.textContent = theme === 'dark' ? 'Dark' : 'Light';
 }
 
 // ========== INIT ==========
@@ -1510,7 +1510,7 @@ initPasswordReset();
   const hasVisited = localStorage.getItem('cintic_visited');
   if (!hasVisited) {
     document.querySelectorAll('.auth-tab')[1].click();
-    showToast('Welcome! Join CinTic today to book your favorite movies. 🎬');
+    showToast('Welcome! Join CinTic today to book your favorite movies.');
     localStorage.setItem('cintic_visited', 'true');
   } else {
     document.querySelectorAll('.auth-tab')[0].click();

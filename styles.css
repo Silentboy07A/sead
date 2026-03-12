@@ -2001,11 +2001,11 @@ ul {
   }
 
   .auth-left .logo-section h1 {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
   }
 
   .auth-right {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem;
   }
 
   .auth-form-card {
@@ -2013,7 +2013,7 @@ ul {
   }
 
   .hero-content h1 {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .nav-links {
@@ -2027,6 +2027,7 @@ ul {
     padding: 1rem;
     gap: 0;
     border-bottom: 1px solid var(--border);
+    z-index: 1000;
   }
 
   .nav-links.open {
@@ -2034,34 +2035,68 @@ ul {
   }
 
   .nav-links a {
-    padding: 12px 0;
+    padding: 12px 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   }
 
   .nav-toggle {
     display: block;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.8rem;
   }
 
   .movie-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 0 10px;
+  }
+  
+  .movie-card h3 {
+    font-size: 0.9rem;
   }
 
   .payment-container {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .ticket-card-body {
     grid-template-columns: 1fr;
+    padding: 1.5rem;
   }
 
   .seat {
-    width: 26px;
-    height: 26px;
-    font-size: 0.5rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  
+  .seat-row {
+    gap: 2px;
   }
 
   .search-bar {
     flex-direction: column;
+    padding: 10px;
+  }
+  
+  .search-bar input, .search-bar select {
+    width: 100% !important;
+  }
+  
+  .global-search-container {
+    margin-left: 0 !important;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .global-search-dropdown {
+    width: 100% !important;
+    position: static !important;
+    margin-top: 10px !important;
   }
 }
 
@@ -2072,14 +2107,31 @@ ul {
 
   .section-title {
     font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .seat {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
+    font-size: 0.6rem;
   }
 
   .seat-row {
-    gap: 3px;
+    gap: 2px;
+    justify-content: center;
+  }
+  
+  .smart-recommend {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ticket-actions {
+    flex-direction: column;
+  }
+  
+  .ticket-actions button {
+    width: 100%;
+    margin-left: 0 !important;
   }
 }

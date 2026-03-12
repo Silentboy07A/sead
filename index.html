@@ -110,7 +110,7 @@
                             <div class="input-wrapper">
                                 <input type="password" id="loginPassword" placeholder="Enter your password"
                                     autocomplete="current-password">
-                                <span class="input-icon" id="loginPassToggle" title="Show password">👁</span>
+                                <span class="input-icon" id="loginPassToggle" title="Show password">Show</span>
                             </div>
                             <div class="form-error hidden" id="loginPasswordError"></div>
                             <div class="strength-meter" id="loginStrength">
@@ -158,7 +158,7 @@
                             <div class="input-wrapper">
                                 <input type="password" id="signupPassword" placeholder="Create a password"
                                     autocomplete="new-password">
-                                <span class="input-icon" id="signupPassToggle" title="Show password">👁</span>
+                                <span class="input-icon" id="signupPassToggle" title="Show password">Show</span>
                             </div>
                             <div class="form-error hidden" id="signupPasswordError"></div>
                             <div class="strength-meter" id="signupStrength">
@@ -198,7 +198,7 @@
         <!-- NAVBAR -->
         <nav class="navbar" id="navbar">
             <span class="nav-logo" id="navLogo">CinTic</span>
-            <button class="nav-toggle" id="navToggle">☰</button>
+            <button class="nav-toggle" id="navToggle">Menu</button>
             <div class="nav-links" id="navLinks">
                 <a data-section="heroSection" class="active">Home</a>
                 <a data-section="moviesSection">Movies</a>
@@ -208,7 +208,7 @@
                 <div class="global-search-container" style="position: relative; margin-left: 1rem;">
                     <div
                         style="background: rgba(255,255,255,0.1); border-radius: 2rem; padding: 0.4rem 1rem; display: flex; align-items: center;">
-                        <span style="color: var(--text-muted); margin-right: 0.5rem;">🔍</span>
+                        <span style="color: var(--text-muted); margin-right: 0.5rem;"></span>
                         <input type="text" id="globalSearchInput" placeholder="Search movies..."
                             style="background: transparent; border: none; color: #fff; outline: none; width: 150px; font-size: 0.9rem;">
                     </div>
@@ -219,7 +219,7 @@
                 </div>
 
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light theme">
-                    <div class="theme-toggle-knob" id="themeKnob">🌙</div>
+                    <div class="theme-toggle-knob" id="themeKnob">Dark</div>
                 </button>
                 <div class="nav-user-dropdown">
                     <div class="nav-user" id="navUser">
@@ -227,9 +227,9 @@
                         <span id="navUserName">User</span>
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
-                        <a id="profileBtn">👤 My Profile</a>
-                        <a id="adminNavLink" href="/admin.html" style="display:none">⚙️ Admin Panel</a>
-                        <a id="logoutBtn">🚪 Logout</a>
+                        <a id="profileBtn">My Profile</a>
+                        <a id="adminNavLink" href="/admin.html" style="display:none">Admin Panel</a>
+                        <a id="logoutBtn">Logout</a>
                     </div>
                 </div>
             </div>
@@ -287,11 +287,11 @@
                     <div class="genre-tags" id="heroGenreTags"></div>
                     <h1 id="heroTitle">Loading...</h1>
                     <div class="hero-rating">
-                        <span class="rating-badge" id="heroRating">★ 0.0</span>
+                        <span class="rating-badge" id="heroRating">Rating 0.0</span>
                         <span style="color:var(--text-muted); font-size:0.85rem" id="heroDuration"></span>
                     </div>
                     <p id="heroDesc"></p>
-                    <button class="btn-primary" id="heroBookBtn">🎬 Book Tickets</button>
+                    <button class="btn-primary" id="heroBookBtn">Book Tickets</button>
                 </div>
             </div>
         </section>
@@ -301,10 +301,10 @@
             <!-- Search Bar -->
             <div class="search-section">
                 <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="🔍 Search movies, theatres, genres...">
+                    <input type="text" id="searchInput" placeholder="Search movies, theatres, genres...">
                     <select id="cityFilter">
                         <option value="">All Cities</option>
-                        <option value="_detect_">📍 Detect My Location</option>
+                        <option value="_detect_">Detect My Location</option>
                         <option>Mumbai</option>
                         <option>Delhi</option>
                         <option>Bangalore</option>
@@ -346,7 +346,7 @@
                     <div class="search-bar"
                         style="background: var(--surface); border: 1px solid rgba(255,255,255,0.1);">
                         <input type="text" id="theatreSearchInput"
-                            placeholder="🔍 Search theatres, malls or locations..." style="width: 100%;">
+                            placeholder="Search theatres, malls or locations..." style="width: 100%;">
                     </div>
                 </div>
 
@@ -376,10 +376,10 @@
                         </div>
                     </div>
                     <div class="smart-recommend">
-                        <label>👥 Best seats for</label>
+                        <label>Best seats for</label>
                         <input type="number" id="groupSize" value="2" min="1" max="10">
                         <label>people</label>
-                        <button id="recommendBtn">✨ Recommend</button>
+                        <button id="recommendBtn">Recommend</button>
                     </div>
                     <div class="seat-summary" id="seatSummary" style="display:none">
                         <div class="seat-summary-left">
@@ -460,7 +460,7 @@
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
-                    <h2>Booking Confirmed! 🎉</h2>
+                    <h2>Booking Confirmed!</h2>
                     <p>Your tickets have been booked successfully</p>
                 </div>
                 <div class="ticket-card" id="ticketCard">
@@ -499,8 +499,8 @@
                     </div>
                 </div>
                 <div class="ticket-actions">
-                    <button class="btn-download" id="downloadTicket">📄 Download PDF</button>
-                    <button class="btn-share" id="shareTicket">🔗 Share</button>
+                    <button class="btn-download" id="downloadTicket">Download PDF</button>
+                    <button class="btn-share" id="shareTicket">Share</button>
                     <button class="btn-primary" id="backToHome" style="margin-left:auto">← Back to Home</button>
                 </div>
             </div>
