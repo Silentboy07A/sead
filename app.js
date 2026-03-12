@@ -27,11 +27,11 @@ const state = {
 
 const SNACKS = [
   { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'https://images.unsplash.com/photo-1572177191856-3cde618dee1f?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1578328819058-b69f3aede7c6?w=400&h=400&fit=crop', category: 'Snacks' },
-  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&h=400&fit=crop', category: 'Beverages' },
-  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=400&fit=crop', category: 'Snacks' },
+  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=400&h=400&fit=crop', category: 'Snacks' },
+  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1543254005-72c34d3d8f51?w=400&h=400&fit=crop', category: 'Beverages' },
+  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1534352956272-b8d57053557a?w=400&h=400&fit=crop', category: 'Snacks' },
   { id: 'burger', name: 'Chicken Burger', price: 190, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop', category: 'Snacks' },
-  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1594438090230-60137185dec6?w=400&h=400&fit=crop', category: 'Value Combos' }
+  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1491466424936-e304919aada7?w=400&h=400&fit=crop', category: 'Value Combos' }
 ];
 
 // State is now managed via JWT cookies — no sessionStorage needed
@@ -915,6 +915,14 @@ function initNavigation() {
       recommendSeats(); // Auto-update recommendation
     });
   });
+
+  // Real-time group size listener
+  const groupSizeInput = $('groupSize');
+  if (groupSizeInput) {
+    groupSizeInput.addEventListener('input', () => {
+      recommendSeats();
+    });
+  }
 }
 
 // ========== GLOBAL SEARCH HELPERS ==========
@@ -1487,33 +1495,41 @@ function recommendSeats() {
       }
     }
 
-    if (persona === 'Couple' && n === 2) {
-      // Strictly look for 2 corner seats: (1,2) or (9,10)
-      const leftCorner = [row + '1', row + '2'];
-      const rightCorner = [row + '9', row + '10'];
-      
-      const leftAvail = leftCorner.every(s => available.includes(s));
-      const rightAvail = rightCorner.every(s => available.includes(s));
+    if (persona === 'Couple') {
+      if (n === 2) {
+        // Look for 2 corner seats: (1,2) or (9,10)
+        const leftCorner = [row + '1', row + '2'];
+        const rightCorner = [row + '9', row + '10'];
+        if (leftCorner.every(s => available.includes(s))) { state.selectedSeats = leftCorner; found = true; }
+        else if (rightCorner.every(s => available.includes(s))) { state.selectedSeats = rightCorner; found = true; }
+      } else if (n === 4) {
+        // For couples of 4, look for 4 consecutive in silver/platinum OR two pairs in proximity
+        const findConsecutive = (avail, size) => {
+          for (let i = 0; i <= avail.length - size; i++) {
+            const chunk = avail.slice(i, i + size);
+            const nums = chunk.map(s => parseInt(s.slice(1)));
+            if (nums.every((v, j) => j === 0 || v === nums[j - 1] + 1)) return chunk;
+          }
+          return null;
+        };
 
-      if (leftAvail) { state.selectedSeats = leftCorner; found = true; }
-      else if (rightAvail) { state.selectedSeats = rightCorner; found = true; }
+        const consecutive4 = findConsecutive(available, 4);
+        if (consecutive4) { state.selectedSeats = consecutive4; found = true; }
+      }
     } else if (persona === 'Cinephile') {
       // Center seats priority (seats 4-7)
       for (let i = 0; i <= available.length - n; i++) {
         const chunk = available.slice(i, i + n);
         const nums = chunk.map(s => parseInt(s.slice(1)));
         const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
-        if (consecutive) {
-          // Check if at least one seat is a "prime" center seat (4-7)
-          if (nums.some(num => num >= 4 && num <= 7)) {
-            state.selectedSeats = chunk;
-            found = true;
-            break;
-          }
+        if (consecutive && nums.some(num => num >= 4 && num <= 7)) {
+          state.selectedSeats = chunk;
+          found = true;
+          break;
         }
       }
     } else {
-      // Family/Friends - Strictly together (consecutive in same row)
+      // Family/Friends - Strictly together in SAME ROW
       for (let i = 0; i <= available.length - n; i++) {
         const chunk = available.slice(i, i + n);
         const nums = chunk.map(s => parseInt(s.slice(1)));
@@ -1524,6 +1540,32 @@ function recommendSeats() {
           break;
         }
       }
+    }
+  }
+
+  // Dual-Pair Fallback for Couple (n=4) if 4-consecutive same-row fails
+  if (!found && persona === 'Couple' && n === 4) {
+    let pair1 = null;
+    let pair2 = null;
+    for (const row of targetRows) {
+      const avail = [];
+      for (let s = 1; s <= 10; s++) {
+        const seatId = row + s;
+        if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) avail.push(seatId);
+      }
+      // Look for corners first
+      const left = [row + '1', row + '2'];
+      const right = [row + '9', row + '10'];
+      const p = left.every(s => avail.includes(s)) ? left : (right.every(s => avail.includes(s)) ? right : null);
+      
+      if (p) {
+        if (!pair1) pair1 = p;
+        else if (!pair2) { pair2 = p; break; }
+      }
+    }
+    if (pair1 && pair2) {
+      state.selectedSeats = [...pair1, ...pair2];
+      found = true;
     }
   }
 

@@ -96,32 +96,45 @@
   color: #444; /* Darker for better visibility in light mode */
 }
 
-[data-theme="light"] .nav-links a.active,
-[data-theme="light"] .nav-links a:hover {
-  color: var(--red);
+[data-theme="light"] .nav-links a.active {
+  color: var(--red) !important;
 }
 
-[data-theme="light"] .theme-toggle-knob {
-  color: #fff !important;
+[data-theme="light"] .nav-links a.active::after {
+  background: var(--red) !important;
 }
 
-[data-theme="light"] .toast {
-  background: var(--card);
-  box-shadow: 0 4px 20px rgba(39, 174, 96, 0.12);
+[data-theme="light"] .qty-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #333 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-[data-theme="light"] .dropdown-menu {
-  background: var(--card);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+[data-theme="light"] .qty-btn:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
 }
 
-[data-theme="light"] .dropdown-menu a:hover {
-  background: rgba(0, 0, 0, 0.04);
+[data-theme="light"] .item-qty {
+  color: #000 !important;
 }
 
-[data-theme="light"] .auth-btn:disabled {
-  background: #ccc;
-  color: #888;
+[data-theme="light"] .snack-tray-footer {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .summary-info .total-amount {
+  color: var(--gold) !important;
+}
+
+[data-theme="light"] .summary-info span:first-child {
+  color: #666 !important;
+}
+
+[data-theme="light"] .search-bar select {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #ccc !important;
 }
 
 [data-theme="light"] .spinner {
@@ -278,6 +291,7 @@ ul {
 .page {
   display: none;
   min-height: 100vh;
+  padding-top: 80px; /* Offset for fixed navbar */
 }
 
 .page.active {
@@ -913,11 +927,31 @@ ul {
   color: var(--text-muted);
   transition: var(--transition);
   cursor: pointer;
+  position: relative;
+  padding: 8px 0;
 }
 
 .nav-links a:hover,
 .nav-links a.active {
   color: var(--text);
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  width: 0;
+  height: 3px;
+  background: var(--red);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 3px;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 20px;
 }
 
 .nav-user {
@@ -2435,21 +2469,57 @@ ul {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+.smart-recommend {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.persona-selection {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.recommend-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.recommend-controls input {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.recommend-controls label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
 @media (max-width: 768px) {
-  .snacks-summary {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .snack-tray-visual {
-    width: 100%;
-    min-height: 70px;
-  }
-  
   .footer-actions {
-    width: 100%;
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    align-items: center;
   }
   
   .footer-actions button {

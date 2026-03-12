@@ -395,17 +395,17 @@
                         </div>
                     </div>
                     <div class="smart-recommend">
-                        <div class="persona-selection" style="display:flex;gap:10px;margin-bottom:15px;width:100%;justify-content:center;flex-wrap:wrap;">
+                        <div class="persona-selection">
                             <button class="persona-btn active" data-persona="Cinephile" title="Best View">Cinephile</button>
                             <button class="persona-btn" data-persona="Couple" title="Private Corner">Couple</button>
                             <button class="persona-btn" data-persona="Family" title="Group Row">Family</button>
                             <button class="persona-btn" data-persona="Friends" title="Together">Friends</button>
                         </div>
-                        <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
+                        <div class="recommend-controls">
                             <label>Best seats for</label>
                             <input type="number" id="groupSize" value="2" min="1" max="10">
                             <label>people</label>
-                            <button id="recommendBtn">Recommend</button>
+                            <button id="recommendBtn" class="btn-primary" style="padding: 10px 20px;">Recommend</button>
                         </div>
                     </div>
                     <div class="seat-summary" id="seatSummary" style="display:none">
