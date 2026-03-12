@@ -2239,15 +2239,14 @@ ul {
 @media (max-width: 768px) {
   /* Mobile Layout Cleanup & Navigation Consolidation */
   .nav-links a[data-section],
-  .global-search-container,
   .theme-toggle,
   .nav-user {
     display: none !important; /* Hide redundant top nav items on mobile */
   }
 
   .navbar {
-    justify-content: center !important; /* Center logo on mobile */
-    padding: 15px !important;
+    justify-content: space-between !important; /* Restore space-between for logo and search */
+    padding: 10px 15px !important;
     height: 60px !important;
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -2262,8 +2261,21 @@ ul {
 
   .nav-logo {
     margin: 0 !important;
-    font-size: 1.5rem !important;
-    letter-spacing: 1px;
+    font-size: 1.4rem !important;
+    letter-spacing: normal;
+  }
+
+  .global-search-container {
+    display: block !important;
+    flex: 1;
+    max-width: 180px;
+    margin-left: 15px;
+  }
+
+  .global-search-container input {
+    height: 34px !important;
+    font-size: 0.8rem !important;
+    padding: 0 12px 0 35px !important;
   }
 
   .nav-toggle {
