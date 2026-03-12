@@ -650,7 +650,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
         <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
-          <div style="font-size:2.8rem;margin-bottom:0.6rem"></div>
+          <div style="font-size:2.8rem;margin-bottom:0.6rem">🎬</div>
           <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
           <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
         </div>
@@ -1053,7 +1053,7 @@ function showPage(id) {
   pages.forEach(p => {
     p.classList.remove('active');
     p.style.opacity = '0';
-    p.style.transform = 'translateY(20px)';
+    p.style.transform = 'translateY(8px)';
   });
 
   const activePage = $(id);

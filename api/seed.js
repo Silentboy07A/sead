@@ -102,7 +102,12 @@ const THEATRES_SEED = [
     { _id: 7, name: "SPI Palazzo Focus Mall", location: "Anna Nagar", city: "Chennai", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] },
     { _id: 8, name: "Prasads IMAX", location: "Khairatabad", city: "Hyderabad", shows: [{ time: "10:00 AM", format: "IMAX" }, { time: "1:30 PM", format: "2D" }, { time: "5:30 PM", format: "IMAX" }, { time: "9:00 PM", format: "2D" }] },
     { _id: 9, name: "Asian Satyam Mall", location: "Ameerpet", city: "Hyderabad", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:15 PM", format: "3D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "3D" }] },
-    { _id: 10, name: "South City INOX", location: "Prince Anwar Shah Rd", city: "Kolkata", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] }
+    { _id: 10, name: "South City INOX", location: "Prince Anwar Shah Rd", city: "Kolkata", shows: [{ time: "11:30 AM", format: "2D" }, { time: "3:00 PM", format: "3D" }, { time: "6:30 PM", format: "2D" }, { time: "9:45 PM", format: "IMAX" }] },
+    { _id: 11, name: "PVR ICON Pavillion", location: "Senapati Bapat Rd", city: "Pune", shows: [{ time: "10:15 AM", format: "2D" }, { time: "1:30 PM", format: "3D" }, { time: "4:45 PM", format: "2D" }, { time: "8:00 PM", format: "2D" }] },
+    { _id: 12, name: "Lulu Mall PVR", location: "Edappally", city: "Kochi", shows: [{ time: "9:30 AM", format: "2D" }, { time: "12:45 PM", format: "2D" }, { time: "4:00 PM", format: "2D" }, { time: "7:15 PM", format: "2D" }, { time: "10:30 PM", format: "2D" }] },
+    { _id: 13, name: "The Cinema Brookefields", location: "Brookefields Mall", city: "Coimbatore", shows: [{ time: "11:00 AM", format: "2D" }, { time: "2:30 PM", format: "2D" }, { time: "6:00 PM", format: "2D" }, { time: "9:30 PM", format: "2D" }] },
+    { _id: 14, name: "Cinepolis Alpha One", location: "Vastrapur", city: "Ahmedabad", shows: [{ time: "10:45 AM", format: "2D" }, { time: "2:00 PM", format: "3D" }, { time: "5:15 PM", format: "2D" }, { time: "8:30 PM", format: "2D" }] },
+    { _id: 15, name: "INOX Prozone Mall", location: "Chikhalthana", city: "Aurangabad", shows: [{ time: "12:00 PM", format: "2D" }, { time: "3:30 PM", format: "2D" }, { time: "7:00 PM", format: "2D" }, { time: "10:15 PM", format: "2D" }] }
 ];
 
 module.exports = async (req, res) => {
