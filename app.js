@@ -1222,9 +1222,9 @@ function renderSnacks() {
           <div class="snack-price-row">
             <span class="price">₹${s.price}</span>
             <div class="snack-qty-control">
-              <button onclick="updateSnackQty('${s.id}', -1)">-</button>
+              <button onclick="updateSnackQty('${s.id}', -1, event)">-</button>
               <span>${qty}</span>
-              <button onclick="updateSnackQty('${s.id}', 1)">+</button>
+              <button onclick="updateSnackQty('${s.id}', 1, event)">+</button>
             </div>
           </div>
         </div>
@@ -1233,25 +1233,102 @@ function renderSnacks() {
   }).join('');
 
   updateSnacksSummary();
+  renderSnackTray();
 }
 
-function updateSnackQty(id, delta) {
+function renderSnackTray() {
+  const tray = $('snackTrayItems');
+  if (!tray) return;
+
+  const selectedEntries = Object.entries(state.selectedSnacks);
+  if (selectedEntries.length === 0) {
+    tray.innerHTML = '<p style="color:rgba(255,255,255,0.2);font-size:0.8rem;width:100%;text-align:center;">Add snacks to build your combo</p>';
+    return;
+  }
+
+  tray.innerHTML = selectedEntries.map(([id, qty]) => {
+    const snack = SNACKS.find(s => s.id === id);
+    if (!snack) return '';
+    return `
+      <div class="tray-item" title="${snack.name}">
+        <img src="${snack.image}" alt="${snack.name}">
+        <div class="badge">${qty}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateSnackQty(id, delta, event) {
   const current = state.selectedSnacks[id] || 0;
   const next = Math.max(0, current + delta);
   if (next === 0) delete state.selectedSnacks[id];
   else state.selectedSnacks[id] = next;
   
   if (navigator.vibrate) navigator.vibrate(5);
+  
+  // Trigger animation if adding
+  if (delta > 0 && event) {
+    animateSnackToTray(id, event.target);
+  }
+
   renderSnacks();
 
   // Add pop animation to the changed card
-  const card = document.querySelector(`.snack-card[onclick*="'${id}'"]`) || 
-               document.querySelector(`.snack-card:has(button[onclick*="'${id}'"])`);
+  const card = document.querySelector(`.snack-card:has(button[onclick*="'${id}'"])`);
   if (card) {
     card.classList.remove('pop-anim');
     void card.offsetWidth; // trigger reflow
     card.classList.add('pop-anim');
   }
+}
+
+function animateSnackToTray(snackId, targetElement) {
+  const snack = SNACKS.find(s => s.id === snackId);
+  if (!snack) return;
+
+  const rect = targetElement.getBoundingClientRect();
+  const flying = document.createElement('img');
+  flying.src = snack.image;
+  flying.className = 'flying-snack';
+  
+  // Start position
+  flying.style.left = `${rect.left}px`;
+  flying.style.top = `${rect.top}px`;
+  document.body.appendChild(flying);
+
+  // Target position (Tray)
+  const tray = $('snackTrayItems');
+  const trayRect = tray.getBoundingClientRect();
+  const targetX = trayRect.left + trayRect.width / 2;
+  const targetY = trayRect.top + trayRect.height / 2;
+
+  // Animate using Web Animations API
+  flying.animate([
+    { 
+      left: `${rect.left}px`, 
+      top: `${rect.top}px`, 
+      transform: 'scale(1) rotate(0deg)',
+      opacity: 1 
+    },
+    { 
+      left: `${targetX}px`, 
+      top: `${targetY}px`, 
+      transform: 'scale(0.3) rotate(360deg)',
+      opacity: 0.5 
+    }
+  ], {
+    duration: 800,
+    easing: 'cubic-bezier(0.6, -0.28, 0.735, 0.045)', // Gravity/arc feel
+    fill: 'forwards'
+  }).onfinish = () => {
+    flying.remove();
+    // Small bounce on tray
+    tray.animate([
+      { transform: 'scale(1)' },
+      { transform: 'scale(1.02)' },
+      { transform: 'scale(1)' }
+    ], { duration: 200 });
+  };
 }
 
 function updateSnacksSummary() {
