@@ -1991,112 +1991,257 @@ ul {
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-  .auth-container {
-    flex-direction: column;
-  }
-
-  .auth-left {
-    min-height: 35vh;
-    padding: 2rem;
-  }
-
-  .auth-left .logo-section h1 {
-    font-size: 2.2rem;
-  }
-
-  .auth-right {
-    padding: 1.5rem;
-  }
-
-  .auth-form-card {
-    padding: 1.5rem;
-  }
-
-  .hero-content h1 {
-    font-size: 2rem;
-  }
-
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background: var(--bg);
-    padding: 1rem;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    z-index: 1000;
-  }
-
-  .nav-links.open {
-    display: flex;
-  }
-
-  .nav-links a {
-    padding: 12px 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  }
-
-  .nav-toggle {
-    display: block;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 12px;
-    border-radius: 4px;
-    color: var(--text);
-    font-size: 0.8rem;
-  }
-
-  .movie-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
-    padding: 0 10px;
+  /* Glassmorphism Header */
+  .navbar {
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    background: rgba(10, 10, 15, 0.7);
   }
   
-  .movie-card h3 {
+  [data-theme="light"] .navbar {
+    background: rgba(245, 243, 240, 0.7);
+  }
+
+  /* Interactive Bottom Nav */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: rgba(20, 20, 32, 0.8);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 9999;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+  }
+
+  /* Glassmorphism Sections */
+  .search-section, .theatre-selection-section, .seat-selection-section {
+    background: transparent;
+  }
+  
+  .search-bar {
+    background: rgba(20, 20, 32, 0.6) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 12px;
+    margin: 0 10px;
+  }
+
+  /* Immersive Movie Cards */
+  .movie-card {
+    border: none;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  
+  .movie-card:active {
+    transform: scale(0.95);
+  }
+
+  .movie-poster {
+    border-radius: 12px 12px 0 0;
+  }
+
+  /* Compact Search Section */
+  .search-section {
+    padding: 20px 10px;
+  }
+
+  #cityFilter {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    height: 45px;
+  }
+
+  #searchInput {
+    height: 45px;
     font-size: 0.9rem;
   }
 
-  .payment-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  /* Immersion in Seat Selection */
+  .seat-selection-section {
+    padding-bottom: 100px; /* Room for bottom nav */
   }
 
-  .ticket-card-body {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
+  .screen {
+    height: 6px;
+    background: var(--red);
+    box-shadow: 0 10px 30px rgba(230, 57, 70, 0.6);
+    margin: 2rem auto 4rem;
+    width: 80%;
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .screen::after {
+    content: 'SCREEN';
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    opacity: 0.5;
+  }
+
+  .seat-map-container {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 24px 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
   }
 
   .seat {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     font-size: 0.7rem;
-  }
-  
-  .seat-row {
-    gap: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .search-bar {
+  .seat.selected {
+    background: var(--red);
+    border-color: var(--red);
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
+    transform: scale(1.15) translateY(-2px);
+  }
+
+  .seat:active {
+    transform: scale(1.4);
+    background: var(--red);
+  }
+
+  /* Immersion in Theatre Selection */
+  .theatre-selection-section {
+    padding-bottom: 90px;
+  }
+
+  .selected-movie-info {
     flex-direction: column;
-    padding: 10px;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    background: #0a0a0f;
+    border-radius: 0 0 40px 40px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   }
-  
-  .search-bar input, .search-bar select {
-    width: 100% !important;
+
+  .selected-movie-info::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--movie-bg);
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px) brightness(0.4);
+    opacity: 0.6;
+    z-index: 0;
   }
-  
-  .global-search-container {
-    margin-left: 0 !important;
-    margin-top: 10px;
-    width: 100%;
+
+  .selected-movie-info img {
+    width: 150px;
+    height: 220px;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    transform: perspective(1000px) rotateY(-5deg);
+    z-index: 1;
+    position: relative;
   }
-  
-  .global-search-dropdown {
-    width: 100% !important;
-    position: static !important;
-    margin-top: 10px !important;
+
+  .movie-details {
+    z-index: 1;
+    position: relative;
+  }
+
+  .selected-movie-info h3 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+
+  .theatre-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 0 15px 20px;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .theatre-card:active {
+    transform: scale(0.97) translateY(2px);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .theatre-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+
+  .theatre-card .location {
+    font-size: 0.8rem;
+    margin-bottom: 1.2rem;
+    opacity: 0.7;
+  }
+
+  .show-times {
+    gap: 10px;
+  }
+
+  .show-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .show-badge:active {
+    transform: scale(1.1);
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  .show-badge span {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .show-badge .format {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    margin-top: 2px;
   }
 }
 

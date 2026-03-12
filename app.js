@@ -819,7 +819,32 @@ function initNavigation() {
       $('profileAvatar').textContent = state.user.name.charAt(0).toUpperCase();
       $('profileJoined').textContent = 'Today';
     }
+    if ($('userDropdown')) $('userDropdown').classList.remove('show');
     $('profileModal').style.display = 'flex';
+  });
+
+  // Mobile Profile Button
+  if ($('mobileProfileBtn')) {
+    $('mobileProfileBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (state.user) {
+        $('profileName').textContent = state.user.name;
+        $('profileEmail').textContent = state.user.email;
+        $('profileAvatar').textContent = state.user.name.charAt(0).toUpperCase();
+        $('profileJoined').textContent = 'Today';
+      }
+      $('profileModal').style.display = 'flex';
+    });
+  }
+
+  // Bottom Nav Interactions
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const section = item.dataset.section;
+      if (section) {
+        showPage(section);
+      }
+    });
   });
 
   // Back buttons
@@ -885,11 +910,34 @@ function showPage(id) {
   if (id === 'myBookingsSection') {
     renderMyBookings();
   }
-  document.querySelectorAll('#mainApp .page').forEach(p => p.classList.remove('active'));
-  $(id).classList.add('active');
+  
+  const pages = document.querySelectorAll('#mainApp .page');
+  pages.forEach(p => {
+    p.classList.remove('active');
+    p.style.opacity = '0';
+    p.style.transform = 'translateY(20px)';
+  });
+
+  const activePage = $(id);
+  activePage.classList.add('active');
+  
+  // Smooth Entry Animation
+  setTimeout(() => {
+    activePage.style.transition = 'all 0.4s cubic-bezier(0.2, 0, 0.2, 1)';
+    activePage.style.opacity = '1';
+    activePage.style.transform = 'translateY(0)';
+  }, 50);
+  
+  // Desktop Nav Links
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
   const navA = document.querySelector(`.nav-links a[data-section="${id}"]`);
   if (navA) navA.classList.add('active');
+
+  // Bottom Nav Links
+  document.querySelectorAll('.bottom-nav-item').forEach(a => a.classList.remove('active'));
+  const bottomA = document.querySelector(`.bottom-nav-item[data-section="${id}"]`);
+  if (bottomA) bottomA.classList.add('active');
+
   window.scrollTo(0, 0);
 }
 
@@ -913,12 +961,15 @@ function selectMovie(movie) {
 // ========== THEATRE RENDERING ==========
 function renderTheatres() {
   const m = state.selectedMovie;
+  if ($('selectedMovieInfo')) {
+    $('selectedMovieInfo').style.setProperty('--movie-bg', `url(${m.poster})`);
+  }
   $('selectedMovieInfo').innerHTML = `
     <img src="${m.poster}" alt="${m.title}" onerror="this.style.background='#1a1a2e'">
-    <div>
-      <h3 style="font-family:'Poppins';font-weight:600">${m.title}</h3>
-      <p style="font-size:0.85rem;color:var(--text-muted)">${m.genre} • ${m.language} • ${m.duration} • Rating ${m.rating}</p>
-      ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.5rem 1rem; font-size:0.85rem;">Watch Trailer</button>` : ''}
+    <div class="movie-details">
+      <h3>${m.title}</h3>
+      <p>${m.genre} • ${m.language} • ${m.duration} • Rating ${m.rating}</p>
+      ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.6rem 1.2rem; font-size:0.85rem; border-radius: 50px;">Watch Trailer</button>` : ''}
     </div>
   `;
   const city = $('cityFilter').value;
@@ -957,6 +1008,9 @@ function renderTheatres() {
 
 // ========== SHOW SELECTION ==========
 async function selectShow(theatreId, showIndex) {
+  // Tactile feedback (vibration) for mobile
+  if (navigator.vibrate) navigator.vibrate(15);
+
   const theatre = THEATRES.find(t => t.id === theatreId);
   state.selectedTheatre = theatre;
   state.selectedShow = theatre.shows[showIndex];
