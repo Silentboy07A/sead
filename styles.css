@@ -1991,8 +1991,15 @@ ul {
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-  /* Glassmorphism Header */
+  /* Mobile Layout Cleanup & Navigation Consolidation */
+  .nav-links a[data-section] {
+    display: none !important; /* Hide redundant Home, Movies, Bookings in top nav */
+  }
+
   .navbar {
+    justify-content: space-between !important;
+    padding: 10px 15px !important;
+    height: 60px !important;
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     background: rgba(10, 10, 15, 0.7);
@@ -2000,6 +2007,35 @@ ul {
   
   [data-theme="light"] .navbar {
     background: rgba(245, 243, 240, 0.7);
+  }
+
+  .nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .nav-logo {
+    margin: 0 !important;
+    font-size: 1.4rem !important;
+  }
+
+  .global-search-container {
+    display: block !important;
+    margin: 0 0 0 0.5rem !important;
+  }
+
+  .global-search-container input {
+    width: 100px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .nav-toggle {
+    display: none !important;
   }
 
   /* Interactive Bottom Nav */
