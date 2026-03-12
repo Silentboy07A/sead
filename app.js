@@ -876,10 +876,7 @@ function initNavigation() {
     showPage('paymentSection');
   });
 
-  $('confirmSnacks').addEventListener('click', () => {
-    renderPayment();
-    showPage('paymentSection');
-  });
+  // confirmSnacks click listener is now handled dynamically in showPage
 }
 
 // ========== GLOBAL SEARCH HELPERS ==========
@@ -933,6 +930,33 @@ function closeTrailer() {
 function showPage(id) {
   if (id === 'myBookingsSection') {
     renderMyBookings();
+  }
+  
+  if (id === 'snacksSection') {
+    renderSnacks();
+    // Handle standalone vs booking context
+    const isBooking = state.selectedSeats.length > 0;
+    const backBtn = $('backToSeatsFromSnacks');
+    const skipBtn = $('skipSnacks');
+    const confirmBtn = $('confirmSnacks');
+
+    if (backBtn) backBtn.style.display = isBooking ? 'block' : 'none';
+    if (skipBtn) skipBtn.style.display = isBooking ? 'block' : 'none';
+    
+    // Update confirm button text and logic
+    if (confirmBtn) {
+      if (isBooking) {
+        confirmBtn.onclick = () => {
+          renderPayment();
+          showPage('paymentSection');
+        };
+      } else {
+        confirmBtn.onclick = () => {
+          showToast('Browse our snacks! Select a movie to book & eat.');
+          showPage('heroSection');
+        };
+      }
+    }
   }
   
   const pages = document.querySelectorAll('#mainApp .page');
