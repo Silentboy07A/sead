@@ -40,11 +40,18 @@ function saveState() { /* JWT cookies handle persistence */ }
 
 // ========== UTILITY ==========
 function $(id) { return document.getElementById(id); }
-function showToast(msg) {
+function showToast(msg, duration = 3000) {
   const t = $('toast');
-  t.textContent = msg;
+  t.innerHTML = msg; // Support HTML for links
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  
+  // Clear any existing timeout to prevent flickering
+  if (t._timeout) clearTimeout(t._timeout);
+  
+  t._timeout = setTimeout(() => {
+    t.classList.remove('show');
+    t._timeout = null;
+  }, duration);
 }
 
 // ========== AUTH LOGIC ==========
