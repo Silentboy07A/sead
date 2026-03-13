@@ -2131,13 +2131,45 @@ function initChatbot() {
   toggle.onclick = () => window.classList.add('active');
   close.onclick = () => window.classList.remove('active');
 
-  const addMsg = (text, sender) => {
+  const addMsg = (text, sender, isMedia = false) => {
     const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    div.textContent = text;
+    div.className = `message ${sender} ${isMedia ? 'media-container' : ''}`;
+    if (isMedia) {
+      div.innerHTML = text;
+    } else {
+      div.textContent = text;
+    }
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
+  };
+
+  const renderMovieCards = (movies) => {
+    const container = document.createElement('div');
+    container.className = 'chat-media-scroll';
+    
+    movies.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'chat-movie-mini-card';
+      card.innerHTML = `
+        <img src="${m.poster}" alt="${m.title}">
+        <div class="mini-card-info">
+          <h6>${m.title}</h6>
+          <div class="mini-meta">
+            <span class="mini-rating">★ ${m.rating}</span>
+            <span class="mini-genre">${m.genre.split(', ')[0]}</span>
+          </div>
+          <button class="mini-book-btn" onclick="document.getElementById('chatWindow').classList.remove('active'); selectMovie(${typeof m.id === 'string' ? `'${m.id}'` : m.id})">Book</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message bot media';
+    msgDiv.appendChild(container);
+    messages.appendChild(msgDiv);
+    messages.scrollTop = messages.scrollHeight;
   };
 
   const handleSend = async (text) => {
@@ -2151,15 +2183,29 @@ function initChatbot() {
     const typing = addMsg('...', 'bot');
 
     try {
+      // Prepare user data for personalization
+      const userData = state.user ? {
+        points: state.user.points || 0,
+        bookings: state.user.bookings || []
+      } : null;
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: val })
+        body: JSON.stringify({ 
+          message: val,
+          userData: userData
+        })
       });
       const data = await res.json();
+      
       typing.textContent = data.response;
+      
+      if (data.recommendations && data.recommendations.length > 0) {
+        setTimeout(() => renderMovieCards(data.recommendations), 400);
+      }
     } catch (e) {
-      typing.textContent = "Sorry, I'm having trouble connecting to my brain right now. Please try again later!";
+      typing.textContent = "I apologize, but I am currently unable to process your request. Please try again later.";
     }
   };
 
