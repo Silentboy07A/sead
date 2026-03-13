@@ -64,6 +64,12 @@ function debounce(func, wait) {
   };
 }
 
+const saveState = () => {
+  if (state.user) {
+    localStorage.setItem('cintic_user', JSON.stringify(state.user));
+  }
+};
+
 // ========== AUTH LOGIC ==========
 function initAuth() {
   // Tab switching
@@ -1602,7 +1608,14 @@ async function recommendSeats() {
     for (let i = 0; i <= available.length - n; i++) {
       const chunk = available.slice(i, i + n);
       const nums = chunk.map(s => parseInt(s.slice(1)));
-      const isConsecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
+      const isConsecutive = nums.every((v, j) => {
+          if (j === 0) return true;
+          if (v !== nums[j - 1] + 1) return false;
+          // Aisle check: seats are numerically consecutive but physically separated
+          if (nums[j-1] === 3 && v === 4) return false;
+          if (nums[j-1] === 7 && v === 8) return false;
+          return true;
+      });
       
       if (isConsecutive) {
         // Calculate Vision Physics Score (Closer to 0 is better)
@@ -1634,7 +1647,7 @@ async function recommendSeats() {
 
   if (seatOptions.length > 0) {
     state.selectedSeats = seatOptions[0].chunk;
-    updateSeatSelection();
+    updateSeatSummary();
     
     const rationale = persona === 'Couple' ? "Privacy & View Balance" : "Optimal 1:1 View Angle";
     showToast(`Vision IQ 8.0: ${n} seats secured. Logic: ${rationale}.`);
@@ -1653,7 +1666,21 @@ async function recommendSeats() {
       }, i * 100);
     });
   } else {
-    showToast("Vision IQ: Perfect block unavailable. Suggesting next best dispersion.");
+    // 5. DISPERSION FALLBACK: Find any available seats if no consecutive block
+    const allAvailable = [];
+    for (const row of rows) {
+      for (let s = 1; s <= 10; s++) {
+        const id = row + s;
+        if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) allAvailable.push(id);
+      }
+    }
+    state.selectedSeats = allAvailable.slice(0, n);
+    updateSeatSummary();
+    if (state.selectedSeats.length > 0) {
+      showToast(`Vision IQ 8.5: Selected ${state.selectedSeats.length} best available seats.`);
+    } else {
+      showToast("Vision IQ: Cinema is fully booked!");
+    }
   }
   renderSeats();
 }
