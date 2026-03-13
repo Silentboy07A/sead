@@ -1240,15 +1240,15 @@ ul {
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
   position: relative;
 }
 
 .movie-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   border-color: var(--red);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(230, 57, 70, 0.1);
 }
 
 .movie-card.skeleton {
@@ -1333,6 +1333,8 @@ ul {
 .btn-book:hover {
   background: var(--red);
   color: white;
+  box-shadow: var(--glow-red);
+  transform: scale(1.02);
 }
 
 /* ============================================
