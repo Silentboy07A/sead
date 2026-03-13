@@ -1246,7 +1246,16 @@ function renderSeats() {
       html += `<span class="seat-row-label">${row}</span></div>`;
     }
   }
-  $('seatMap').innerHTML = html;
+  $('seatMap').innerHTML = `
+    <div class="seat-map-wrapper">
+      <div class="scanning-overlay" id="scanningOverlay">
+        <div class="scan-line"></div>
+      </div>
+      <div class="seat-grid-container">
+        ${html}
+      </div>
+    </div>
+  `;
   updateSeatSummary();
 
   // Recommend button
@@ -1546,9 +1555,28 @@ function updateSeatSummary() {
 }
 
 // ========== SMART RECOMMENDATION ==========
-function recommendSeats() {
+async function runAiScanning(duration = 2000) {
+  const overlay = $('scanningOverlay');
+  if (!overlay) return;
+  
+  overlay.classList.add('active');
+  if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 50]);
+  
+  return new Promise(resolve => {
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      resolve();
+    }, duration);
+  });
+}
+
+async function recommendSeats() {
   const n = parseInt($('groupSize').value) || 2;
   const persona = state.activePersona || 'Cinephile';
+  
+  // Start scanning animation
+  await runAiScanning(2000);
+  
   state.selectedSeats = [];
   
   const rows = 'ABCDEFGHIJ'.split('');
@@ -1670,10 +1698,19 @@ function recommendSeats() {
   }
 
   if (found) {
-    if (navigator.vibrate) navigator.vibrate(10);
-    showToast(`Found ${n} seats for ${persona}! Togetherness guaranteed.`);
+    if (navigator.vibrate) navigator.vibrate(20);
+    showToast(`AI Analysis Complete: Found ${n} seats for ${persona}!`);
+    
+    // Add temporary highlight to recommended seats
+    state.selectedSeats.forEach(seatId => {
+      const el = document.querySelector(`.seat[data-seat="${seatId}"]`);
+      if (el) {
+        el.classList.add('recommended');
+        setTimeout(() => el.classList.remove('recommended'), 3000);
+      }
+    });
   } else {
-    showToast('Could not find enough consecutive seats. Try a smaller group!');
+    showToast('AI Analysis: Could not find enough consecutive seats. Optimal viewing compromised!');
   }
   renderSeats();
 }
