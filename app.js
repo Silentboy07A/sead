@@ -1626,20 +1626,77 @@ async function recommendSeats() {
         
         // Persona Weighting
         let personaMultiplier = 1;
-        if (persona === 'Couple' && rowIndex > 7) personaMultiplier = 0.5; // Favor back for couples
-        if (persona === 'Cinephile' && rowIndex >= 4 && rowIndex <= 6) personaMultiplier = 0.5; // Favor front-middle for film buffs
+        const hasCorner = nums.some(v => v === 1 || v === 10);
         
-        const score = (xDist + (yDist * 1.5)) * personaMultiplier;
+        if (persona === 'Couple') {
+          if (rowIndex > 7) personaMultiplier *= 0.6; // Favor back rows
+          if (hasCorner) personaMultiplier *= 0.1; // VERY STRONG corner preference
+        }
+        if (persona === 'Cinephile' && rowIndex >= 4 && rowIndex <= 6) personaMultiplier *= 0.5; // Favor front-middle 
+        
+        // Diversity Jitter: Stronger jitter to ensure variety
+        const jitter = Math.random() * 2.0; 
+        const score = (xDist + (yDist * 1.5)) * personaMultiplier + jitter;
         seatOptions.push({ chunk, score });
       }
     }
   }
 
-  // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters
-  if (seatOptions.length === 0 && n > 2) {
-    const half = Math.ceil(n / 2);
-    // Recursive/Fallback logic: Find two blocks in adjacent central rows
-    // (Simplified for this version: notify user or try next best logic)
+  // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters (especially for 4+)
+  if (seatOptions.length === 0 && n >= 4) {
+    const splitSize = Math.floor(n / 2);
+    const remainder = n - splitSize;
+    
+    // Attempt to find two separate blocks
+    let subOptions = []; // Will hold pairs of blocks
+    
+    // Find all possible smaller blocks
+    const smallerBlocks = [];
+    for (const row of rows) {
+      const available = [];
+      for (let s = 1; s <= 10; s++) {
+        const seatId = row + s;
+        if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) available.push(seatId);
+      }
+      for (let i = 0; i <= available.length - splitSize; i++) {
+        const chunk = available.slice(i, i + splitSize);
+        const nums = chunk.map(s => parseInt(s.slice(1)));
+        const isConsecutive = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
+        if (isConsecutive) {
+          const avgPos = nums.reduce((a, b) => a + b, 0) / splitSize;
+          const xDist = Math.abs(5.5 - avgPos);
+          const rowIndex = rows.indexOf(row);
+          const yDist = Math.abs(5.5 - rowIndex);
+          smallerBlocks.push({ chunk, rowIndex, xDist, yDist, score: xDist + yDist });
+        }
+      }
+    }
+
+    // Try to pair them (same row or adjacent)
+    for (let i = 0; i < smallerBlocks.length; i++) {
+      for (let j = i + 1; j < smallerBlocks.length; j++) {
+        const b1 = smallerBlocks[i];
+        const b2 = smallerBlocks[j];
+        
+        // Check if overlapping
+        const allSeats = [...b1.chunk, ...b2.chunk];
+        if (new Set(allSeats).size < (b1.chunk.length + b2.chunk.length)) continue;
+
+        let pairScore = b1.score + b2.score;
+        const rowDiff = Math.abs(b1.rowIndex - b2.rowIndex);
+        
+        if (rowDiff === 0) pairScore *= 0.8; // Prefer same row
+        else if (rowDiff === 1) pairScore *= 0.9; // Prefer adjacent rows
+        else pairScore *= (1 + rowDiff * 0.5); // Penality for far apart
+
+        subOptions.push({ chunk: allSeats, score: pairScore });
+      }
+    }
+    
+    if (subOptions.length > 0) {
+      subOptions.sort((a, b) => a.score - b.score);
+      seatOptions.push(subOptions[0]);
+    }
   }
 
   // 4. Final Selection
@@ -1649,8 +1706,10 @@ async function recommendSeats() {
     state.selectedSeats = seatOptions[0].chunk;
     updateSeatSummary();
     
-    const rationale = persona === 'Couple' ? "Privacy & View Balance" : "Optimal 1:1 View Angle";
-    showToast(`Vision IQ 8.0: ${n} seats secured. Logic: ${rationale}.`);
+    const rationale = persona === 'Couple' && state.selectedSeats.some(s => s.endsWith('1') || s.endsWith('10')) 
+      ? "Corner Privacy Mode" 
+      : (n >= 4 && !seatOptions[0].chunk.every(s => s.charAt(0) === seatOptions[0].chunk[0].charAt(0)) ? "Smart Group Split" : "Optimal View Cluster");
+    showToast(`Vision IQ 9.0: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
     
     // Clear old visual classes
     document.querySelectorAll('.seat.recommended').forEach(s => s.classList.remove('recommended'));
