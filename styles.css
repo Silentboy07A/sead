@@ -1281,6 +1281,79 @@ ul {
   aspect-ratio: 2/3;
   object-fit: cover;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
+  position: relative;
+}
+
+.movie-poster.loaded {
+  background: none;
+}
+
+.movie-poster::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+/* Change Password Form Styles */
+.change-password-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.change-password-section h4 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-field {
+  margin-bottom: 12px;
+}
+
+.cp-field input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.cp-field input:focus {
+  border-color: var(--red);
+}
+
+.btn-update-pass {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-update-pass:hover {
+  background: var(--red);
+  color: #fff;
 }
 
 .movie-info {

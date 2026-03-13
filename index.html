@@ -279,6 +279,19 @@
                         <span style="color:var(--text-muted,#aaa);">Account type</span>
                         <span style="color:#e50914;font-weight:600;">✦ Member</span>
                     </div>
+
+                    <!-- Change Password Section -->
+                    <div class="change-password-section">
+                        <h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Change Password</h4>
+                        <div class="cp-field">
+                            <input type="password" id="currentPassword" placeholder="Current Password">
+                        </div>
+                        <div class="cp-field">
+                            <input type="password" id="newPassword" placeholder="New Password">
+                        </div>
+                        <button class="btn-update-pass" id="updatePasswordBtn">Update Password</button>
+                        <div id="cpMessage" style="font-size: 0.75rem; margin-top: 8px; text-align: center; display: none;"></div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -766,6 +766,8 @@ function initNavigation() {
   $('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     try {
+      // Set a flag to prevent immediate auto-login loop
+      sessionStorage.setItem('just_logged_out', 'true');
       await fetch('/api/auth/logout', { credentials: 'same-origin' });
     } catch (err) { console.warn('Logout fetch failed:', err); }
     state.user = null;
@@ -1068,8 +1070,20 @@ function showPage(id) {
 }
 
 // ========== MOVIE SELECTION ==========
-function selectMovie(movie) {
-  state.selectedMovie = movie;
+function selectMovie(movieOrId) {
+  if (typeof movieOrId === 'number' || typeof movieOrId === 'string' || !movieOrId.title) {
+    const id = (typeof movieOrId === 'object') ? movieOrId.id : movieOrId;
+    state.selectedMovie = MOVIES.find(m => m.id == id);
+  } else {
+    state.selectedMovie = movieOrId;
+  }
+  
+  if (!state.selectedMovie) {
+    console.error('Movie selection failed: Movie not found');
+    showToast('Something went wrong. Please select another movie.');
+    return;
+  }
+
   state.selectedShow = null;
   state.selectedSeats = [];
   renderTheatres();
@@ -1087,14 +1101,29 @@ function selectMovie(movie) {
 // ========== THEATRE RENDERING ==========
 function renderTheatres() {
   const m = state.selectedMovie;
+  if (!m) return;
+
   if ($('selectedMovieInfo')) {
-    $('selectedMovieInfo').style.setProperty('--movie-bg', `url(${m.poster})`);
+    const bgUrl = m.poster || '';
+    $('selectedMovieInfo').style.setProperty('--movie-bg', bgUrl ? `url(${bgUrl})` : 'none');
   }
+
+  const posterHtml = m.poster 
+    ? `<img src="${m.poster}" alt="${m.title}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
+    : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
+         <span style="font-size:3rem;">🎬</span>
+       </div>`;
+
   $('selectedMovieInfo').innerHTML = `
-    <img src="${m.poster}" alt="${m.title}" onerror="this.style.background='#1a1a2e'">
+    ${posterHtml}
     <div class="movie-details">
-      <h3>${m.title}</h3>
-      <p>${m.genre} • ${m.language} • ${m.duration} • Rating ${m.rating}</p>
+      <h3>${m.title || 'Movie Details'}</h3>
+      <p>
+        ${m.genre || 'Various'} • 
+        ${m.language || 'Multiple'} • 
+        ${m.duration || 'N/A'} • 
+        Rating ${m.rating || 'N/A'}
+      </p>
       ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.6rem 1.2rem; font-size:0.85rem; border-radius: 50px;">Watch Trailer</button>` : ''}
     </div>
   `;
@@ -1923,26 +1952,90 @@ function applyTheme(theme) {
   if (knob) knob.textContent = theme === 'dark' ? 'Dark' : 'Light';
 }
 
-// ========== INIT ==========
+// ========== PROFILE ACTIONS ==========
+function initProfileActions() {
+  const updateBtn = $('updatePasswordBtn');
+  if (updateBtn) {
+    updateBtn.addEventListener('click', async () => {
+      const currentPassword = $('currentPassword').value;
+      const newPassword = $('newPassword').value;
+      const msg = $('cpMessage');
+
+      if (!currentPassword || !newPassword) {
+        msg.textContent = 'Please fill all fields';
+        msg.style.color = 'var(--red)';
+        msg.style.display = 'block';
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        msg.textContent = 'New password must be at least 8 characters';
+        msg.style.color = 'var(--red)';
+        msg.style.display = 'block';
+        return;
+      }
+
+      updateBtn.disabled = true;
+      updateBtn.textContent = 'Updating...';
+      msg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = 'Password updated successfully!';
+          msg.style.color = '#2ecc71';
+          $('currentPassword').value = '';
+          $('newPassword').value = '';
+        } else {
+          msg.textContent = data.error || 'Failed to update password';
+          msg.style.color = 'var(--red)';
+        }
+        msg.style.display = 'block';
+      } catch (err) {
+        msg.textContent = 'Network error. Please try again.';
+        msg.style.color = 'var(--red)';
+        msg.style.display = 'block';
+      } finally {
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Update Password';
+      }
+    });
+  }
+}
+
+// ========== MAIN APP INIT ==========
 initTheme();
 initAuth();
 initPasswordReset();
+initProfileActions();
 
 // Try to auto-login via JWT cookie
 (async function initSession() {
-  try {
-    const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
-    if (res.ok) {
-      const data = await res.json();
-      state.user = data.user;
-      $('authPage').classList.remove('active');
-      $('mainApp').style.display = 'block';
-      updateNavUser();
-      initApp();
-      return;
+  // Check if we just logged out — if so, skip auto-login
+  if (sessionStorage.getItem('just_logged_out')) {
+    sessionStorage.removeItem('just_logged_out');
+    // Still run the rest of the logic to set up the auth page
+  } else {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        state.user = data.user;
+        $('authPage').classList.remove('active');
+        $('mainApp').style.display = 'block';
+        updateNavUser();
+        initApp();
+        return;
+      }
+    } catch (err) {
+      console.warn('Session check failed:', err);
     }
-  } catch (err) {
-    console.warn('Session check failed:', err);
   }
 
   // No valid session — show auth page

@@ -23,6 +23,8 @@ module.exports = async (req, res) => {
             return require('./_forgot-password')(req, res);
         case 'reset-password':
             return require('./_reset-password')(req, res);
+        case 'change-password':
+            return require('./_change-password')(req, res);
         default:
             res.status(404).json({ error: 'Auth route not found' });
     }
