@@ -6,136 +6,104 @@ module.exports = async (req, res) => {
   const { message, userData } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
-  const msg = message.toLowerCase();
-
-  // Data Definitions
-  const SNACKS = [
-    { name: 'Salted Popcorn (R)', price: 180 },
-    { name: 'Cheese Popcorn (L)', price: 250 },
-    { name: 'Coca Cola (500ml)', price: 120 },
-    { name: 'Loaded Nachos', price: 210 },
-    { name: 'Chicken Burger', price: 190 },
-    { name: 'Couple Combo', price: 450 }
-  ];
-  const TICKETS = { silver: 180, gold: 250, platinum: 350 };
-
-  // Mood to Genre Mapping
-  const MOODS = {
-    intense: ["Action", "Thriller", "Horror"],
-    thrilling: ["Action", "Thriller"],
-    "feel-good": ["Comedy", "Romance"],
-    funny: ["Comedy"],
-    scary: ["Horror"],
-    chill: ["Drama", "Romance"],
-    excited: ["Action", "Sci-Fi"],
-    sad: ["Drama"]
-  };
-
   try {
     const { db } = await connectToDatabase();
-    let response = "";
-    let recommendations = null;
+    
+    // Fetch live context for RAG
+    const movies = await db.collection('movies').find({}).toArray();
+    const movieContext = movies.map(m => `- ${m.title} (Rating: ${m.rating}, Genre: ${m.genre}, Language: ${m.language})`).join('\n');
+    
+    const snacks = [
+      { name: 'Salted Popcorn (R)', price: 180 },
+      { name: 'Cheese Popcorn (L)', price: 250 },
+      { name: 'Coca Cola (500ml)', price: 120 },
+      { name: 'Loaded Nachos', price: 210 },
+      { name: 'Chicken Burger', price: 190 },
+      { name: 'Couple Combo', price: 450 }
+    ];
+    const snackContext = snacks.map(s => `- ${s.name}: INR ${s.price}`).join('\n');
+    
+    const ticketContext = "Silver: INR 180, Gold: INR 250, Platinum: INR 350";
+    
+    const userProfileContext = userData ? `User Balance: ${userData.points} CinePoints. User Bookings: ${userData.bookings.length} reservations.` : "User is not logged in.";
 
-    // 1. Rewards & Profile Check
-    if (msg.includes('point') || msg.includes('reward') || msg.includes('balance')) {
-      if (userData && userData.points !== undefined) {
-        response = `You currently have ${userData.points} CinePoints. You can redeem these for discounts on snacks or premium seat upgrades!`;
-      } else {
-        response = "I couldn't retrieve your membership details. Please ensure you are logged in to check your CinePoints balance.";
-      }
-    } else if (msg.includes('booking') || msg.includes('my tickets') || msg.includes('history')) {
-      if (userData && userData.bookings && userData.bookings.length > 0) {
-        const count = userData.bookings.length;
-        response = `You have ${count} active or past booking${count > 1 ? 's' : ''}. You can view the full details and download your tickets in the 'My Bookings' section of your profile.`;
-      } else {
-        response = "It appears you haven't made any bookings yet. Permit me to assist you in finding a movie for this evening?";
-      }
-    } 
-    // 2. Budget Planning (Enhanced for Multi-person)
-    else if (msg.match(/(\d+)\s*(?:rs|rupees|inr|money)/)) {
-      const budget = parseInt(msg.match(/(\d+)/)[1]);
+    // Call Groq API
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY || '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'}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: `You are "CinBot", a premium AI cinema concierge for CineBook (CinTic).
+            
+            STRICT PERSONALITY RULES:
+            1. NEVER use emojis.
+            2. Always use professional, formal, and sophisticated language.
+            3. Be helpful, concise, and focused on cinema experiences.
+            4. If the user asks for movie recommendations, reference the titles provided in the context.
+            5. If the user asks for a plan or budget, calculate it accurately based on the prices provided.
+            
+            LIVE MOVIE DATABASE:
+            ${movieContext}
+            
+            GOURMET SNACK MENU:
+            ${snackContext}
+            
+            TICKET PRICING:
+            ${ticketContext}
+            
+            USER PROFILE:
+            ${userProfileContext}
+            
+            RESPONSE FORMAT:
+            - Return your main message as the primary response.
+            - If you want to recommend specific movies from the list, end your message with a JSON-like tag: [RECOMMEND: "Title 1", "Title 2"] using EXACT titles from the database.
+            `
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.5,
+        max_tokens: 500
+      })
+    });
+
+    const groqData = await groqRes.json();
+    let fullResponse = groqData.choices[0].message.content;
+    
+    // Parse the [RECOMMEND: ...] tag if present
+    let recommendations = [];
+    const recommendMatch = fullResponse.match(/\[RECOMMEND:\s*(.*?)\]/);
+    if (recommendMatch) {
+      const titles = recommendMatch[1].split(',').map(t => t.trim().replace(/"/g, ''));
+      recommendations = movies.filter(m => titles.some(title => m.title.toLowerCase().includes(title.toLowerCase())))
+                        .map(m => ({
+                          id: m._id,
+                          title: m.title,
+                          poster: m.poster,
+                          rating: m.rating,
+                          genre: m.genre
+                        }))
+                        .slice(0, 3);
       
-      // Detect number of people
-      let personCount = 1;
-      const personMatch = msg.match(/(\d+)\s*(?:member|people|person|friend|user)/);
-      if (personMatch) {
-          personCount = parseInt(personMatch[1]);
-      } else if (msg.includes('couple') || msg.includes('both of us') || msg.includes('we are two')) {
-          personCount = 2;
-      }
-
-      // Find best ticket type that fits everyone
-      let ticketType = 'silver';
-      if (budget >= TICKETS.platinum * personCount) {
-          ticketType = 'platinum';
-      } else if (budget >= TICKETS.gold * personCount) {
-          ticketType = 'gold';
-      }
-
-      const totalTicketCost = TICKETS[ticketType] * personCount;
-      
-      if (budget < TICKETS.silver * personCount) {
-        response = `For ${personCount} ${personCount > 1 ? 'people' : 'person'}, our starting ticket cost would be INR ${TICKETS.silver * personCount}. With INR ${budget}, you might consider adjusting your budget to secure Silver admissions.`;
-      } else {
-        const remaining = budget - totalTicketCost;
-        const affordableSnacks = SNACKS.filter(s => s.price <= remaining).sort((a,b) => b.price - a.price);
-        
-        response = `For ${personCount} ${personCount > 1 ? 'people' : 'person'} with a budget of INR ${budget}, I recommend ${personCount} ${ticketType.charAt(0).toUpperCase() + ticketType.slice(1)} ticket${personCount > 1 ? 's' : ''} (Total INR ${totalTicketCost}). `;
-        
-        if (remaining >= 450 && personCount >= 2) {
-             response += `This leaves you with INR ${remaining}, perfect for our Couple Combo (INR 450).`;
-        } else if (affordableSnacks.length > 0) {
-          response += `This leaves you with INR ${remaining} for snacks, enough for ${affordableSnacks[0].name} (INR ${affordableSnacks[0].price}).`;
-        } else if (remaining > 0) {
-          response += `You would have ${remaining} remaining for any additional a-la-carte snacks.`;
-        } else {
-            response += `This utilizes your entire budget perfectly for the seats.`;
-        }
-      }
-    }
-    // 3. Mood & Recommendation Search
-    else {
-      let searchQuery = null;
-      const detectedMood = Object.keys(MOODS).find(m => msg.includes(m));
-      
-      if (detectedMood) {
-        searchQuery = { genre: { $in: MOODS[detectedMood].map(g => new RegExp(g, 'i')) } };
-      } else {
-        const GENRES = ["Action", "Comedy", "Drama", "Horror", "Thriller", "Sci-Fi", "Romance", "Anime"];
-        const detectedGenre = GENRES.find(g => msg.includes(g.toLowerCase()));
-        if (detectedGenre) {
-          searchQuery = { genre: { $regex: detectedGenre, $options: 'i' } };
-        }
-      }
-
-      if (searchQuery || msg.includes('recommend') || msg.includes('watch') || msg.includes('suggest')) {
-        const movies = await db.collection('movies').find(searchQuery || {}).sort({ rating: -1 }).limit(3).toArray();
-        if (movies.length > 0) {
-          recommendations = movies.map(m => ({
-            id: m._id,
-            title: m.title,
-            poster: m.poster,
-            rating: m.rating,
-            genre: m.genre
-          }));
-          response = detectedMood ? `Since you're feeling ${detectedMood}, I've curated these professional selections for you:` : "I've analyzed our collection and recommend the following premium selections:";
-        } else {
-          response = "I couldn't find exact matches for your request, but our top-rated Action and Drama titles are always a sophisticated choice.";
-        }
-      } else if (msg.includes('ticket') || msg.includes('price')) {
-        response = `Standard rates: Silver (INR ${TICKETS.silver}), Gold (INR ${TICKETS.gold}), Platinum (INR ${TICKETS.platinum}).`;
-      } else if (msg.includes('hi') || msg.includes('hello')) {
-        response = "Good evening. I am CinBot. How may I assist you with your cinema experience today?";
-      } else {
-        response = "I am at your service. You may inquire about movie recommendations, budget planning, or your CinePoints balance.";
-      }
+      // Remove the tag from the final response text
+      fullResponse = fullResponse.replace(/\[RECOMMEND:.*?\]/, '').trim();
     }
 
-    await new Promise(r => setTimeout(r, 1000));
-    return res.status(200).json({ response, recommendations });
+    return res.status(200).json({ 
+      response: fullResponse, 
+      recommendations: recommendations.length > 0 ? recommendations : null 
+    });
 
   } catch (error) {
-    console.error('Bot Error:', error);
-    return res.status(500).json({ response: "I am experiencing a momentary cognitive delay. Please try again." });
+    console.error('LLM Error:', error);
+    return res.status(500).json({ response: "I apologize, but I am currently experiencing a localized neural interruption. Please permit me a moment to recalibrate." });
   }
 };
