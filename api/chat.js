@@ -3,7 +3,7 @@ const { connectToDatabase } = require('./utils/db');
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { message, userData } = req.body;
+  const { message, userData, context } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
   try {
@@ -24,8 +24,16 @@ module.exports = async (req, res) => {
     const snackContext = snacks.map(s => `- ${s.name}: INR ${s.price}`).join('\n');
     
     const ticketContext = "Silver: INR 180, Gold: INR 250, Platinum: INR 350";
-    
     const userProfileContext = userData ? `User Balance: ${userData.points} CinePoints. User Bookings: ${userData.bookings.length} reservations.` : "User is not logged in.";
+    
+    // JOURNEY CONTEXT (V7)
+    const journeyContext = context ? `
+    USER JOURNEY STATE:
+    - Current View: ${context.currentView || 'Home'}
+    - Selected Movie: ${context.selectedMovie || 'None'}
+    - Selected Theatre: ${context.selectedTheatre || 'None'}
+    - Selection State: ${context.selectedSeats?.length > 0 ? `Seats ${context.selectedSeats.join(',')} selected` : 'Choosing seats'}
+    ` : "Journey data unavailable.";
 
     // Call Groq API
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -44,9 +52,15 @@ module.exports = async (req, res) => {
             STRICT PERSONALITY RULES:
             1. NEVER use emojis.
             2. Always use professional, formal, and sophisticated language.
-            3. Be helpful, concise, and focused on cinema experiences.
-            4. If the user asks for movie recommendations, reference the titles provided in the context.
-            5. If the user asks for a plan or budget, calculate it accurately based on the prices provided.
+            3. Be helpful, concise, and focused EXCLUSIVELY on cinema experiences, movie bookings, and snacks.
+            4. Only provide movie recommendations (using the [RECOMMEND: ...] tag) if the user explicitly asks for suggestions, asks what to watch, or mentions a mood/genre looking for a movie. 
+            5. If a user asks a question that is unnecessary, off-topic, or unrelated to cinema, politely decline, stating you serve only their premium cinematic journey.
+            
+            JOURNEY AWARENESS:
+            Your responses should adapt to where the user is.
+            ${journeyContext}
+            
+            If the user is picking seats (seatsSection), remind them that middle rows E, F, and G offer the absolute best eye-level viewing.
             
             LIVE MOVIE DATABASE:
             ${movieContext}
@@ -62,7 +76,7 @@ module.exports = async (req, res) => {
             
             RESPONSE FORMAT:
             - Return your main message as the primary response.
-            - If you want to recommend specific movies from the list, end your message with a JSON-like tag: [RECOMMEND: "Title 1", "Title 2"] using EXACT titles from the database.
+            - End with: [RECOMMEND: "Exact Title 1", "Exact Title 2"] only if appropriate for recommendations.
             `
           },
           {
@@ -78,7 +92,7 @@ module.exports = async (req, res) => {
     const groqData = await groqRes.json();
     let fullResponse = groqData.choices[0].message.content;
     
-    // Parse the [RECOMMEND: ...] tag if present
+    // Parse recommendations
     let recommendations = [];
     const recommendMatch = fullResponse.match(/\[RECOMMEND:\s*(.*?)\]/);
     if (recommendMatch) {
@@ -92,8 +106,6 @@ module.exports = async (req, res) => {
                           genre: m.genre
                         }))
                         .slice(0, 3);
-      
-      // Remove the tag from the final response text
       fullResponse = fullResponse.replace(/\[RECOMMEND:.*?\]/, '').trim();
     }
 

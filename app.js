@@ -1579,107 +1579,52 @@ async function runAiScanning(duration = 2000) {
 async function recommendSeats() {
   const n = parseInt($('groupSize').value) || 2;
   const persona = state.activePersona || 'Cinephile';
-  
-  // Start scanning animation
   await runAiScanning(2000);
   
   state.selectedSeats = [];
   
-  const rows = 'ABCDEFGHIJ'.split('');
-  let targetRows = [];
+  const rowsByPersona = {
+    'Couple': ['J', 'I', 'H', 'G'], 
+    'Cinephile': ['F', 'E', 'G', 'D'], 
+    'Standard': ['E', 'D', 'F', 'G', 'C', 'B']
+  };
+  
+  const targetRows = rowsByPersona[persona] || rowsByPersona['Standard'];
+  let seatOptions = [];
 
-  if (persona === 'Couple') {
-    targetRows = ['J', 'I', 'H']; // Back rows (Platinum)
-  } else if (persona === 'Cinephile') {
-    targetRows = ['F', 'E', 'G', 'D']; // Center-middle
-  } else { // Family or Friends
-    targetRows = ['D', 'E', 'F', 'G', 'C', 'B']; // Silver/Gold mid sections
-  }
-
-  let found = false;
   for (const row of targetRows) {
-    if (found) break;
     const available = [];
     for (let s = 1; s <= 10; s++) {
       const seatId = row + s;
-      if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) {
-        available.push(seatId);
-      }
+      if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) available.push(seatId);
     }
-
-    if (persona === 'Couple') {
-      if (n === 2) {
-        // Look for 2 corner seats: (1,2) or (9,10)
-        const leftCorner = [row + '1', row + '2'];
-        const rightCorner = [row + '9', row + '10'];
-        if (leftCorner.every(s => available.includes(s))) { state.selectedSeats = leftCorner; found = true; }
-        else if (rightCorner.every(s => available.includes(s))) { state.selectedSeats = rightCorner; found = true; }
-      } else if (n === 4) {
-        // For couples of 4, look for 4 consecutive in silver/platinum OR two pairs in proximity
-        const findConsecutive = (avail, size) => {
-          for (let i = 0; i <= avail.length - size; i++) {
-            const chunk = avail.slice(i, i + size);
-            const nums = chunk.map(s => parseInt(s.slice(1)));
-            if (nums.every((v, j) => j === 0 || v === nums[j - 1] + 1)) return chunk;
-          }
-          return null;
-        };
-
-        const consecutive4 = findConsecutive(available, 4);
-        if (consecutive4) { state.selectedSeats = consecutive4; found = true; }
-      }
-    } else if (persona === 'Cinephile') {
-      // Center seats priority (seats 4-7)
-      for (let i = 0; i <= available.length - n; i++) {
-        const chunk = available.slice(i, i + n);
-        const nums = chunk.map(s => parseInt(s.slice(1)));
-        const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
-        if (consecutive && nums.some(num => num >= 4 && num <= 7)) {
-          state.selectedSeats = chunk;
-          found = true;
-          break;
-        }
-      }
-    } else {
-      // Family/Friends - Strictly together in SAME ROW
-      for (let i = 0; i <= available.length - n; i++) {
-        const chunk = available.slice(i, i + n);
-        const nums = chunk.map(s => parseInt(s.slice(1)));
-        const consecutive = nums.every((v, j) => j === 0 || v === nums[j - 1] + 1);
-        if (consecutive) {
-          state.selectedSeats = chunk;
-          found = true;
-          break;
-        }
-      }
-    }
-  }
-
-  // Dual-Pair Fallback for Couple (n=4) if 4-consecutive same-row fails
-  if (!found && persona === 'Couple' && n === 4) {
-    let pair1 = null;
-    let pair2 = null;
-    for (const row of targetRows) {
-      const avail = [];
-      for (let s = 1; s <= 10; s++) {
-        const seatId = row + s;
-        if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) avail.push(seatId);
-      }
-      // Look for corners first
-      const left = [row + '1', row + '2'];
-      const right = [row + '9', row + '10'];
-      const p = left.every(s => avail.includes(s)) ? left : (right.every(s => avail.includes(s)) ? right : null);
+    
+    for (let i = 0; i <= available.length - n; i++) {
+      const chunk = available.slice(i, i + n);
+      const nums = chunk.map(s => parseInt(s.slice(1)));
+      const isConsecutive = nums.every((v, index) => index === 0 || v === nums[index-1] + 1);
       
-      if (p) {
-        if (!pair1) pair1 = p;
-        else if (!pair2) { pair2 = p; break; }
+      if (isConsecutive) {
+        const avgPosition = nums.reduce((a, b) => a + b, 0) / n;
+        const centralityScore = Math.abs(5.5 - avgPosition);
+        const rowIndex = 'ABCDEFGHIJ'.indexOf(row);
+        const rowStabilityScore = Math.abs(5.5 - rowIndex);
+        const totalScore = centralityScore + (rowStabilityScore * 0.5);
+        seatOptions.push({ chunk, score: totalScore });
       }
     }
-    if (pair1 && pair2) {
-      state.selectedSeats = [...pair1, ...pair2];
-      found = true;
-    }
   }
+
+  seatOptions.sort((a,b) => a.score - b.score);
+
+  if (seatOptions.length > 0) {
+    state.selectedSeats = seatOptions[0].chunk;
+    updateSeatSelection();
+    showToast(`CinBot IQ selected ${n} premium seats with optimal visibility.`);
+  } else {
+    showToast("I couldn't find a perfect consecutive block. Please choose manually.");
+  }
+}
 
   // Final fallback if persona-specific logic fails: search any row for ANY n consecutive seats
   if (!found) {
@@ -2016,8 +1961,6 @@ function initTheme() {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  const knob = $('themeKnob');
-  if (knob) knob.textContent = theme === 'dark' ? 'Dark' : 'Light';
 }
 
 // ========== PROFILE ACTIONS ==========
@@ -2196,7 +2139,13 @@ function initChatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: val,
-          userData: userData
+          userData: userData,
+          context: {
+            currentView: document.querySelector('.section.active')?.id || 'home',
+            selectedMovie: state.selectedMovie?.title,
+            selectedTheatre: state.selectedTheatre?.name,
+            selectedSeats: state.selectedSeats
+          }
         })
       });
       const data = await res.json();
