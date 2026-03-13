@@ -31,23 +31,23 @@
 
 /* --- Light Theme Override --- */
 [data-theme="light"] {
-  --bg: #f5f3f0;
+  --bg: #fafafa;
   --card: #ffffff;
-  --auth-panel: #ede9e4;
+  --auth-panel: #f5f5f7;
   --red: #d9304a;
   --red-dark: #b32838;
   --gold: #c07830;
-  --text: #1a1a2e;
-  --text-muted: #5a5a6e;
+  --text: #1d1d1f;
+  --text-muted: #6e6e73;
   --green: #27ae60;
-  --blue: #2980b9;
+  --blue: #0066cc;
   --orange: #d35400;
   --yellow: #f39c12;
-  --border: #d5d0ca;
-  --input-bg: #eae6e0;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  --glow-red: 0 0 20px rgba(217, 48, 74, 0.15);
-  --glow-gold: 0 0 20px rgba(192, 120, 48, 0.1);
+  --border: #e5e5e7;
+  --input-bg: #f5f5f7;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  --glow-red: 0 0 20px rgba(217, 48, 74, 0.1);
+  --glow-gold: 0 0 20px rgba(192, 120, 48, 0.05);
 }
 
 [data-theme="light"] .auth-left {
@@ -59,7 +59,8 @@
 }
 
 [data-theme="light"] .auth-form-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
 }
 
 [data-theme="light"] .navbar {
@@ -89,7 +90,12 @@
 }
 
 [data-theme="light"] .hero-content p {
-  opacity: 0.8;
+  opacity: 1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .hero::after {
+  background: linear-gradient(to top, var(--bg) 0%, rgba(250, 250, 250, 0.4) 40%, transparent 100%) !important;
 }
 
 [data-theme="light"] .nav-links a {
@@ -118,17 +124,28 @@
   color: #000 !important;
 }
 
-[data-theme="light"] .snack-tray-footer {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+[data-theme="light"] .snacks-footer {
+  background: rgba(250, 250, 250, 0.85) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05) !important;
 }
 
-[data-theme="light"] .summary-info .total-amount {
-  color: var(--gold) !important;
+[data-theme="light"] .snack-tray-visual {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
-[data-theme="light"] .summary-info span:first-child {
+[data-theme="light"] .summary-info p {
   color: #666 !important;
+}
+
+[data-theme="light"] .summary-info h3 {
+  color: var(--text) !important;
+}
+
+[data-theme="light"] .footer-actions .btn-outline {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: var(--text) !important;
 }
 
 [data-theme="light"] .search-bar select {
