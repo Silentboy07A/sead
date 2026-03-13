@@ -167,7 +167,6 @@
 
 /* --- Theme Toggle Button --- */
 .theme-toggle {
-.theme-toggle {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   width: 60px;
