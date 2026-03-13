@@ -665,7 +665,9 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
         <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
-          <div style="font-size:2.8rem;margin-bottom:0.6rem">🎬</div>
+          <div style="font-size:2.8rem;margin-bottom:0.6rem;opacity:0.5;color:#fff">
+            <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+          </div>
           <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
           <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
         </div>
@@ -729,7 +731,7 @@ function initSearch() {
             e.target.appendChild(opt);
           }
           e.target.value = city;
-          showToast(`📍 Location detected: ${city}`);
+          showToast(`Location detected: ${city}`);
         } else {
           throw new Error('City not found');
         }
@@ -1125,7 +1127,9 @@ function renderTheatres() {
   const posterHtml = m.poster 
     ? `<img src="${m.poster}" alt="${m.title}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
     : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
-         <span style="font-size:3rem;">🎬</span>
+         <div class="premium-sparkle-icon">
+           <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M12 2l2.4 7.2L22 12l-7.6 2.4L12 22l-2.4-7.2L2 12l7.6-2.4z"/></svg>
+         </div>
        </div>`;
 
   $('selectedMovieInfo').innerHTML = `
@@ -1845,7 +1849,7 @@ function renderPayment() {
           pointsEarned: pointsEarned
         });
         saveState();
-        showToast(`Congrats! You earned ${pointsEarned} CinePoints! 🌟`);
+        showToast(`Congrats! You earned ${pointsEarned} CinePoints!`);
       }
 
       renderTicket(finalTotal, dateStr, bookingId);
@@ -1921,8 +1925,8 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
   };
   $('shareTicket').onclick = () => {
     const shareUrl = `${window.location.origin}${window.location.pathname}?movie=${btoa(m.title)}&theatre=${btoa(t.name)}`;
-    navigator.clipboard.writeText(`🍿 Movie Night Invitation!\n\nI just booked tickets for "${m.title}" at ${t.name}.\nJoin me for the ${s.time} show!\n\nBook here: ${shareUrl}`);
-    showToast('Invitation link copied! Share it with friends. 👥');
+    navigator.clipboard.writeText(`Movie Night Invitation!\n\nI just booked tickets for "${m.title}" at ${t.name}.\nJoin me for the ${s.time} show!\n\nBook here: ${shareUrl}`);
+    showToast('Invitation link copied! Share it with friends.');
   };
 }
 
