@@ -51,22 +51,45 @@ module.exports = async (req, res) => {
         response = "It appears you haven't made any bookings yet. Permit me to assist you in finding a movie for this evening?";
       }
     } 
-    // 2. Budget Planning
+    // 2. Budget Planning (Enhanced for Multi-person)
     else if (msg.match(/(\d+)\s*(?:rs|rupees|inr|money)/)) {
       const budget = parseInt(msg.match(/(\d+)/)[1]);
-      const ticketType = budget >= TICKETS.platinum ? 'platinum' : (budget >= TICKETS.gold ? 'gold' : 'silver');
-      const ticketPrice = TICKETS[ticketType];
       
-      if (budget < ticketPrice) {
-        response = `Our starting ticket price is INR ${TICKETS.silver}. With INR ${budget}, you require a slight budget adjustment for a Silver admission.`;
+      // Detect number of people
+      let personCount = 1;
+      const personMatch = msg.match(/(\d+)\s*(?:member|people|person|friend|user)/);
+      if (personMatch) {
+          personCount = parseInt(personMatch[1]);
+      } else if (msg.includes('couple') || msg.includes('both of us') || msg.includes('we are two')) {
+          personCount = 2;
+      }
+
+      // Find best ticket type that fits everyone
+      let ticketType = 'silver';
+      if (budget >= TICKETS.platinum * personCount) {
+          ticketType = 'platinum';
+      } else if (budget >= TICKETS.gold * personCount) {
+          ticketType = 'gold';
+      }
+
+      const totalTicketCost = TICKETS[ticketType] * personCount;
+      
+      if (budget < TICKETS.silver * personCount) {
+        response = `For ${personCount} ${personCount > 1 ? 'people' : 'person'}, our starting ticket cost would be INR ${TICKETS.silver * personCount}. With INR ${budget}, you might consider adjusting your budget to secure Silver admissions.`;
       } else {
-        const remaining = budget - ticketPrice;
-        const affordableSnacks = SNACKS.filter(s => s.price <= remaining && s.name !== 'Couple Combo').sort((a,b) => b.price - a.price);
-        response = `For INR ${budget}, I suggest a ${ticketType.charAt(0).toUpperCase() + ticketType.slice(1)} seat (INR ${ticketPrice}). `;
-        if (affordableSnacks.length > 0) {
-          response += `This leaves you enough for ${affordableSnacks[0].name} (INR ${affordableSnacks[0].price}).`;
+        const remaining = budget - totalTicketCost;
+        const affordableSnacks = SNACKS.filter(s => s.price <= remaining).sort((a,b) => b.price - a.price);
+        
+        response = `For ${personCount} ${personCount > 1 ? 'people' : 'person'} with a budget of INR ${budget}, I recommend ${personCount} ${ticketType.charAt(0).toUpperCase() + ticketType.slice(1)} ticket${personCount > 1 ? 's' : ''} (Total INR ${totalTicketCost}). `;
+        
+        if (remaining >= 450 && personCount >= 2) {
+             response += `This leaves you with INR ${remaining}, perfect for our Couple Combo (INR 450).`;
+        } else if (affordableSnacks.length > 0) {
+          response += `This leaves you with INR ${remaining} for snacks, enough for ${affordableSnacks[0].name} (INR ${affordableSnacks[0].price}).`;
         } else if (remaining > 0) {
-          response += `You would have INR ${remaining} remaining for any additional a-la-carte snacks.`;
+          response += `You would have ${remaining} remaining for any additional a-la-carte snacks.`;
+        } else {
+            response += `This utilizes your entire budget perfectly for the seats.`;
         }
       }
     }
