@@ -423,6 +423,7 @@ async function handleSignup(e) {
 function enterApp() {
   $('authPage').classList.remove('active');
   $('mainApp').style.display = 'block';
+  $('chatbotWidget').style.display = 'block'; // Show chatbot for members
   updateNavUser();
   initApp();
 }
@@ -2096,6 +2097,7 @@ initProfileActions();
         state.user = data.user;
         $('authPage').classList.remove('active');
         $('mainApp').style.display = 'block';
+        $('chatbotWidget').style.display = 'block'; // Show chatbot on successful login
         updateNavUser();
         initApp();
         return;
