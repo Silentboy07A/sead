@@ -684,7 +684,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
           <span>${m.year} • ${m.language}</span>
           <span class="genre-tag">${m.genre}</span>
         </div>
-        <button class="book-btn" onclick="selectMovie(${m.id})">Book Now</button>
+        <button class="btn-book" onclick="selectMovie(${m.id})">Book Now</button>
       </div>
     </div>
   `}).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
