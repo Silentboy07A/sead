@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   } else if (msg.includes('location') || msg.includes('theatre') || msg.includes('where')) {
     response = "We have theatres in several major cities including Mumbai, Delhi, Bangalore, and Chennai. You can filter movies by your city directly on the homepage!";
   } else if (msg.includes('hi') || msg.includes('hello') || msg.includes('hey')) {
-    response = "Hello! I'm your CinTic AI Concierge. How can I help you enjoy your movie experience today?";
+    response = "Hello! I'm CinBot, your cinema assistant. How can I help you enjoy your movie experience today?";
   } else if (msg.includes('booking') || msg.includes('cancel')) {
     response = "You can view all your bookings in the 'My Bookings' tab. Note that tickets are non-refundable once the transaction is complete.";
   } else {
