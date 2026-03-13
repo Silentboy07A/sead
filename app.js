@@ -26,12 +26,12 @@ const state = {
 };
 
 const SNACKS = [
-  { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'https://images.unsplash.com/photo-1572177191856-3cde618dee1f?w=200&h=200&fit=crop', category: 'Snacks' },
-  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=400&h=400&fit=crop', category: 'Snacks' },
-  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'https://images.unsplash.com/photo-1543254005-72c34d3d8f51?w=400&h=400&fit=crop', category: 'Beverages' },
-  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'https://images.unsplash.com/photo-1534352956272-b8d57053557a?w=400&h=400&fit=crop', category: 'Snacks' },
-  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop', category: 'Snacks' },
-  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'https://images.unsplash.com/photo-1491466424936-e304919aada7?w=400&h=400&fit=crop', category: 'Value Combos' }
+  { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'assets/snacks/popcorn_salted.png', category: 'Snacks' },
+  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'assets/snacks/popcorn_cheese.png', category: 'Snacks' },
+  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'assets/snacks/coca_cola.png', category: 'Beverages' },
+  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'assets/snacks/loaded_nachos.png', category: 'Snacks' },
+  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'assets/snacks/chicken_burger.png', category: 'Snacks' },
+  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'assets/snacks/snack_combo.png', category: 'Value Combos' }
 ];
 
 // State is now managed via JWT cookies — no sessionStorage needed
