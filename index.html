@@ -631,6 +631,44 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- AI CONCIERGE (CHATBOT) -->
+    <div class="chatbot-widget" id="chatbotWidget">
+        <div class="chat-toggle" id="chatToggle" title="AI Concierge">
+            <span class="chat-icon">✨</span>
+            <span class="chat-pulse"></span>
+        </div>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <span class="chat-avatar">🤖</span>
+                    <div>
+                        <h4>AI Concierge</h4>
+                        <span class="status-dot">Online</span>
+                    </div>
+                </div>
+                <button class="chat-close" id="chatClose">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    Hello! I'm your AI Concierge. How can I help you today?
+                </div>
+            </div>
+            <div class="chat-quick-replies" id="quickReplies">
+                <button class="quick-chip" data-query="Ticket prices">🎟️ Prices</button>
+                <button class="quick-chip" data-query="Snack menu">🍿 Snacks</button>
+                <button class="quick-chip" data-query="AI Seat Recommendation">🧠 AI Seats</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Type your question..." autocomplete="off">
+                <button id="sendChat">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 

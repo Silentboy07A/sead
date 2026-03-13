@@ -593,6 +593,7 @@ async function initApp() {
   renderMovies('All');
   initNavigation();
   initSearch();
+  initChatbot();
 }
 
 function generateTakenSeats() {
@@ -2110,3 +2111,61 @@ initProfileActions();
     document.querySelectorAll('.auth-tab')[0].click();
   }
 })();
+
+// ========== AI CONCIERGE LOGIC ==========
+function initChatbot() {
+  const toggle = $('chatToggle');
+  const window = $('chatWindow');
+  const close = $('chatClose');
+  const send = $('sendChat');
+  const input = $('chatInput');
+  const messages = $('chatMessages');
+  const quickReplies = $('quickReplies');
+
+  if (!toggle) return;
+
+  toggle.onclick = () => window.classList.add('active');
+  close.onclick = () => window.classList.remove('active');
+
+  const addMsg = (text, sender) => {
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  };
+
+  const handleSend = async (text) => {
+    const val = text || input.value.trim();
+    if (!val) return;
+
+    if (!text) input.value = '';
+    addMsg(val, 'user');
+
+    // Show typing
+    const typing = addMsg('...', 'bot');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: val })
+      });
+      const data = await res.json();
+      typing.textContent = data.response;
+    } catch (e) {
+      typing.textContent = "Sorry, I'm having trouble connecting to my brain right now. Please try again later!";
+    }
+  };
+
+  send.onclick = () => handleSend();
+  input.onkeypress = (e) => { if (e.key === 'Enter') handleSend(); };
+
+  // Quick Replies
+  quickReplies.onclick = (e) => {
+    if (e.target.classList.contains('quick-chip')) {
+      handleSend(e.target.dataset.query);
+    }
+  };
+}
