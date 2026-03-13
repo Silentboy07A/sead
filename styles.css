@@ -110,18 +110,19 @@
   background: var(--red) !important;
 }
 
-[data-theme="light"] .qty-btn {
+[data-theme="light"] .snack-qty-control {
   background: rgba(0, 0, 0, 0.05) !important;
-  color: #333 !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="light"] .qty-btn:hover {
-  background: rgba(0, 0, 0, 0.1) !important;
+[data-theme="light"] .snack-qty-control button {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #1d1d1f !important;
 }
 
-[data-theme="light"] .item-qty {
-  color: #000 !important;
+[data-theme="light"] .snack-qty-control button:hover {
+  background: var(--red) !important;
+  color: #fff !important;
 }
 
 [data-theme="light"] .snacks-footer {
