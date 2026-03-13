@@ -111,18 +111,19 @@
 }
 
 [data-theme="light"] .snack-qty-control {
-  background: rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 [data-theme="light"] .snack-qty-control button {
-  background: rgba(0, 0, 0, 0.05) !important;
-  color: #1d1d1f !important;
+  background: white !important;
+  color: var(--red) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
 }
 
 [data-theme="light"] .snack-qty-control button:hover {
   background: var(--red) !important;
-  color: #fff !important;
+  color: white !important;
 }
 
 [data-theme="light"] .snacks-footer {
