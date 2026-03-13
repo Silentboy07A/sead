@@ -34,9 +34,7 @@ const SNACKS = [
   { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'assets/snacks/snack_combo.png', category: 'Value Combos' }
 ];
 
-// State is now managed via JWT cookies — no sessionStorage needed
-function loadState() { /* JWT cookies handle persistence */ }
-function saveState() { /* JWT cookies handle persistence */ }
+// State is managed via JWT cookies and real-time locking
 
 // ========== UTILITY ==========
 function $(id) { return document.getElementById(id); }
@@ -52,6 +50,18 @@ function showToast(msg, duration = 3000) {
     t.classList.remove('show');
     t._timeout = null;
   }, duration);
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 // ========== AUTH LOGIC ==========
@@ -684,12 +694,15 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
 
 // ========== SEARCH ==========
 function initSearch() {
+  const debouncedApplyFilters = debounce(applyFilters, 300);
+  
   $('globalSearchInput').addEventListener('input', () => {
     if ($('moviesSection').classList.contains('active')) {
-      applyFilters();
+      debouncedApplyFilters();
     }
   });
-  $('langFilter').addEventListener('change', applyFilters);
+  
+  $('langFilter').addEventListener('change', debouncedApplyFilters);
   $('cityFilter').addEventListener('change', async (e) => {
     if (e.target.value === '_detect_') {
       e.target.disabled = true;
@@ -1091,8 +1104,8 @@ function selectMovie(movieOrId) {
   const searchInput = $('theatreSearchInput');
   if (searchInput) {
     searchInput.value = '';
-    // Use oninput to replace any existing listener instead of adding duplicates
-    searchInput.oninput = () => renderTheatres();
+    const debouncedRender = debounce(renderTheatres, 250);
+    searchInput.oninput = () => debouncedRender();
   }
 
   showPage('theatreSection');
@@ -1191,7 +1204,7 @@ async function selectShow(theatreId, showIndex) {
     console.error('Failed to check locked seats', e);
   }
 
-  generateTakenSeats();
+  // Availability is checked via /api/check-locked-seats
   renderSeats();
 }
 
@@ -1496,9 +1509,21 @@ function stopLockTimer() {
 
 function toggleSeat(seatId, cat) {
   const idx = state.selectedSeats.indexOf(seatId);
-  if (idx === -1) state.selectedSeats.push(seatId);
-  else state.selectedSeats.splice(idx, 1);
-  renderSeats();
+  const seatEl = document.querySelector(`.seat[data-seat="${seatId}"]`);
+  
+  if (idx === -1) {
+    state.selectedSeats.push(seatId);
+    if (seatEl) {
+      seatEl.classList.add('selected');
+      if (cat === 'gold') seatEl.classList.add('gold-cat');
+    }
+  } else {
+    state.selectedSeats.splice(idx, 1);
+    if (seatEl) {
+      seatEl.classList.remove('selected', 'gold-cat');
+    }
+  }
+  updateSeatSummary();
 }
 
 function updateSeatSummary() {

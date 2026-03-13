@@ -14,6 +14,26 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Robust email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        // Password complexity (matches frontend)
+        const hasUpper = /[A-Z]/.test(password);
+        const hasLower = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        
+        if (password.length < 8 || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+            return res.status(400).json({ error: 'Password does not meet complexity requirements' });
+        }
+
+        if (name.trim().length < 3) {
+            return res.status(400).json({ error: 'Name must be at least 3 characters' });
+        }
+
         const { db } = await connectToDatabase();
         const usersCollection = db.collection('users');
 

@@ -22,7 +22,8 @@ function verifyToken(token) {
  * Build a Set-Cookie header string for the JWT
  */
 function buildCookieHeader(token, maxAgeSeconds = 86400) {
-    return `token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${maxAgeSeconds}`;
+    const isProd = process.env.NODE_ENV === 'production';
+    return `token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${maxAgeSeconds}${isProd ? '; Secure' : ''}`;
 }
 
 /**
@@ -66,8 +67,15 @@ async function authMiddleware(req, db) {
         }
 
         const user = await db.collection('users').findOne({ _id: userId });
-        return user || null;
-    } catch {
+        if (!user) {
+            console.warn(`Auth failed: User not found for ID ${decoded.userId}`);
+            return null;
+        }
+        return user;
+    } catch (err) {
+        if (err.name !== 'JsonWebTokenError' && err.name !== 'TokenExpiredError') {
+            console.error('Auth middleware error:', err);
+        }
         return null;
     }
 }

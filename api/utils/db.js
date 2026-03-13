@@ -22,8 +22,9 @@ async function connectToDatabase() {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
 
-    // Select the database "cintic" explicitly
-    const db = client.db('cintic');
+    // Select the database explicitly
+    const dbName = process.env.MONGODB_DB || 'cintic';
+    const db = client.db(dbName);
 
     // Cache the connection and db reference
     cachedClient = client;
