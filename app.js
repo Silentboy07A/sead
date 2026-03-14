@@ -1664,8 +1664,8 @@ async function recommendSeats() {
               if (state.takenSeats.includes(row + (s-1)) || state.lockedSeats.includes(row + (s-1))) neighborsCount++;
               if (state.takenSeats.includes(row + (s+1)) || state.lockedSeats.includes(row + (s+1))) neighborsCount++;
             });
-            personaMultiplier *= (1 + (neighborsCount * 0.5)); // Penalty for each occupied neighbor
-            if (hasCorner) personaMultiplier *= 0.5; // Slight bias towards corners for less total neighbors
+            personaMultiplier *= (1 + (neighborsCount * 1.5)); // Heavier penalty for each occupied neighbor
+            if (hasCorner) personaMultiplier *= 0.3; // Stronger bias towards corners (maximized privacy)
           } else if (persona === 'Cinephile') {
             verticalFocusWeight = 0.4; // Broaden row variety significantly
             if (rowIndex >= 3 && rowIndex <= 7 && xDist < 2) personaMultiplier *= 0.6; // Gentle sweet spot bias
@@ -1765,9 +1765,10 @@ async function recommendSeats() {
     state.selectedSeats = selectedOption.chunk;
     updateSeatSummary();
     
-    const rationale = persona === 'Couple' && state.selectedSeats.some(s => s.endsWith('1') || s.endsWith('10')) 
+    const rationale = (persona === 'Couple' && state.selectedSeats.some(s => s.endsWith('1') || s.endsWith('10'))) 
       ? "Corner Privacy Mode" 
-      : (n >= 4 && !selectedOption.chunk.every(s => s.charAt(0) === selectedOption.chunk[0].charAt(0)) ? "Smart Group Split" : "Vision Variety Cluster");
+      : (persona === 'Introvert' ? "Social Distancing Mode" : 
+        (n >= 4 && !selectedOption.chunk.every(s => s.charAt(0) === selectedOption.chunk[0].charAt(0)) ? "Smart Group Split" : "Vision Variety Cluster"));
     showToast(`Vision IQ 9.2: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
     
     // Clear old visual classes
