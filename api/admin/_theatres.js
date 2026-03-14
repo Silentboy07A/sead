@@ -1,5 +1,6 @@
 const { connectToDatabase } = require('../utils/db');
 const { authMiddleware } = require('../utils/jwt');
+const sanitize = require('../utils/sanitize');
 
 module.exports = async (req, res) => {
     const { db } = await connectToDatabase();
@@ -42,20 +43,36 @@ module.exports = async (req, res) => {
 
     // PUT — Update theatre
     if (req.method === 'PUT') {
-        const { _id, ...updates } = req.body;
+        const { _id, name, location, city, shows } = sanitize(req.body);
         if (!_id) return res.status(400).json({ error: 'Theatre _id is required' });
+        
+        const numericId = Number(_id);
+        if (isNaN(numericId)) return res.status(400).json({ error: 'Invalid theatre _id' });
 
-        const result = await theatresCollection.updateOne({ _id }, { $set: updates });
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (location !== undefined) updates.location = location;
+        if (city !== undefined) updates.city = city;
+        if (shows !== undefined) updates.shows = shows;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: 'No updates provided' });
+        }
+
+        const result = await theatresCollection.updateOne({ _id: numericId }, { $set: updates });
         if (result.matchedCount === 0) return res.status(404).json({ error: 'Theatre not found' });
         return res.status(200).json({ message: 'Theatre updated' });
     }
 
     // DELETE — Delete theatre
     if (req.method === 'DELETE') {
-        const { _id } = req.body;
+        const { _id } = sanitize(req.body);
         if (!_id) return res.status(400).json({ error: 'Theatre _id is required' });
 
-        const result = await theatresCollection.deleteOne({ _id });
+        const numericId = Number(_id);
+        if (isNaN(numericId)) return res.status(400).json({ error: 'Invalid theatre _id' });
+
+        const result = await theatresCollection.deleteOne({ _id: numericId });
         if (result.deletedCount === 0) return res.status(404).json({ error: 'Theatre not found' });
         return res.status(200).json({ message: 'Theatre deleted' });
     }

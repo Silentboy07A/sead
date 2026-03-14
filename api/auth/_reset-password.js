@@ -1,6 +1,7 @@
 const { connectToDatabase } = require('../utils/db');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const sanitize = require('../utils/sanitize');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -8,7 +9,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { email, token, newPassword } = req.body;
+        const { email, token, newPassword } = sanitize(req.body);
 
         if (!email || !token || !newPassword) {
             return res.status(400).json({ error: 'Missing required fields' });

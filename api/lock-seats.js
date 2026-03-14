@@ -1,18 +1,18 @@
 const { connectToDatabase } = require('./utils/db');
+const sanitize = require('./utils/sanitize');
 
 module.exports = async (req, res) => {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
-
+    // Restrict CORS (Security alignment)
+    const origin = req.headers.origin;
+    if (origin && (origin.includes('localhost') || origin.includes('vercel.app'))) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', true);
+    }
+    
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.status(200).end();
     }
 
     if (req.method !== 'POST') {
@@ -20,31 +20,16 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { theatreId, showIndex, date, seats } = req.body;
+        const sanitizedBody = sanitize(req.body);
+        const theatreId = Number(sanitizedBody.theatreId);
+        const { showIndex, date, seats } = sanitizedBody;
 
-        if (!theatreId || showIndex === undefined || !date || !seats || !seats.length) {
-            return res.status(400).json({ message: 'Missing required parameters' });
+        if (!theatreId || showIndex === undefined || !date || !Array.isArray(seats) || !seats.length) {
+            return res.status(400).json({ message: 'Valid theatreId, showIndex, date, and seats array are required' });
         }
 
         const { db } = await connectToDatabase();
         const locks = db.collection('locked_seats');
-
-        // Check if any of these seats are already locked
-        const query = {
-            theatreId,
-            showIndex,
-            date,
-            seatId: { $in: seats },
-            expiresAt: { $gt: new Date() } // Only active locks
-        };
-
-        const existingLocks = await locks.find(query).toArray();
-        if (existingLocks.length > 0) {
-            return res.status(409).json({
-                message: 'Some seats are already locked by another user',
-                lockedSeats: existingLocks.map(l => l.seatId)
-            });
-        }
 
         // Create locks for 5 minutes
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -57,7 +42,19 @@ module.exports = async (req, res) => {
             expiresAt
         }));
 
-        await locks.insertMany(lockDocs);
+        try {
+            // Atomic insertion: relies on the Unique Index "unique_seat_lock" created in init-db.js
+            await locks.insertMany(lockDocs, { ordered: true });
+        } catch (dbErr) {
+            if (dbErr.code === 11000) {
+                // Duplicate key error = someone else just locked one of these seats
+                return res.status(409).json({
+                    message: 'Concurrency Conflict: One or more selected seats were just locked by another user.',
+                    error: 'DUPLICATE_LOCK'
+                });
+            }
+            throw dbErr;
+        }
 
         res.status(200).json({ message: 'Seats locked successfully', expiresAt });
     } catch (error) {

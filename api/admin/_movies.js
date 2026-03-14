@@ -1,5 +1,6 @@
 const { connectToDatabase } = require('../utils/db');
 const { authMiddleware } = require('../utils/jwt');
+const sanitize = require('../utils/sanitize');
 
 module.exports = async (req, res) => {
     const { db } = await connectToDatabase();
@@ -48,20 +49,41 @@ module.exports = async (req, res) => {
 
     // PUT — Update movie
     if (req.method === 'PUT') {
-        const { _id, ...updates } = req.body;
+        const { _id, title, year, genre, language, rating, duration, description, poster, trailerId } = sanitize(req.body);
         if (!_id) return res.status(400).json({ error: 'Movie _id is required' });
+        
+        const numericId = Number(_id);
+        if (isNaN(numericId)) return res.status(400).json({ error: 'Invalid movie _id' });
 
-        const result = await moviesCollection.updateOne({ _id }, { $set: updates });
+        const updates = {};
+        if (title !== undefined) updates.title = title;
+        if (year !== undefined) updates.year = year;
+        if (genre !== undefined) updates.genre = genre;
+        if (language !== undefined) updates.language = language;
+        if (rating !== undefined) updates.rating = rating;
+        if (duration !== undefined) updates.duration = duration;
+        if (description !== undefined) updates.description = description;
+        if (poster !== undefined) updates.poster = poster;
+        if (trailerId !== undefined) updates.trailerId = trailerId;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: 'No updates provided' });
+        }
+
+        const result = await moviesCollection.updateOne({ _id: numericId }, { $set: updates });
         if (result.matchedCount === 0) return res.status(404).json({ error: 'Movie not found' });
         return res.status(200).json({ message: 'Movie updated' });
     }
 
     // DELETE — Delete movie
     if (req.method === 'DELETE') {
-        const { _id } = req.body;
+        const { _id } = sanitize(req.body);
         if (!_id) return res.status(400).json({ error: 'Movie _id is required' });
 
-        const result = await moviesCollection.deleteOne({ _id });
+        const numericId = Number(_id);
+        if (isNaN(numericId)) return res.status(400).json({ error: 'Invalid movie _id' });
+
+        const result = await moviesCollection.deleteOne({ _id: numericId });
         if (result.deletedCount === 0) return res.status(404).json({ error: 'Movie not found' });
         return res.status(200).json({ message: 'Movie deleted' });
     }

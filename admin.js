@@ -195,20 +195,36 @@ function renderMoviesTable() {
     tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">No movies found. Add one!</td></tr>';
     return;
   }
-  tbody.innerHTML = moviesData.map(m => `
-    <tr>
-      <td>${m._id}</td>
-      <td><strong>${m.title}</strong></td>
-      <td>${m.genre}</td>
-      <td>${m.language}</td>
+  tbody.innerHTML = '';
+  moviesData.forEach(m => {
+    const tr = document.createElement('tr');
+    
+    // Convert ID to number just in case
+    const mid = Number(m._id);
+    
+    tr.innerHTML = `
+      <td>${mid}</td>
+      <td class="movie-title-cell"></td>
+      <td class="movie-genre-cell"></td>
+      <td class="movie-lang-cell"></td>
       <td>★ ${m.rating}</td>
       <td>${m.year || '—'}</td>
       <td>
-        <button class="action-btn" onclick='editMovie(${m._id})'>✏️ Edit</button>
-        <button class="action-btn delete" onclick='deleteItem("movie", ${m._id})'>🗑️</button>
+        <button class="action-btn edit-btn">✏️ Edit</button>
+        <button class="action-btn delete delete-btn">🗑️</button>
       </td>
-    </tr>
-  `).join('');
+    `;
+    
+    // Safely set text content for user-provided strings
+    tr.querySelector('.movie-title-cell').textContent = m.title;
+    tr.querySelector('.movie-genre-cell').textContent = m.genre;
+    tr.querySelector('.movie-lang-cell').textContent = m.language;
+    
+    tr.querySelector('.edit-btn').onclick = () => editMovie(mid);
+    tr.querySelector('.delete-btn').onclick = () => deleteItem("movie", mid);
+    
+    tbody.appendChild(tr);
+  });
 }
 
 function renderTheatresTable() {
@@ -217,29 +233,44 @@ function renderTheatresTable() {
     tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No theatres found. Add one!</td></tr>';
     return;
   }
-  tbody.innerHTML = theatresData.map(t => `
-    <tr>
-      <td>${t._id}</td>
-      <td><strong>${t.name}</strong></td>
-      <td>${t.location}</td>
-      <td>${t.city}</td>
+  tbody.innerHTML = '';
+  theatresData.forEach(t => {
+    const tr = document.createElement('tr');
+    const tid = Number(t._id);
+    
+    tr.innerHTML = `
+      <td>${tid}</td>
+      <td class="theatre-name-cell"></td>
+      <td class="theatre-loc-cell"></td>
+      <td class="theatre-city-cell"></td>
       <td>${(t.shows || []).length} shows</td>
       <td>
-        <button class="action-btn" onclick='editTheatre(${t._id})'>✏️ Edit</button>
-        <button class="action-btn delete" onclick='deleteItem("theatre", ${t._id})'>🗑️</button>
+        <button class="action-btn edit-btn">✏️ Edit</button>
+        <button class="action-btn delete delete-btn">🗑️</button>
       </td>
-    </tr>
-  `).join('');
+    `;
+    
+    tr.querySelector('.theatre-name-cell').textContent = t.name;
+    tr.querySelector('.theatre-loc-cell').textContent = t.location;
+    tr.querySelector('.theatre-city-cell').textContent = t.city;
+    
+    tr.querySelector('.edit-btn').onclick = () => editTheatre(tid);
+    tr.querySelector('.delete-btn').onclick = () => deleteItem("theatre", tid);
+    
+    tbody.appendChild(tr);
+  });
 }
 
 // ========== EDIT HELPERS ==========
 function editMovie(id) {
-  const movie = moviesData.find(m => m._id === id);
+  const numericId = Number(id);
+  const movie = moviesData.find(m => Number(m._id) === numericId);
   if (movie) openModal('Edit Movie', 'movie', 'edit', movie);
 }
 
 function editTheatre(id) {
-  const theatre = theatresData.find(t => t._id === id);
+  const numericId = Number(id);
+  const theatre = theatresData.find(t => Number(t._id) === numericId);
   if (theatre) openModal('Edit Theatre', 'theatre', 'edit', theatre);
 }
 

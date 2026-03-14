@@ -653,6 +653,16 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
     );
   }
   if (lang) filtered = filtered.filter(m => m.language === lang);
+  
+  if (city) {
+    // Only show movies that have shows in the selected city
+    const theatresInCity = THEATRES.filter(t => t.city === city);
+    filtered = filtered.filter(m => {
+      return theatresInCity.some(t => t.shows && t.shows.length > 0);
+      // Note: In this app's seed, every theatre has all movies effectively (simplified)
+      // but we filter by the existence of any theatre in that city to start.
+    });
+  }
 
   const GENRE_COLORS = {
     'Action': ['#e50914', '#7b0009'], 'Thriller': ['#1a1a2e', '#e50914'],
@@ -791,6 +801,7 @@ function initNavigation() {
     try {
       // Set a flag to prevent immediate auto-login loop
       sessionStorage.setItem('just_logged_out', 'true');
+      localStorage.removeItem('cintic_user'); // Clear local state
       await fetch('/api/auth/logout', { credentials: 'same-origin' });
     } catch (err) { console.warn('Logout fetch failed:', err); }
     state.user = null;
@@ -1211,7 +1222,10 @@ async function selectShow(theatreId, showIndex) {
       })
     });
     const data = await res.json();
-    if (res.ok && data.lockedSeats) state.lockedSeats = data.lockedSeats;
+    if (res.ok) {
+      if (data.lockedSeats) state.lockedSeats = data.lockedSeats;
+      if (data.bookedSeats) state.takenSeats = data.bookedSeats;
+    }
   } catch (e) {
     console.error('Failed to check locked seats', e);
   }
@@ -1567,9 +1581,13 @@ function updateSeatSummary() {
 }
 
 // ========== SMART RECOMMENDATION ==========
+let isAiScanning = false;
 async function runAiScanning(duration = 2000) {
+  if (isAiScanning) return; // Prevent rapid invocations (CodeRabbit)
+  isAiScanning = true;
+  
   const overlay = $('scanningOverlay');
-  if (!overlay) return;
+  if (!overlay) { isAiScanning = false; return; }
   
   overlay.classList.add('active');
   if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 50]);
@@ -1577,6 +1595,7 @@ async function runAiScanning(duration = 2000) {
   return new Promise(resolve => {
     setTimeout(() => {
       overlay.classList.remove('active');
+      isAiScanning = false;
       resolve();
     }, duration);
   });
@@ -1617,87 +1636,107 @@ async function recommendSeats() {
           return true;
       });
       
-      if (isConsecutive) {
-        // Calculate Vision Physics Score (Closer to 0 is better)
-        const avgPos = nums.reduce((a, b) => a + b, 0) / n;
-        const xDist = Math.abs(5.5 - avgPos); // Distance from horizontal center
-        const rowIndex = rows.indexOf(row);
-        const yDist = Math.abs(5.5 - rowIndex); // Distance from row F/E (vertical screen center)
-        
-        // Persona Weighting
-        let personaMultiplier = 1;
-        const hasCorner = nums.some(v => v === 1 || v === 10);
-        
-        if (persona === 'Couple') {
-          if (rowIndex > 7) personaMultiplier *= 0.6; // Favor back rows
-          if (hasCorner) personaMultiplier *= 0.1; // VERY STRONG corner preference
-        }
-        if (persona === 'Cinephile' && rowIndex >= 4 && rowIndex <= 6) personaMultiplier *= 0.5; // Favor front-middle 
-        
-        // Diversity Jitter: Stronger jitter to ensure variety
-        const jitter = Math.random() * 2.0; 
-        const score = (xDist + (yDist * 1.5)) * personaMultiplier + jitter;
-        seatOptions.push({ chunk, score });
-      }
-    }
-  }
-
-  // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters (especially for 4+)
-  if (seatOptions.length === 0 && n >= 4) {
-    const splitSize = Math.floor(n / 2);
-    const remainder = n - splitSize;
-    
-    // Attempt to find two separate blocks
-    let subOptions = []; // Will hold pairs of blocks
-    
-    // Find all possible smaller blocks
-    const smallerBlocks = [];
-    for (const row of rows) {
-      const available = [];
-      for (let s = 1; s <= 10; s++) {
-        const seatId = row + s;
-        if (!state.takenSeats.includes(seatId) && !state.lockedSeats.includes(seatId)) available.push(seatId);
-      }
-      for (let i = 0; i <= available.length - splitSize; i++) {
-        const chunk = available.slice(i, i + splitSize);
-        const nums = chunk.map(s => parseInt(s.slice(1)));
-        const isConsecutive = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
         if (isConsecutive) {
-          const avgPos = nums.reduce((a, b) => a + b, 0) / splitSize;
-          const xDist = Math.abs(5.5 - avgPos);
+          // Calculate Vision Physics Score (Closer to 0 is better)
+          const avgPos = nums.reduce((a, b) => a + b, 0) / n;
+          const xDist = Math.abs(5.5 - avgPos); // Distance from horizontal center
           const rowIndex = rows.indexOf(row);
-          const yDist = Math.abs(5.5 - rowIndex);
-          smallerBlocks.push({ chunk, rowIndex, xDist, yDist, score: xDist + yDist });
+          const yDist = Math.abs(5.5 - rowIndex); // Distance from row F/E (vertical screen center)
+          
+          // Persona Weighting
+          let personaMultiplier = 1;
+          const hasCorner = nums.some(v => v === 1 || v === 10);
+          
+          if (persona === 'Couple') {
+            // Stronger preference for back rows (Row I, J) and corners
+            if (rowIndex >= 8) personaMultiplier *= 0.4;
+            else if (rowIndex >= 6) personaMultiplier *= 0.8;
+            else personaMultiplier *= 1.5; // Avoid front for couples
+
+            if (hasCorner) personaMultiplier *= 0.1; // ABSOLUTE corner preference for privacy
+          } else if (persona === 'Cinephile') {
+            if (rowIndex >= 4 && rowIndex <= 6 && xDist < 2) personaMultiplier *= 0.5; // Center middle sweet spot
+          }
+          
+          // Diversity Jitter: Stronger jitter to ensure variety (CodeRabbit)
+          const jitter = Math.random() * 5.0; 
+          const score = (xDist + (yDist * 1.5)) * personaMultiplier + jitter;
+          seatOptions.push({ chunk, score });
         }
-      }
-    }
-
-    // Try to pair them (same row or adjacent)
-    for (let i = 0; i < smallerBlocks.length; i++) {
-      for (let j = i + 1; j < smallerBlocks.length; j++) {
-        const b1 = smallerBlocks[i];
-        const b2 = smallerBlocks[j];
-        
-        // Check if overlapping
-        const allSeats = [...b1.chunk, ...b2.chunk];
-        if (new Set(allSeats).size < (b1.chunk.length + b2.chunk.length)) continue;
-
-        let pairScore = b1.score + b2.score;
-        const rowDiff = Math.abs(b1.rowIndex - b2.rowIndex);
-        
-        if (rowDiff === 0) pairScore *= 0.8; // Prefer same row
-        else if (rowDiff === 1) pairScore *= 0.9; // Prefer adjacent rows
-        else pairScore *= (1 + rowDiff * 0.5); // Penality for far apart
-
-        subOptions.push({ chunk: allSeats, score: pairScore });
-      }
-    }
-    
-    if (subOptions.length > 0) {
-      subOptions.sort((a, b) => a.score - b.score);
-      seatOptions.push(subOptions[0]);
     }
   }
+
+    // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters (especially for 4+)
+    if (seatOptions.length === 0 && n >= 4) {
+      const splitSize = Math.floor(n / 2);
+      const rem = n - splitSize; // Renamed to avoid confusion (CodeRabbit)
+      
+      // Attempt to find two separate blocks
+      let subOptions = [];
+      
+      // Find all possible smaller blocks
+      const smallerBlocks = [];
+      const remainderBlocks = []; // For the second half if different size
+
+      for (const row of rows) {
+        const avail = [];
+        for (let s = 1; s <= 10; s++) {
+          const id = row + s;
+          if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) avail.push(id);
+        }
+
+        // Find blocks of splitSize
+        for (let i = 0; i <= avail.length - splitSize; i++) {
+          const chunk = avail.slice(i, i + splitSize);
+          const nums = chunk.map(s => parseInt(s.slice(1)));
+          const isConsec = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
+          if (isConsec) {
+            smallerBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a,b)=>a+b,0)/splitSize)) });
+          }
+        }
+
+        // Find blocks of rem (if different)
+        if (rem !== splitSize) {
+          for (let i = 0; i <= avail.length - rem; i++) {
+            const chunk = avail.slice(i, i + rem);
+            const nums = chunk.map(s => parseInt(s.slice(1)));
+            const isConsec = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
+            if (isConsec) {
+              remainderBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a,b)=>a+b,0)/rem)) });
+            }
+          }
+        }
+      }
+
+      const secondSet = rem === splitSize ? smallerBlocks : remainderBlocks;
+
+      // Try to pair them (Fixed: 'remainder' bug - CodeRabbit)
+      for (let i = 0; i < smallerBlocks.length; i++) {
+        for (let j = 0; j < secondSet.length; j++) {
+          const b1 = smallerBlocks[i];
+          const b2 = secondSet[j];
+          if (b1 === b2) continue; // Don't pair with self
+          
+          // Check if overlapping
+          const allSeats = [...b1.chunk, ...b2.chunk];
+          if (new Set(allSeats).size < (b1.chunk.length + b2.chunk.length)) continue;
+
+          let pairScore = b1.score + b2.score;
+          const rowDiff = Math.abs(b1.rowIndex - b2.rowIndex);
+          
+          if (rowDiff === 0) pairScore *= 0.8;
+          else if (rowDiff === 1) pairScore *= 0.9;
+          else pairScore *= (1 + rowDiff * 0.5);
+
+          subOptions.push({ chunk: allSeats, score: pairScore });
+        }
+      }
+      
+      if (subOptions.length > 0) {
+        subOptions.sort((a, b) => a.score - b.score);
+        seatOptions.push(subOptions[0]);
+      }
+    }
 
   // 4. Final Selection
   seatOptions.sort((a,b) => a.score - b.score);
@@ -1802,7 +1841,7 @@ function renderPayment() {
   });
 
   // Confirm payment
-  $('confirmPayBtn').onclick = () => {
+  $('confirmPayBtn').onclick = async () => {
     const cardNum = $('cardNumber').value.replace(/\s+/g, '');
     const cardExp = $('cardExpiry').value;
     const cardCvv = $('cardCvv').value;
@@ -1849,7 +1888,7 @@ function renderPayment() {
     btn.innerHTML = '<div class="spinner" style="border-width:2px; width:16px; height:16px; margin-right:8px;"></div> Processing...';
     btn.disabled = true;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       stopLockTimer(); // Clear the lock timer
 
       const bookingId = 'CB' + Date.now().toString(36).toUpperCase();
@@ -1859,19 +1898,34 @@ function renderPayment() {
         
         // Award CinePoints (10% of booking total)
         const pointsEarned = Math.floor(finalTotal * 0.1);
-        state.user.points = (state.user.points || 0) + pointsEarned;
         
-        state.user.bookings.unshift({
-          id: bookingId,
+        const bookingData = {
+          bookingId: bookingId,
           movie: state.selectedMovie.title,
           poster: state.selectedMovie.poster,
           theatre: state.selectedTheatre.name + ', ' + state.selectedTheatre.location,
+          theatreId: state.selectedTheatre.id,
+          showIndex: state.selectedTheatre.shows.indexOf(state.selectedShow),
           date: dateStr,
           time: state.selectedShow.time + ' (' + state.selectedShow.format + ')',
-          seats: state.selectedSeats.join(', '),
+          seats: state.selectedSeats,
           amount: finalTotal,
           pointsEarned: pointsEarned
-        });
+        };
+
+        // Persist to BACKEND (The Bridge)
+        try {
+          await fetch('/api/bookings/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingData)
+          });
+        } catch (backendErr) {
+          console.warn('Backend persistence failed (offline mode):', backendErr);
+        }
+
+        state.user.points = (state.user.points || 0) + pointsEarned;
+        state.user.bookings.unshift({...bookingData, seats: bookingData.seats.join(', ')});
         saveState();
         showToast(`Congrats! You earned ${pointsEarned} CinePoints!`);
       }
@@ -2157,40 +2211,63 @@ function initChatbot() {
   const addMsg = (text, sender, isMedia = false) => {
     const div = document.createElement('div');
     div.className = `message ${sender} ${isMedia ? 'media-container' : ''}`;
+    
     if (isMedia) {
+      // isMedia is only used for bot-generated template content (like recommendations)
+      // which we control via renderMovieCards. Regular text uses textContent.
       div.innerHTML = text;
     } else {
       div.textContent = text;
     }
+    
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
   };
 
   const renderMovieCards = (movies) => {
-    const container = document.createElement('div');
-    container.className = 'chat-media-scroll';
+    const scrollDiv = document.createElement('div');
+    scrollDiv.className = 'chat-media-scroll';
     
     movies.forEach(m => {
       const card = document.createElement('div');
       card.className = 'chat-movie-mini-card';
-      card.innerHTML = `
-        <img src="${m.poster}" alt="${m.title}">
-        <div class="mini-card-info">
-          <h6>${m.title}</h6>
-          <div class="mini-meta">
-            <span class="mini-rating">★ ${m.rating}</span>
-            <span class="mini-genre">${m.genre.split(', ')[0]}</span>
-          </div>
-          <button class="mini-book-btn" onclick="document.getElementById('chatWindow').classList.remove('active'); selectMovie(${typeof m.id === 'string' ? `'${m.id}'` : m.id})">Book</button>
-        </div>
-      `;
-      container.appendChild(card);
+      
+      // Use secure elements for user-controlled/external data (CodeRabbit)
+      const img = document.createElement('img');
+      img.src = m.poster;
+      img.alt = m.title;
+      
+      const info = document.createElement('div');
+      info.className = 'mini-card-info';
+      
+      const h6 = document.createElement('h6');
+      h6.textContent = m.title;
+      
+      const meta = document.createElement('div');
+      meta.className = 'mini-meta';
+      meta.innerHTML = `<span class="mini-rating">★ ${m.rating}</span><span class="mini-genre">${m.genre.split(', ')[0]}</span>`;
+      
+      const btn = document.createElement('button');
+      btn.className = 'mini-book-btn';
+      btn.textContent = 'Book';
+      btn.onclick = () => {
+        $('chatWindow').classList.remove('active');
+        selectMovie(m.id);
+      };
+      
+      info.appendChild(h6);
+      info.appendChild(meta);
+      info.appendChild(btn);
+      
+      card.appendChild(img);
+      card.appendChild(info);
+      scrollDiv.appendChild(card);
     });
     
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message bot media';
-    msgDiv.appendChild(container);
+    msgDiv.appendChild(scrollDiv);
     messages.appendChild(msgDiv);
     messages.scrollTop = messages.scrollHeight;
   };

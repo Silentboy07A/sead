@@ -1,6 +1,8 @@
 const { connectToDatabase } = require('../utils/db');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const sanitize = require('../utils/sanitize');
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -8,7 +10,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { email } = req.body;
+        const { email } = sanitize(req.body);
         if (!email) {
             return res.status(400).json({ error: 'Email is required' });
         }
@@ -86,8 +88,8 @@ module.exports = async (req, res) => {
 
         res.status(200).json({
             message: 'If an account with that email exists, a reset link has been sent.',
-            ...(process.env.SMTP_HOST ? {} : { resetLink, testMode: true }),
-            ...(previewUrl ? { previewUrl } : {})
+            ...((IS_PROD || process.env.SMTP_HOST) ? {} : { resetLink, testMode: true }),
+            ...((IS_PROD || !previewUrl) ? {} : { previewUrl })
         });
 
     } catch (error) {

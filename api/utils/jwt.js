@@ -1,7 +1,10 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = (process.env.JWT_SECRET || 'cintic_default_secret_change_me').trim();
+const JWT_SECRET = (process.env.JWT_SECRET || '').trim();
+if (!JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable is missing.');
+}
 const JWT_EXPIRY = '24h';
 
 /**

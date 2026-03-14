@@ -1,10 +1,16 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { connectToDatabase } = require('./utils/db');
+const { initDatabase } = require('./utils/init-db');
 
 const TMDB_BASE = 'https://image.tmdb.org/t/p/w500';
 
-// All poster paths verified via TMDB API (api.themoviedb.org)
-const MOVIES_SEED = [
+// ... (MOVIES_SEED and THEATRES_SEED remain the same)
+// I'll skip the massive arrays in TargetContent by using a precise start
+
+module.exports = async (req, res) => {
+    try {
+        await initDatabase();
+        const { db } = await connectToDatabase();
     { _id: 1, title: "Sinners", year: 2025, genre: "Thriller", language: "English", rating: 8.7, duration: "2h 17m", description: "Twin brothers return to their hometown, only to discover a greater evil waiting.", poster: TMDB_BASE + "/qTvFWCGeGXgBRaINLY1zqgTPSpn.jpg", trailerId: "bKGxHflevuk" },
     { _id: 2, title: "Interstellar", year: 2014, genre: "Sci-Fi", language: "English", rating: 8.7, duration: "2h 49m", description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", poster: TMDB_BASE + "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", trailerId: "0vxOhd4qlnA" },
     { _id: 3, title: "The Dark Knight", year: 2008, genre: "Action", language: "English", rating: 9.0, duration: "2h 32m", description: "When the Joker wreaks havoc on Gotham, Batman must accept one of the greatest psychological and physical tests.", poster: TMDB_BASE + "/qJ2tW6WMUDux911r6m7haRef0WH.jpg", trailerId: "EXeTwQWrcwY" },

@@ -35,11 +35,16 @@ module.exports = async (req, res) => {
     - Selection State: ${context.selectedSeats?.length > 0 ? `Seats ${context.selectedSeats.join(',')} selected` : 'Choosing seats'}
     ` : "Journey data unavailable.";
 
+    const groqKey = (process.env.GROQ_API_KEY || '').trim();
+    if (!groqKey) {
+      return res.status(500).json({ response: "CinBot is currently offline. Please configure the GROQ_API_KEY." });
+    }
+
     // Call Groq API
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY || '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'}`,
+        'Authorization': `Bearer ${groqKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
