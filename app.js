@@ -75,6 +75,7 @@ function initAuth() {
   // Tab switching
   document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', () => {
+      if (tab.classList.contains('active')) return; // Guard against redundant clicks
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
       tab.classList.add('active');
@@ -2193,11 +2194,8 @@ initProfileActions();
       if (res.ok) {
         const data = await res.json();
         state.user = data.user;
-        $('authPage').classList.remove('active');
-        $('mainApp').style.display = 'block';
-        $('chatbotWidget').style.display = 'block'; // Show chatbot on successful login
-        updateNavUser();
-        initApp();
+        if (!state.user.bookings) state.user.bookings = [];
+        enterApp();
         return;
       }
     } catch (err) {
@@ -2205,14 +2203,16 @@ initProfileActions();
     }
   }
 
-  // No valid session — show auth page
+  // No valid session — show auth page with correct tab
   const hasVisited = localStorage.getItem('cintic_visited');
+  const tabs = document.querySelectorAll('.auth-tab');
   if (!hasVisited) {
-    document.querySelectorAll('.auth-tab')[1].click();
+    if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
     showToast('Welcome! Join CinTic today to book your favorite movies.');
     localStorage.setItem('cintic_visited', 'true');
   } else {
-    document.querySelectorAll('.auth-tab')[0].click();
+    // Default is usually logic tab, only click if it's not active
+    if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
   }
 })();
 
