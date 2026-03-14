@@ -1643,8 +1643,10 @@ async function recommendSeats() {
           const rowIndex = rows.indexOf(row);
           const yDist = Math.abs(5.5 - rowIndex); // Distance from row F/E (vertical screen center)
           
-          // Persona Weighting
+          // Persona Weighting & Row Preference
           let personaMultiplier = 1;
+          let verticalFocusWeight = 1.5; // Default: prioritize middle rows (D-G)
+          
           const hasCorner = nums.some(v => v === 1 || v === 10);
           
           if (persona === 'Couple') {
@@ -1653,14 +1655,28 @@ async function recommendSeats() {
             else if (rowIndex >= 6) personaMultiplier *= 0.8;
             else personaMultiplier *= 1.5; // Avoid front for couples
 
-            if (hasCorner) personaMultiplier *= 0.1; // ABSOLUTE corner preference for privacy
+            if (hasCorner) personaMultiplier *= 0.05; // EVEN STRONGER corner preference for couples
+          } else if (persona === 'Introvert') {
+            verticalFocusWeight = 0.8; 
+            // Introverts want "Social Distancing"
+            let neighborsCount = 0;
+            nums.forEach(s => {
+              if (state.takenSeats.includes(row + (s-1)) || state.lockedSeats.includes(row + (s-1))) neighborsCount++;
+              if (state.takenSeats.includes(row + (s+1)) || state.lockedSeats.includes(row + (s+1))) neighborsCount++;
+            });
+            personaMultiplier *= (1 + (neighborsCount * 0.5)); // Penalty for each occupied neighbor
+            if (hasCorner) personaMultiplier *= 0.5; // Slight bias towards corners for less total neighbors
           } else if (persona === 'Cinephile') {
-            if (rowIndex >= 4 && rowIndex <= 6 && xDist < 2) personaMultiplier *= 0.5; // Center middle sweet spot
+            verticalFocusWeight = 0.4; // Broaden row variety significantly
+            if (rowIndex >= 3 && rowIndex <= 7 && xDist < 2) personaMultiplier *= 0.6; // Gentle sweet spot bias
+          } else if (persona === 'Friends' || persona === 'Family') {
+            verticalFocusWeight = 0.1; // All rows are valid (near-zero vertical penalty)
+            personaMultiplier *= 0.8; // General boost to variety
           }
           
           // Diversity Jitter: Stronger jitter to ensure variety (CodeRabbit)
-          const jitter = Math.random() * 5.0; 
-          const score = (xDist + (yDist * 1.5)) * personaMultiplier + jitter;
+          const jitter = Math.random() * 6.0; 
+          const score = (xDist + (yDist * verticalFocusWeight)) * personaMultiplier + jitter;
           seatOptions.push({ chunk, score });
         }
     }
@@ -1738,17 +1754,21 @@ async function recommendSeats() {
       }
     }
 
-  // 4. Final Selection
+  // 4. Final Selection with Variety Cluster (Top K)
   seatOptions.sort((a,b) => a.score - b.score);
 
   if (seatOptions.length > 0) {
-    state.selectedSeats = seatOptions[0].chunk;
+    // Pick randomly from the top 3 options if available for better variety
+    const k = Math.min(3, seatOptions.length);
+    const selectedOption = seatOptions[Math.floor(Math.random() * k)];
+    
+    state.selectedSeats = selectedOption.chunk;
     updateSeatSummary();
     
     const rationale = persona === 'Couple' && state.selectedSeats.some(s => s.endsWith('1') || s.endsWith('10')) 
       ? "Corner Privacy Mode" 
-      : (n >= 4 && !seatOptions[0].chunk.every(s => s.charAt(0) === seatOptions[0].chunk[0].charAt(0)) ? "Smart Group Split" : "Optimal View Cluster");
-    showToast(`Vision IQ 9.0: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
+      : (n >= 4 && !selectedOption.chunk.every(s => s.charAt(0) === selectedOption.chunk[0].charAt(0)) ? "Smart Group Split" : "Vision Variety Cluster");
+    showToast(`Vision IQ 9.2: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
     
     // Clear old visual classes
     document.querySelectorAll('.seat.recommended').forEach(s => s.classList.remove('recommended'));
@@ -1765,8 +1785,10 @@ async function recommendSeats() {
     });
   } else {
     // 5. DISPERSION FALLBACK: Find any available seats if no consecutive block
+    // Randomize starting row for variety in fallback
+    const shuffledRows = [...rows].sort(() => Math.random() - 0.5);
     const allAvailable = [];
-    for (const row of rows) {
+    for (const row of shuffledRows) {
       for (let s = 1; s <= 10; s++) {
         const id = row + s;
         if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) allAvailable.push(id);
@@ -1775,7 +1797,7 @@ async function recommendSeats() {
     state.selectedSeats = allAvailable.slice(0, n);
     updateSeatSummary();
     if (state.selectedSeats.length > 0) {
-      showToast(`Vision IQ 8.5: Selected ${state.selectedSeats.length} best available seats.`);
+      showToast(`Vision IQ 8.7: Randomized best available seats.`);
     } else {
       showToast("Vision IQ: Cinema is fully booked!");
     }
