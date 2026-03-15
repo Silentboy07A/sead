@@ -327,10 +327,19 @@ ul {
   display: none;
   min-height: 100vh;
   padding-top: 80px; /* Offset for fixed navbar */
+  position: relative; /* Ensure it creates a stacking context */
 }
 
+/* Bulletproof clickability for active pages */
 .page.active {
   display: block;
+  pointer-events: auto !important;
+  z-index: 10;
+}
+
+/* Bulletproof clickability for critical UI components */
+.navbar, #chatbotWidget, .bottom-nav {
+  pointer-events: auto !important;
 }
 
 /* ============================================
@@ -347,8 +356,8 @@ ul {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  pointer-events: none;
-  visibility: hidden;
+  pointer-events: none !important;
+  visibility: hidden !important;
   opacity: 0;
   transition: opacity 0.4s ease, visibility 0.4s ease;
 }
