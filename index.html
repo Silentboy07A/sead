@@ -120,6 +120,9 @@
                         <div id="googleLoginBtn" style="display: flex; justify-content: center; margin-top: 1rem;">
                         </div>
                         <div class="auth-switch">Don't have an account? <a id="switchToSignup">Sign Up</a></div>
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a id="guestLinkLogin" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline; cursor: pointer;">Continue as Guest</a>
+                        </div>
                     </form>
 
                     <!-- SIGNUP FORM -->
@@ -173,6 +176,9 @@
                         </div>
                         <button type="submit" class="auth-btn primary" id="signupBtn" disabled>Create Account</button>
                         <div class="auth-switch">Already have an account? <a id="switchToLogin">Login</a></div>
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a id="guestLinkSignup" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline; cursor: pointer;">Continue as Guest</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -180,7 +186,7 @@
     </div>
 
     <!-- ========== MAIN APP (hidden until auth) ========== -->
-    <div id="mainApp">
+    <div id="mainApp" style="display: none;">
 
         <!-- NAVBAR -->
         <nav class="navbar" id="navbar">

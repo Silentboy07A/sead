@@ -149,6 +149,18 @@ function initAuth() {
   $('loginForm').addEventListener('submit', handleLogin);
   $('signupForm').addEventListener('submit', handleSignup);
 
+  // Guest Access
+  const bypassAuth = () => {
+    const authPage = $('authPage');
+    if (authPage) authPage.remove();
+    const mainApp = $('mainApp');
+    if (mainApp) mainApp.style.display = 'block';
+    initApp();
+  };
+
+  if ($('guestLinkLogin')) $('guestLinkLogin').addEventListener('click', bypassAuth);
+  if ($('guestLinkSignup')) $('guestLinkSignup').addEventListener('click', bypassAuth);
+
   // Initialize Google OAuth
   setTimeout(initGoogleAuth, 100);
 }
@@ -470,6 +482,9 @@ async function handleSignup(e) {
 function enterApp() {
   const authPage = $('authPage');
   if (authPage) authPage.remove(); // Physical removal to prevent any click-blocking
+  
+  const mainApp = $('mainApp');
+  if (mainApp) mainApp.style.display = 'block';
   
   const chatbot = $('chatbotWidget');
   if (chatbot) chatbot.style.display = 'block'; 
@@ -2276,6 +2291,8 @@ initProfileActions();
   
   // Load data immediately even for guests
   initApp();
+  const mainApp = $('mainApp');
+  if (mainApp) mainApp.style.display = 'block';
 })();
 
 // ========== AI CONCIERGE LOGIC ==========
