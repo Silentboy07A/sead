@@ -749,44 +749,7 @@
     </div>
 
     <script src="app.js?v=3"></script>
-    <script>
-    // Nuclear click-blocker cleanup — runs after app.js initializes
-    (function() {
-      function cleanBlockers() {
-        var allowed = ['chatbotWidget', 'toast', 'profileModal', 'trailerModal', 'forgotPasswordModal', 'resetPasswordModal'];
-        var allEls = document.querySelectorAll('*');
-        for (var i = 0; i < allEls.length; i++) {
-          var el = allEls[i];
-          var cs = window.getComputedStyle(el);
-          if (cs.position === 'fixed' &&
-              cs.pointerEvents !== 'none' &&
-              parseInt(cs.zIndex) > 0 &&
-              !allowed.includes(el.id)) {
-            var rect = el.getBoundingClientRect();
-            // Check if it covers a significant portion of the viewport
-            if (rect.width > window.innerWidth * 0.8 && rect.height > window.innerHeight * 0.5) {
-              console.warn('[BLOCKER DETECTED]', el.tagName, el.id, el.className);
-              if (el.id !== 'navbar') {
-                el.style.pointerEvents = 'none';
-                el.style.zIndex = '-1';
-                if (el.id === 'authPage' || el.classList.contains('auth-page')) {
-                  el.remove();
-                  console.warn('[REMOVED] auth-page blocker');
-                }
-              }
-            }
-          }
-        }
-      }
 
-      // Run cleanup at multiple intervals after page load
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(cleanBlockers, 100);
-        setTimeout(cleanBlockers, 1000);
-        setTimeout(cleanBlockers, 3000);
-      });
-    })();
-    </script>
 </body>
 
 </html>
