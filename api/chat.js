@@ -1,6 +1,6 @@
-const { connectToDatabase } = require('./utils/db');
-const { authMiddleware } = require('./utils/jwt');
-const sanitize = require('./utils/sanitize');
+const { connectToDatabase } = require('./_lib/utils/db');
+const { authMiddleware } = require('./_lib/utils/jwt');
+const sanitize = require('./_lib/utils/sanitize');
 
 // Security: Advanced Sanitization
 const sanitizeInput = (text) => {

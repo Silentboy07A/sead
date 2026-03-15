@@ -5,6 +5,30 @@
       "destination": "/api/poster"
     },
     {
+      "source": "/api/movies",
+      "destination": "/api/data?type=movies"
+    },
+    {
+      "source": "/api/theatres",
+      "destination": "/api/data?type=theatres"
+    },
+    {
+      "source": "/api/config",
+      "destination": "/api/data?type=config"
+    },
+    {
+      "source": "/api/lock-seats",
+      "destination": "/api/booking?type=lock"
+    },
+    {
+      "source": "/api/check-locked-seats",
+      "destination": "/api/booking?type=check"
+    },
+    {
+      "source": "/api/bookings/create",
+      "destination": "/api/booking?type=create"
+    },
+    {
       "source": "/((?!api/|.*\\.).*)",
       "destination": "/index.html"
     }

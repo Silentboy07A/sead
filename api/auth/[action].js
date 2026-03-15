@@ -10,21 +10,21 @@ module.exports = async (req, res) => {
 
     switch (action) {
         case 'login':
-            return require('./_login')(req, res);
+            return require('../_lib/auth/_login')(req, res);
         case 'register':
-            return require('./_register')(req, res);
+            return require('../_lib/auth/_register')(req, res);
         case 'google':
-            return require('./_google')(req, res);
+            return require('../_lib/auth/_google')(req, res);
         case 'me':
-            return require('./_me')(req, res);
+            return require('../_lib/auth/_me')(req, res);
         case 'logout':
-            return require('./_logout')(req, res);
+            return require('../_lib/auth/_logout')(req, res);
         case 'forgot-password':
-            return require('./_forgot-password')(req, res);
+            return require('../_lib/auth/_forgot-password')(req, res);
         case 'reset-password':
-            return require('./_reset-password')(req, res);
+            return require('../_lib/auth/_reset-password')(req, res);
         case 'change-password':
-            return require('./_change-password')(req, res);
+            return require('../_lib/auth/_change-password')(req, res);
         default:
             res.status(404).json({ error: 'Auth route not found' });
     }
