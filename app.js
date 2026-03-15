@@ -468,8 +468,12 @@ async function handleSignup(e) {
 }
 
 function enterApp() {
-  $('authPage').classList.remove('active');
-  $('chatbotWidget').style.display = 'block'; // Show chatbot for members
+  const authPage = $('authPage');
+  if (authPage) authPage.classList.remove('active');
+  
+  const chatbot = $('chatbotWidget');
+  if (chatbot) chatbot.style.display = 'block'; 
+  
   updateNavUser();
   initApp();
 }
@@ -2255,7 +2259,11 @@ initProfileActions();
   const hasVisited = localStorage.getItem('cintic_visited');
   const tabs = document.querySelectorAll('.auth-tab');
   
-  $('authPage').classList.add('active'); // Always show overlay if no session
+  const authPage = $('authPage');
+  if (authPage) {
+    authPage.classList.add('active');
+    console.log('Guest user detected, showing auth overlay');
+  }
   
   if (!hasVisited) {
     if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
