@@ -1157,6 +1157,7 @@ ul {
   inset: 0;
   background: linear-gradient(to right, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.6) 50%, transparent 100%),
     linear-gradient(to top, var(--bg) 0%, transparent 30%);
+  pointer-events: none;
 }
 
 .hero-content {

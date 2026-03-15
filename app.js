@@ -469,7 +469,7 @@ async function handleSignup(e) {
 
 function enterApp() {
   const authPage = $('authPage');
-  if (authPage) authPage.classList.remove('active');
+  if (authPage) authPage.remove(); // Physical removal to prevent any click-blocking
   
   const chatbot = $('chatbotWidget');
   if (chatbot) chatbot.style.display = 'block'; 
