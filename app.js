@@ -83,8 +83,8 @@ function showToast(msg, duration = 3000) {
 }
 
 function escapeHTML(str) {
-  if (!str) return "";
-  return str.replace(/[&<>"']/g, function(m) {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/[&<>"']/g, function(m) {
     return {
       '&': '&amp;',
       '<': '&lt;',
