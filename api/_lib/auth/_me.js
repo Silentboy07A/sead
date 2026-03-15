@@ -11,9 +11,11 @@ module.exports = async (req, res) => {
         const user = await authMiddleware(req, db);
 
         if (!user) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.status(200).json({
             user: {
                 id: user._id,
