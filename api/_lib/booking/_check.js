@@ -1,5 +1,5 @@
-const { connectToDatabase } = require('./utils/db');
-const sanitize = require('./utils/sanitize');
+const { connectToDatabase } = require('../utils/db');
+const sanitize = require('../utils/sanitize');
 
 module.exports = async (req, res) => {
     // Restrict CORS (Security alignment)
