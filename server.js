@@ -186,6 +186,13 @@ const server = http.createServer(async (req, res) => {
                 const resource = route.split('/')[1];
                 req.query = { ...(req.query || {}), resource };
                 targetHandlerPath = path.join(__dirname, 'api', 'admin', '[resource].js');
+            } else if (route === 'movies' || route === 'theatres' || route === 'config') {
+                req.query = { ...(req.query || {}), type: route };
+                targetHandlerPath = path.join(__dirname, 'api', 'data.js');
+            } else if (route === 'lock-seats' || route === 'check-locked-seats' || route === 'bookings/create') {
+                const typeMap = { 'lock-seats': 'lock', 'check-locked-seats': 'check', 'bookings/create': 'create' };
+                req.query = { ...(req.query || {}), type: typeMap[route] };
+                targetHandlerPath = path.join(__dirname, 'api', 'booking.js');
             }
             
             if (!fs.existsSync(targetHandlerPath)) {
@@ -210,11 +217,18 @@ const server = http.createServer(async (req, res) => {
             // Custom local routing for Vercel dynamic routes (Fixed parameter overwriting)
             const isDynamicAuth = route.startsWith('auth/') && !fs.existsSync(handlerPath);
             const isDynamicAdmin = route.startsWith('admin/') && !fs.existsSync(handlerPath);
+            const isDataRoute = (route === 'movies' || route === 'theatres' || route === 'config');
+            const isBookingRoute = (route === 'lock-seats' || route === 'check-locked-seats' || route === 'bookings/create');
             
             if (isDynamicAuth) {
                 queryParams.action = route.split('/')[1];
             } else if (isDynamicAdmin) {
                 queryParams.resource = route.split('/')[1];
+            } else if (isDataRoute) {
+                queryParams.type = route;
+            } else if (isBookingRoute) {
+                const typeMap = { 'lock-seats': 'lock', 'check-locked-seats': 'check', 'bookings/create': 'create' };
+                queryParams.type = typeMap[route];
             }
             
             req.query = queryParams;
