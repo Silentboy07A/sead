@@ -290,36 +290,39 @@ function validatePasswordField(inputId, errorId, barId, labelId, checklistId) {
   const label = $(labelId);
 
   // Strength bar
-  const levels = [
-    { width: '0%', color: '#333', text: '' },
-    { width: '20%', color: '#e63946', text: 'Weak' },
-    { width: '40%', color: '#e67e22', text: 'Poor' },
-    { width: '60%', color: '#f1c40f', text: 'Fair' },
-    { width: '80%', color: '#3498db', text: 'Good' },
-    { width: '100%', color: '#2ecc71', text: 'Strong' },
-  ];
-  const level = val ? levels[met] : levels[0];
-  bar.style.width = level.width;
-  bar.style.background = level.color;
-  label.textContent = level.text;
-  label.style.color = level.color;
+  if (bar && label) {
+    const levels = [
+      { width: '0%', color: '#333', text: '' },
+      { width: '20%', color: '#e63946', text: 'Weak' },
+      { width: '40%', color: '#e67e22', text: 'Poor' },
+      { width: '60%', color: '#f1c40f', text: 'Fair' },
+      { width: '80%', color: '#3498db', text: 'Good' },
+      { width: '100%', color: '#2ecc71', text: 'Strong' },
+    ];
+    const level = val ? levels[met] : levels[0];
+    bar.style.width = level.width;
+    bar.style.background = level.color;
+    label.textContent = level.text;
+    label.style.color = level.color;
+  }
 
   // Checklist
   const checklist = $(checklistId);
-  const items = checklist.querySelectorAll('.checklist-item');
-  const ruleKeys = ['length', 'upper', 'lower', 'number', 'special'];
-  const ruleLabels = ['At least 8 characters', 'One uppercase letter', 'One lowercase letter', 'One number', 'One special character'];
-  items.forEach((item, i) => {
-    const passed = rules[ruleKeys[i]];
-    item.classList.toggle('met', passed);
-    item.textContent = (passed ? '✓ ' : '✗ ') + ruleLabels[i];
-  });
+  if (checklist) {
+    const items = checklist.querySelectorAll('.checklist-item');
+    const ruleKeys = ['length', 'upper', 'lower', 'number', 'special'];
+    const ruleLabels = ['At least 8 characters', 'One uppercase letter', 'One lowercase letter', 'One number', 'One special character'];
+    items.forEach((item, i) => {
+      const passed = rules[ruleKeys[i]];
+      item.classList.toggle('met', passed);
+      item.textContent = (passed ? '✓ ' : '✗ ') + ruleLabels[i];
+    });
+  }
 
   // Input state
   inp.classList.remove('valid', 'invalid');
   if (val) inp.classList.add(allPassed ? 'valid' : 'invalid');
 
-  // Find nearest parent's valid-icon for password (we use the toggle as indicator)
   return allPassed;
 }
 
@@ -589,7 +592,11 @@ function initPasswordReset() {
 }
 
 // ========== MAIN APP INIT ==========
+let isAppInitialized = false;
 async function initApp() {
+  if (isAppInitialized) return;
+  isAppInitialized = true;
+
   const grid = $('movieGrid');
   grid.innerHTML = Array(8).fill(0).map(() => `
     <div class="movie-card skeleton">
@@ -2256,6 +2263,9 @@ initProfileActions();
     // Default is usually logic tab, only click if it's not active
     if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
   }
+  
+  // Load data immediately even for guests
+  initApp();
 })();
 
 // ========== AI CONCIERGE LOGIC ==========
