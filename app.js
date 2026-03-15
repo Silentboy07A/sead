@@ -2299,7 +2299,11 @@ initProfileActions();
     // Still run the rest of the logic to set up the auth page
   } else {
     try {
-      const res = await fetchWithTimeout('/api/auth/me', { credentials: 'same-origin', timeout: 3000 });
+      const res = await fetchWithTimeout('/api/auth/me', { 
+        credentials: 'same-origin', 
+        timeout: 3000,
+        cache: 'no-store' // Force browser to bypass local fetch cache
+      });
       if (res.ok) {
         const data = await res.json();
         state.user = data.user;
