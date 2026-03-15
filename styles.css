@@ -338,8 +338,15 @@ ul {
    ============================================ */
 .auth-page {
   display: none;
-  min-height: 100vh;
-  background: var(--bg);
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .auth-page.active {
@@ -349,7 +356,14 @@ ul {
 .auth-container {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  max-width: 900px;
+  min-height: 600px;
+  max-height: 90vh;
+  background: var(--bg); /* Use solid background to hide movies behind the form */
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8);
 }
 
 /* Left cinematic panel */
@@ -3632,4 +3646,4 @@ ul {
     right: -12px;
     height: 500px;
   }
-}}
+}

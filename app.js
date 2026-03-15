@@ -469,7 +469,6 @@ async function handleSignup(e) {
 
 function enterApp() {
   $('authPage').classList.remove('active');
-  $('mainApp').style.display = 'block';
   $('chatbotWidget').style.display = 'block'; // Show chatbot for members
   updateNavUser();
   initApp();
@@ -2255,6 +2254,9 @@ initProfileActions();
   // No valid session — show auth page with correct tab
   const hasVisited = localStorage.getItem('cintic_visited');
   const tabs = document.querySelectorAll('.auth-tab');
+  
+  $('authPage').classList.add('active'); // Always show overlay if no session
+  
   if (!hasVisited) {
     if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
     showToast('Welcome! Join CinTic today to book your favorite movies.');
