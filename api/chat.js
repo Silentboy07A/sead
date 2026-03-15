@@ -73,7 +73,13 @@ module.exports = async (req, res) => {
   if (!message) return res.status(400).json({ error: "Message is required" });
 
   const groqKey = (process.env.GROQ_API_KEY || '').trim();
-  if (!groqKey) return res.status(500).json({ response: "Bot offline." });
+  if (!groqKey) {
+    console.error('CRITICAL: GROQ_API_KEY is missing from environment variables.');
+    return res.status(500).json({ 
+      response: "CinBot is currently undergoing maintenance. Please try again later.",
+      debug: process.env.NODE_ENV === 'development' ? "Missing GROQ_API_KEY" : undefined
+    });
+  }
 
   try {
     const { db } = await connectToDatabase();

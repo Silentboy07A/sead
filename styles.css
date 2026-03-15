@@ -3655,11 +3655,131 @@ ul {
   color: var(--text);
 }
 
-/* Mobile Adjustments */
-@media (max-width: 480px) {
-  .chat-window {
-    width: calc(100vw - 48px);
-    right: -12px;
-    height: 500px;
+/* ============================================
+   MOBILE OPTIMIZATIONS (768px & 480px)
+   ============================================ */
+
+/* --- Tablet & Mobile Grid Refinements (768px) --- */
+@media (max-width: 768px) {
+  .hero {
+    min-height: 70vh;
+    padding-top: 100px;
+    text-align: center;
+    justify-content: center;
   }
+
+  .hero-content {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-content h1 {
+    font-size: 2.8rem;
+    line-height: 1.1;
+  }
+
+  .hero::after {
+    background: linear-gradient(to top, var(--bg) 0%, rgba(10, 10, 15, 0.8) 50%, rgba(10, 10, 15, 0.4) 100%);
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px;
+    padding: 0 15px;
+  }
+
+  .nav-links {
+    background: rgba(10, 10, 15, 0.98);
+    backdrop-filter: blur(20px);
+  }
+
+  .auth-container {
+    flex-direction: column;
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .auth-left {
+    display: none; /* Hide illustrative panel on mobile to save space */
+  }
+
+  .auth-right {
+    padding: 2rem 1.5rem;
+  }
+
+  .seat-container {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+}
+
+/* --- Mobile-Only Refinements (480px) --- */
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .hero-content p {
+    font-size: 0.95rem;
+  }
+
+  .movie-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .genre-tabs {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    justify-content: flex-start;
+  }
+
+  .seat-container {
+    transform: scale(0.75);
+    margin-left: -10%; /* Compensate for scaling offset */
+  }
+
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .nav-logo {
+    font-size: 1.5rem;
+  }
+
+  .auth-form-card {
+    padding: 1.5rem;
+  }
+
+  .chat-window {
+    width: calc(100vw - 40px);
+    right: -10px;
+    bottom: 80px;
+    height: 480px;
+  }
+
+  .bottom-nav {
+    padding: 10px 5px;
+  }
+
+  .bottom-nav-item span {
+    font-size: 0.7rem;
+  }
+}
+
+/* Fix for navbar z-index and clickability */
+.navbar {
+  z-index: 1000 !important;
+}
+
+.nav-links {
+  z-index: 999 !important;
 }

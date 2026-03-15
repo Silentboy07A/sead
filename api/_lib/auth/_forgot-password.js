@@ -40,6 +40,7 @@ module.exports = async (req, res) => {
         // Send email via Nodemailer (uses Ethereal for testing, or configure SMTP)
         let transporter;
         if (process.env.SMTP_HOST) {
+            console.log(`📡 SMTP configuration detected: ${process.env.SMTP_HOST}`);
             transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: parseInt(process.env.SMTP_PORT || '587'),
@@ -51,6 +52,7 @@ module.exports = async (req, res) => {
             });
         } else {
             // Use Ethereal for testing (free test SMTP)
+            console.log('🧪 No SMTP host configured. Using Ethereal test account.');
             const testAccount = await nodemailer.createTestAccount();
             transporter = nodemailer.createTransport({
                 host: 'smtp.ethereal.email',
