@@ -374,12 +374,14 @@ ul {
   width: 100%;
   max-width: 900px;
   min-height: 600px;
-  max-height: 90vh;
+  height: auto;
+  max-height: 95vh;
   background: var(--card); /* Reverting to card for better blending */
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+  position: relative; /* Ensure it contains absolute children */
 }
 
 /* Left cinematic panel */
@@ -392,7 +394,7 @@ ul {
   justify-content: center;
   align-items: center;
   padding: 3rem;
-  overflow: hidden;
+  overflow: hidden; /* Clips the background ticker */
 }
 
 .auth-left::before {
@@ -563,11 +565,13 @@ ul {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* Changed from center to allow scrolling from top */
   align-items: center;
-  padding: 3rem;
+  padding: 3rem 2rem;
   background: var(--auth-panel);
   position: relative;
+  overflow-y: auto; /* Enable vertical scroll */
+  max-height: 100%; /* Stay within parent container */
 }
 
 .auth-form-card {
@@ -924,6 +928,8 @@ ul {
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
+  z-index: 10; /* Keep inside auth panel but above background */
+  pointer-events: none; /* Don't block clicks */
 }
 
 .ticker-track {
