@@ -1,24 +1,25 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = (process.env.JWT_SECRET || '').trim();
-if (!JWT_SECRET) {
-    throw new Error('FATAL: JWT_SECRET environment variable is missing.');
-}
+// JWT_SECRET is checked inside functions to prevent module-level crashes if env is missing
 const JWT_EXPIRY = '24h';
 
 /**
  * Sign a JWT token for a user
  */
 function signToken(userId) {
-    return jwt.sign({ userId: userId.toString() }, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+    const secret = (process.env.JWT_SECRET || '').trim();
+    if (!secret) throw new Error('JWT_SECRET is missing');
+    return jwt.sign({ userId: userId.toString() }, secret, { expiresIn: JWT_EXPIRY });
 }
 
 /**
  * Verify and decode a JWT token
  */
 function verifyToken(token) {
-    return jwt.verify(token, JWT_SECRET);
+    const secret = (process.env.JWT_SECRET || '').trim();
+    if (!secret) throw new Error('JWT_SECRET is missing');
+    return jwt.verify(token, secret);
 }
 
 /**
