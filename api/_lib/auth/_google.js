@@ -4,8 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { signToken, buildCookieHeader } = require('../utils/jwt');
 
 // Use env var, cleaned of newlines. Fallback to hardcoded value if env var is missing or corrupted.
-const GOOGLE_CLIENT_ID = ((process.env.GOOGLE_CLIENT_ID || '').trim())
-    || '554940727049-j2fcom24vrb6ssal0i6om0r4gpap77d1.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 
 if (!GOOGLE_CLIENT_ID) {
     console.warn('WARNING: GOOGLE_CLIENT_ID is not configured.');
@@ -76,11 +75,18 @@ module.exports = async (req, res) => {
             }
         );
 
-        const user = result.value;
-        const isNewUser = !result.lastErrorObject.updatedExisting;
+        const user = result.value || result; // Handle both result styles based on driver version
+        
+        if (!user || (!user._id && !result.insertedId)) {
+            console.error('Google Sign-In: Database upsert failed to return a user document.', result);
+            return res.status(500).json({ error: 'Database error', details: 'Failed to create or update user profile.' });
+        }
+
+        const isNewUser = result.lastErrorObject ? !result.lastErrorObject.updatedExisting : false;
 
         // 5. Issue JWT cookie
-        const token = signToken(user._id);
+        const userId = user._id || result.insertedId;
+        const token = signToken(userId);
         res.setHeader('Set-Cookie', buildCookieHeader(token));
 
         // 6. Send User session back to frontend
@@ -88,7 +94,7 @@ module.exports = async (req, res) => {
             message: isNewUser ? 'Welcome to CineBook!' : 'Welcome back!',
             isNewUser: isNewUser,
             user: {
-                id: user._id,
+                id: userId,
                 name: user.name || cleanName,
                 email: user.email || email,
                 picture: user.picture || picture,
@@ -97,10 +103,10 @@ module.exports = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error verifying Google Token:', error);
+        console.error('Google Auth Error:', error);
         res.status(401).json({
-            error: 'Google sign-in failed',
-            details: error.message
+            error: 'Google authentication failed',
+            details: error.message || 'Internal verification error'
         });
     }
 };

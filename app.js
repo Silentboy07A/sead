@@ -208,7 +208,7 @@ async function handleGoogleLogin(response) {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Google login failed');
+    if (!res.ok) throw new Error(data.details || data.error || 'Google login failed');
 
     state.user = data.user;
     if (!state.user.bookings) state.user.bookings = [];
