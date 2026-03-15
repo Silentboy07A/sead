@@ -80,6 +80,9 @@ module.exports = async (req, res) => {
                     <p style="color:#8a8a9a;font-size:12px;">— CinTic Team</p>
                 </div>
             `
+        }).catch(err => {
+            console.error('CRITICAL: Nodemailer failed to send email:', err);
+            throw new Error(`Email delivery failed: ${err.message}`);
         });
 
         // Log the preview URL for Ethereal test emails
