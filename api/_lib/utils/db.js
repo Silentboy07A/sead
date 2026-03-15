@@ -8,18 +8,20 @@ const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
 let cachedClient = null;
 let cachedDb = null;
 
-if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable inside .env');
-}
-
+// MONGODB_URI is checked inside connectToDatabase to prevent module-level crashes
 async function connectToDatabase() {
+    const uri = (process.env.MONGODB_URI || '').trim();
+    if (!uri) {
+        throw new Error('MONGODB_URI environment variable is missing.');
+    }
+
     // If the database connection is cached, return it
     if (cachedClient && cachedDb) {
         return { client: cachedClient, db: cachedDb };
     }
 
-    // Connect to cluster (no deprecated options needed in MongoDB driver v5+)
-    const client = new MongoClient(MONGODB_URI);
+    // Connect to cluster
+    const client = new MongoClient(uri);
     await client.connect();
 
     // Select the database explicitly

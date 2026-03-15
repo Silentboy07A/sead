@@ -1,4 +1,5 @@
 const { connectToDatabase } = require('./_lib/utils/db');
+const https = require('https');
 
 // Serverless proxy for TMDB images (Vercel)
 // Usage: /api/poster?url=https://image.tmdb.org/t/p/w500/xxx.jpg
