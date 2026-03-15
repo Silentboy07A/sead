@@ -2813,6 +2813,11 @@ ul {
   }
 }
 
+/* Bottom nav is mobile-only — hide by default on desktop */
+.bottom-nav {
+  display: none;
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
