@@ -3,6 +3,23 @@
    Main Application Logic
    ============================================ */
 
+/**
+ * Utility: Fetch with timeout safety
+ */
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 8000 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
+
 // ========== REAL DATA (Fetched from API) ==========
 let MOVIES = [];
 let THEATRES = [];
@@ -629,8 +646,8 @@ async function initApp() {
 
   try {
     const [moviesRes, theatresRes] = await Promise.all([
-      fetch('/api/movies'),
-      fetch('/api/theatres')
+      fetchWithTimeout('/api/movies', { timeout: 5000 }),
+      fetchWithTimeout('/api/theatres', { timeout: 5000 })
     ]);
 
     if (!moviesRes.ok || !theatresRes.ok) throw new Error('Failed to fetch API');
@@ -2257,7 +2274,7 @@ initProfileActions();
     // Still run the rest of the logic to set up the auth page
   } else {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const res = await fetchWithTimeout('/api/auth/me', { credentials: 'same-origin', timeout: 3000 });
       if (res.ok) {
         const data = await res.json();
         state.user = data.user;

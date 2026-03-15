@@ -20,8 +20,11 @@ async function connectToDatabase() {
         return { client: cachedClient, db: cachedDb };
     }
 
-    // Connect to cluster
-    const client = new MongoClient(uri);
+    // Connect to cluster with timeout
+    const client = new MongoClient(uri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000
+    });
     await client.connect();
 
     // Select the database explicitly

@@ -109,7 +109,17 @@ const server = http.createServer(async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const url = new URL(req.url, `http://localhost:${PORT}`);
     
-    if (await isRateLimited(ip, url.pathname)) {
+    // Quick Health Check
+    if (url.pathname === '/ping') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        return res.end('pong');
+    }
+    
+    // Safety: Timeout for rate-limit check (CodeRabbit)
+    const rateLimitPromise = isRateLimited(ip, url.pathname);
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(false), 2000));
+    
+    if (await Promise.race([rateLimitPromise, timeoutPromise])) {
         res.writeHead(429, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Too many requests. Please slow down.' }));
     }
@@ -268,12 +278,15 @@ const server = http.createServer(async (req, res) => {
 
             try {
                 // Production Optimization: Only clear cache in dev mode
+                // Removed to prevent connection exhaustion and server hangs
+                /*
                 if (!IS_PROD) {
                     const apiDir = path.join(__dirname, 'api');
                     Object.keys(require.cache).forEach(key => {
                         if (key.startsWith(apiDir)) delete require.cache[key];
                     });
                 }
+                */
                 const handler = require(targetHandlerPath);
                 await handler(req, res);
             } catch (err) {
