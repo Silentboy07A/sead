@@ -3,6 +3,19 @@
    Main Application Logic
    ============================================ */
 
+// ---- EMERGENCY CACHE CLEAR ESCAPE HATCH ----
+if (window.location.search.includes('reset=1')) {
+  console.log('Emergency Reset Triggered');
+  localStorage.clear();
+  sessionStorage.clear();
+  document.cookie.split(";").forEach(function(c) { 
+    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+  });
+  window.history.replaceState({}, document.title, window.location.pathname);
+  window.location.reload(true);
+}
+// --------------------------------------------
+
 /**
  * Utility: Fetch with timeout safety
  */
