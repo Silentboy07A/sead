@@ -63,7 +63,7 @@ function getSecurityHeaders(csrfCookie) {
 }
 
 // ---- Distributed Rate Limiter (MongoDB-backed) ----
-const { connectToDatabase } = require('./api/utils/db');
+const { connectToDatabase } = require('./api/_lib/utils/db');
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 
 async function isRateLimited(ip, path) {
@@ -102,7 +102,7 @@ async function isRateLimited(ip, path) {
     }
 }
 
-const { parseCookies } = require('./api/utils/jwt');
+const { parseCookies } = require('./api/_lib/utils/jwt');
 const crypto = require('crypto');
 
 const server = http.createServer(async (req, res) => {
