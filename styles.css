@@ -1148,6 +1148,7 @@ ul {
   background-size: cover;
   background-position: center;
   filter: brightness(0.35);
+  pointer-events: none;
 }
 
 .hero::after {

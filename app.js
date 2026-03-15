@@ -497,17 +497,42 @@ async function handleSignup(e) {
 }
 
 function enterApp() {
-  const authPage = $('authPage');
-  if (authPage) authPage.remove(); // Physical removal to prevent any click-blocking
+  // Use document.getElementById directly as a failsafe
+  const authPage = document.getElementById('authPage');
+  if (authPage) {
+    authPage.classList.remove('active');
+    authPage.style.display = 'none';
+    authPage.style.visibility = 'hidden';
+    authPage.style.pointerEvents = 'none';
+    authPage.style.zIndex = '-1';
+    authPage.remove();
+    console.log('Auth page removed from DOM');
+  }
   
-  const mainApp = $('mainApp');
+  // Also kill any remaining .auth-page elements (paranoid cleanup)
+  document.querySelectorAll('.auth-page').forEach(el => {
+    el.remove();
+    console.log('Removed stale .auth-page element');
+  });
+  
+  const mainApp = document.getElementById('mainApp');
   if (mainApp) mainApp.style.display = 'block';
   
-  const chatbot = $('chatbotWidget');
+  const chatbot = document.getElementById('chatbotWidget');
   if (chatbot) chatbot.style.display = 'block'; 
   
   updateNavUser();
   initApp();
+  
+  // Delayed failsafe: re-check after 500ms to catch any race conditions
+  setTimeout(() => {
+    const ghost = document.getElementById('authPage');
+    if (ghost) {
+      ghost.remove();
+      console.warn('Failsafe: removed ghost authPage');
+    }
+    document.querySelectorAll('.auth-page').forEach(el => el.remove());
+  }, 500);
 }
 
 function updateNavUser() {
