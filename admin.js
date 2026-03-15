@@ -11,6 +11,19 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+function escapeHTML(str) {
+  if (!str) return "";
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[m];
+  });
+}
+
 // ========== AUTH CHECK ==========
 let currentUser = null;
 
@@ -207,8 +220,8 @@ function renderMoviesTable() {
       <td class="movie-title-cell"></td>
       <td class="movie-genre-cell"></td>
       <td class="movie-lang-cell"></td>
-      <td>★ ${m.rating}</td>
-      <td>${m.year || '—'}</td>
+      <td>★ ${escapeHTML(m.rating)}</td>
+      <td>${escapeHTML(m.year) || '—'}</td>
       <td>
         <button class="action-btn edit-btn">✏️ Edit</button>
         <button class="action-btn delete delete-btn">🗑️</button>

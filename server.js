@@ -14,6 +14,17 @@ if (missing.length > 0) {
 }
 
 const IS_PROD = process.env.NODE_ENV === 'production';
+
+// ---- Global Error Handlers (CodeRabbit Best Practice) ----
+process.on('uncaughtException', (err) => {
+    console.error('CRITICAL: Uncaught Exception:', err);
+    // In a real prod env, we might want to gracefully shutdown or notify an error service
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const BODY_LIMIT = 1 * 1024 * 1024; // 1MB
 
 const MIME = {
@@ -27,33 +38,98 @@ const MIME = {
     '.ico': 'image/x-icon',
 };
 
-// ---- Rate Limiter (In-memory) ----
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX = 50; // Max requests per window
-const rateLimits = new Map();
-
-function isRateLimited(ip) {
-    const now = Date.now();
-    const limit = rateLimits.get(ip) || { count: 0, reset: now + RATE_LIMIT_WINDOW };
-    
-    if (now > limit.reset) {
-        limit.count = 1;
-        limit.reset = now + RATE_LIMIT_WINDOW;
-    } else {
-        limit.count++;
+// ---- Security: Unified Policy (CodeRabbit) ----
+function getSecurityHeaders(csrfCookie) {
+    const headers = {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+        'Content-Security-Policy': [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.youtube.com https://s.ytimg.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "img-src 'self' data: https://image.tmdb.org https://lh3.googleusercontent.com",
+            "frame-src https://www.youtube.com https://accounts.google.com",
+            "connect-src 'self' https://api.groq.com"
+        ].join('; ')
+    };
+    if (csrfCookie) {
+        headers['Set-Cookie'] = csrfCookie;
     }
-    rateLimits.set(ip, limit);
-    return limit.count > RATE_LIMIT_MAX;
+    return headers;
 }
 
+// ---- Distributed Rate Limiter (MongoDB-backed) ----
+const { connectToDatabase } = require('./api/utils/db');
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+
+async function isRateLimited(ip, path) {
+    try {
+        const { db } = await connectToDatabase();
+        const collection = db.collection('rate_limits_global');
+        const now = Date.now();
+        const isAuth = path.startsWith('/api/auth/');
+        const maxRequests = isAuth ? 5 : 60; // Slightly more generous for global browsing
+        
+        const key = `${ip}:${isAuth ? 'auth' : 'global'}`;
+        
+        // Find or create the limit entry
+        const limit = await collection.findOne({ _id: key });
+        
+        if (!limit || now > limit.reset) {
+            // Upsert new window
+            await collection.updateOne(
+                { _id: key },
+                { $set: { count: 1, reset: now + RATE_LIMIT_WINDOW } },
+                { upsert: true }
+            );
+            return false;
+        } else {
+            // Increment count
+            const updated = await collection.findOneAndUpdate(
+                { _id: key },
+                { $inc: { count: 1 } },
+                { returnDocument: 'after' }
+            );
+            return updated.count > maxRequests;
+        }
+    } catch (e) {
+        console.error('Rate limit error:', e);
+        return false; // Fail open for the core server to avoid locking everyone out on DB hiccups
+    }
+}
+
+const { parseCookies } = require('./api/utils/jwt');
+const crypto = require('crypto');
+
 const server = http.createServer(async (req, res) => {
-    const ip = req.socket.remoteAddress;
-    if (isRateLimited(ip)) {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const url = new URL(req.url, `http://localhost:${PORT}`);
+    
+    if (await isRateLimited(ip, url.pathname)) {
         res.writeHead(429, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Too many requests' }));
+        return res.end(JSON.stringify({ error: 'Too many requests. Please slow down.' }));
     }
 
-    const url = new URL(req.url, `http://localhost:${PORT}`);
+    // ---- CSRF Protection (CodeRabbit: Double Submit Cookie) ----
+    const cookies = parseCookies(req.headers.cookie);
+    let csrfCookie = cookies.csrf_token;
+    
+    // Check CSRF for non-GET/HEAD requests
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        const csrfHeader = req.headers['x-csrf-token'];
+        if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'CSRF token mismatch or missing' }));
+        }
+    }
+
+    // Set CSRF cookie if missing or on page load
+    const newCsrfToken = csrfCookie || crypto.randomBytes(32).toString('hex');
+    const csrfCookieHeader = `csrf_token=${newCsrfToken}; Path=/; SameSite=Strict${IS_PROD ? '; Secure' : ''}`;
 
     // ---- Poster proxy (bypasses browser CORS on TMDB) ----
     if (url.pathname === '/api/poster' || url.pathname === '/poster') {
@@ -132,19 +208,13 @@ const server = http.createServer(async (req, res) => {
             const queryParams = Object.fromEntries(url.searchParams);
             
             // Custom local routing for Vercel dynamic routes (Fixed parameter overwriting)
-            if (!fs.existsSync(targetHandlerPath)) {
-                if (route.startsWith('auth/')) {
-                    queryParams.action = route.split('/')[1];
-                    targetHandlerPath = path.join(__dirname, 'api', 'auth', '[action].js');
-                } else if (route.startsWith('admin/')) {
-                    queryParams.resource = route.split('/')[1];
-                    targetHandlerPath = path.join(__dirname, 'api', 'admin', '[resource].js');
-                }
-                
-                if (!fs.existsSync(targetHandlerPath)) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    return res.end(JSON.stringify({ error: 'API route not found', route }));
-                }
+            const isDynamicAuth = route.startsWith('auth/') && !fs.existsSync(handlerPath);
+            const isDynamicAdmin = route.startsWith('admin/') && !fs.existsSync(handlerPath);
+            
+            if (isDynamicAuth) {
+                queryParams.action = route.split('/')[1];
+            } else if (isDynamicAdmin) {
+                queryParams.resource = route.split('/')[1];
             }
             
             req.query = queryParams;
@@ -165,9 +235,19 @@ const server = http.createServer(async (req, res) => {
                         res.setHeader('Access-Control-Allow-Origin', origin);
                     }
                     
-                    res.setHeader('X-Content-Type-Options', 'nosniff');
-                    res.setHeader('X-Frame-Options', 'DENY');
-                    res.setHeader('X-XSS-Protection', '1; mode=block');
+                    // Security Headers (CodeRabbit Unified Policy)
+                    // Note: If the handler also sets a Set-Cookie (e.g. login), we need to merge
+                    const existingCookie = res.getHeader('Set-Cookie');
+                    const headers = getSecurityHeaders(csrfCookieHeader);
+                    
+                    Object.entries(headers).forEach(([k, v]) => {
+                        if (k === 'Set-Cookie' && existingCookie) {
+                            const cookies = Array.isArray(existingCookie) ? existingCookie : [existingCookie];
+                            res.setHeader(k, [...cookies, v]);
+                        } else {
+                            res.setHeader(k, v);
+                        }
+                    });
                 }
                 res.end(JSON.stringify(data));
             };
@@ -215,17 +295,17 @@ const server = http.createServer(async (req, res) => {
     const mime = MIME[ext] || 'application/octet-stream';
 
     fs.readFile(filePath, (err, data) => {
-        if (err) {
-            res.writeHead(404);
-            return res.end('Not found');
-        }
-        res.writeHead(200, { 
-            'Content-Type': mime,
-            'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY'
-        });
-        res.end(data);
-    });
+    if (err) {
+        res.writeHead(404);
+        return res.end('Not found');
+    }
+    const headers = { 
+        'Content-Type': mime,
+        ...getSecurityHeaders(csrfCookieHeader)
+    };
+    res.writeHead(200, headers);
+    res.end(data);
+});
 });
 
 server.listen(PORT, () => {

@@ -35,6 +35,12 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Name must be at least 3 characters' });
         }
 
+        // Security: Strip HTML from name to prevent persistent XSS
+        const cleanName = name.replace(/<[^>]*>?/gm, '').trim();
+        if (cleanName.length < 3) {
+            return res.status(400).json({ error: 'Name contains invalid characters or is too short after sanitization' });
+        }
+
         const { db } = await connectToDatabase();
         const usersCollection = db.collection('users');
 
@@ -49,7 +55,7 @@ module.exports = async (req, res) => {
 
         // Create new user
         const newUser = {
-            name,
+            name: cleanName,
             email,
             password: hashedPassword,
             isAdmin: false,

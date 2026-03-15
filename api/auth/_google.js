@@ -32,6 +32,9 @@ module.exports = async (req, res) => {
         // 2. Extract user info
         const payload = ticket.getPayload();
         const { sub: googleId, email, name, picture } = payload;
+        
+        // Security: Strip HTML from name to prevent persistent XSS via Google name
+        const cleanName = (name || '').replace(/<[^>]*>?/gm, '').trim() || 'Cinephile';
 
         // 3. Connect to MongoDB
         const { db } = await connectToDatabase();
@@ -54,7 +57,7 @@ module.exports = async (req, res) => {
             { email: email },
             {
                 $set: {
-                    name: name,
+                    name: cleanName,
                     picture: picture,
                     last_login: new Date()
                 },
@@ -86,7 +89,7 @@ module.exports = async (req, res) => {
             isNewUser: isNewUser,
             user: {
                 id: user._id,
-                name: user.name || name,
+                name: user.name || cleanName,
                 email: user.email || email,
                 picture: user.picture || picture,
                 isAdmin: user.isAdmin || false

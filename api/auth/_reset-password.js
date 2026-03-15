@@ -15,8 +15,14 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        if (newPassword.length < 8) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        // Password complexity (consistent with registration)
+        const hasUpper = /[A-Z]/.test(newPassword);
+        const hasLower = /[a-z]/.test(newPassword);
+        const hasNumber = /[0-9]/.test(newPassword);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword);
+        
+        if (newPassword.length < 8 || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+            return res.status(400).json({ error: 'Password does not meet complexity requirements' });
         }
 
         const { db } = await connectToDatabase();

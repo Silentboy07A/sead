@@ -52,6 +52,19 @@ function showToast(msg, duration = 3000) {
   }, duration);
 }
 
+function escapeHTML(str) {
+  if (!str) return "";
+  return str.replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[m];
+  });
+}
+
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -68,6 +81,30 @@ const saveState = () => {
   if (state.user) {
     localStorage.setItem('cintic_user', JSON.stringify(state.user));
   }
+};
+
+// ========== SECURITY UTILITIES (CSRF) ==========
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+}
+
+// CodeRabbit Best Practice: Global fetch interceptor to handle CSRF tokens
+const originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+  const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
+  const isMutative = options.method && ['POST', 'PUT', 'DELETE'].includes(options.method.toUpperCase());
+  
+  if (isLocal && isMutative) {
+    options.headers = options.headers || {};
+    const csrfToken = getCookie('csrf_token');
+    if (csrfToken) {
+      options.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  return originalFetch(url, options);
 };
 
 // ========== AUTH LOGIC ==========
@@ -626,7 +663,15 @@ function renderHero() {
   $('heroRating').textContent = 'Rating ' + m.rating;
   $('heroDuration').textContent = m.duration + ' • ' + m.language;
   $('heroDesc').textContent = m.description;
-  $('heroGenreTags').innerHTML = `<span class="genre-tag">${m.genre}</span><span class="genre-tag">${m.language}</span>`;
+  $('heroGenreTags').textContent = '';
+  const gSpan = document.createElement('span');
+  gSpan.className = 'genre-tag';
+  gSpan.textContent = m.genre;
+  const lSpan = document.createElement('span');
+  lSpan.className = 'genre-tag';
+  lSpan.textContent = m.language;
+  $('heroGenreTags').appendChild(gSpan);
+  $('heroGenreTags').appendChild(lSpan);
   $('heroBookBtn').onclick = () => selectMovie(m);
 }
 
@@ -681,29 +726,29 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
     return `
     <div class="movie-card" data-id="${m.id}">
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
-        <img class="movie-poster" src="${m.poster}" alt="${m.title}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
+        <img class="movie-poster" src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
           <div style="font-size:2.8rem;margin-bottom:0.6rem;opacity:0.5;color:#fff">
             <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
           </div>
-          <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${m.title}</div>
-          <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${m.language} • ${m.genre}</div>
+          <div style="color:#fff;font-weight:700;font-size:0.95rem;line-height:1.3;font-family:Poppins,sans-serif">${escapeHTML(m.title)}</div>
+          <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:0.4rem">${escapeHTML(m.language)} • ${escapeHTML(m.genre)}</div>
         </div>
         <div class="movie-overlay">
           <div class="overlay-content">
             <button class="play-btn" onclick="openTrailer('${m.trailerId}', event)">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <p>${m.description.substring(0, 80)}...</p>
+            <p>${escapeHTML(m.description.substring(0, 80))}...</p>
           </div>
         </div>
-        <div class="rating-badge">${m.rating}</div>
+        <div class="rating-badge">${escapeHTML(m.rating)}</div>
       </div>
       <div class="movie-info">
-        <h3>${m.title}</h3>
+        <h3>${escapeHTML(m.title)}</h3>
         <div class="movie-meta">
-          <span>${m.year} • ${m.language}</span>
-          <span class="genre-tag">${m.genre}</span>
+          <span>${escapeHTML(m.year)} • ${escapeHTML(m.language)}</span>
+          <span class="genre-tag">${escapeHTML(m.genre)}</span>
         </div>
         <button class="btn-book" onclick="selectMovie(${m.id})">Book Now</button>
       </div>
@@ -846,8 +891,8 @@ function initNavigation() {
             <div class="global-search-item fade-in" onclick="selectMovieFromGlobal(${m.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
               <img src="${m.poster}" style="width:30px;height:40px;border-radius:4px;object-fit:cover;">
               <div>
-                <div style="font-size:0.9rem;font-weight:500;">${m.title}</div>
-                <div style="font-size:0.75rem;color:var(--text-muted);">${m.genre}</div>
+                <div style="font-size:0.9rem;font-weight:500;">${escapeHTML(m.title)}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${escapeHTML(m.genre)}</div>
               </div>
             </div>
           `;
@@ -862,8 +907,8 @@ function initNavigation() {
             <div class="global-search-item fade-in" onclick="selectTheatreFromGlobal(${t.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
               <div style="font-size:1.2rem;opacity:0.6;"></div>
               <div>
-                <div style="font-size:0.9rem;font-weight:500;">${t.name}</div>
-                <div style="font-size:0.75rem;color:var(--text-muted);">${t.location}, ${t.city}</div>
+                <div style="font-size:0.9rem;font-weight:500;">${escapeHTML(t.name)}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${escapeHTML(t.location)}, ${escapeHTML(t.city)}</div>
               </div>
             </div>
           `;
@@ -876,7 +921,7 @@ function initNavigation() {
         html += `
           <div style="margin:0.5rem 0;border-top:1px solid rgba(255,255,255,0.1);"></div>
           <div class="global-search-item" onclick="viewAllResults()" style="padding:0.6rem;border-radius:0.5rem;cursor:pointer;text-align:center;color:var(--red);font-weight:600;font-size:0.85rem;">
-            View all results for "${query}"
+            View all results for "${escapeHTML(query)}"
           </div>
         `;
       }
@@ -1144,7 +1189,7 @@ function renderTheatres() {
   }
 
   const posterHtml = m.poster 
-    ? `<img src="${m.poster}" alt="${m.title}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
+    ? `<img src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
     : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
          <div class="premium-sparkle-icon">
            <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M12 2l2.4 7.2L22 12l-7.6 2.4L12 22l-2.4-7.2L2 12l7.6-2.4z"/></svg>
@@ -1154,12 +1199,12 @@ function renderTheatres() {
   $('selectedMovieInfo').innerHTML = `
     ${posterHtml}
     <div class="movie-details">
-      <h3>${m.title || 'Movie Details'}</h3>
+      <h3>${escapeHTML(m.title) || 'Movie Details'}</h3>
       <p>
-        ${m.genre || 'Various'} • 
-        ${m.language || 'Multiple'} • 
-        ${m.duration || 'N/A'} • 
-        Rating ${m.rating || 'N/A'}
+        ${escapeHTML(m.genre) || 'Various'} • 
+        ${escapeHTML(m.language) || 'Multiple'} • 
+        ${escapeHTML(m.duration) || 'N/A'} • 
+        Rating ${escapeHTML(m.rating) || 'N/A'}
       </p>
       ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.6rem 1.2rem; font-size:0.85rem; border-radius: 50px;">Watch Trailer</button>` : ''}
     </div>
@@ -1183,13 +1228,13 @@ function renderTheatres() {
   } else {
     $('theatreList').innerHTML = theatres.map(t => `
       <div class="theatre-card">
-        <h3>${t.name}</h3>
-        <p class="location">${t.location}, ${t.city}</p>
+        <h3>${escapeHTML(t.name)}</h3>
+        <p class="location">${escapeHTML(t.location)}, ${escapeHTML(t.city)}</p>
         <div class="show-times">
           ${t.shows.map((s, i) => `
             <div class="show-badge" onclick="selectShow(${t.id}, ${i})" data-theatre="${t.id}" data-show="${i}">
-              <span>${s.time}</span>
-              <span class="format">${s.format}</span>
+              <span>${escapeHTML(s.time)}</span>
+              <span class="format">${escapeHTML(s.format)}</span>
             </div>
           `).join('')}
         </div>
@@ -1343,14 +1388,14 @@ function renderSnacks() {
     return `
       <div class="snack-card ${qty > 0 ? 'selected' : ''}">
         <div class="snack-img">
-          <img src="${s.image}" alt="${s.name}">
-          <div class="snack-cat">${s.category}</div>
+          <img src="${escapeHTML(s.image)}" alt="${escapeHTML(s.name)}">
+          <div class="snack-cat">${escapeHTML(s.category)}</div>
         </div>
         <div class="snack-info">
-          <h4>${s.name}</h4>
-          ${s.desc ? `<p>${s.desc}</p>` : ''}
+          <h4>${escapeHTML(s.name)}</h4>
+          ${s.desc ? `<p>${escapeHTML(s.desc)}</p>` : ''}
           <div class="snack-price-row">
-            <span class="price">₹${s.price}</span>
+            <span class="price">₹${escapeHTML(s.price)}</span>
             <div class="snack-qty-control">
               <button onclick="updateSnackQty('${s.id}', -1, event)">-</button>
               <span>${qty}</span>
@@ -1380,8 +1425,8 @@ function renderSnackTray() {
     const snack = SNACKS.find(s => s.id === id);
     if (!snack) return '';
     return `
-      <div class="tray-item" title="${snack.name}">
-        <img src="${snack.image}" alt="${snack.name}">
+      <div class="tray-item" title="${escapeHTML(snack.name)}">
+        <img src="${escapeHTML(snack.image)}" alt="${escapeHTML(snack.name)}">
         <div class="badge">${qty}</div>
       </div>
     `;
@@ -1829,7 +1874,7 @@ function renderPayment() {
     if (snack) {
       const sub = snack.price * qty;
       snacksTotal += sub;
-      snacksHtml += `<div class="order-detail"><span class="label">${snack.name} (x${qty})</span><span>₹${sub.toLocaleString()}</span></div>`;
+      snacksHtml += `<div class="order-detail"><span class="label">${escapeHTML(snack.name)} (x${qty})</span><span>₹${sub.toLocaleString()}</span></div>`;
     }
   });
 
@@ -1838,11 +1883,11 @@ function renderPayment() {
 
   $('orderSummary').innerHTML = `
     <h2>Summary</h2>
-    <div class="order-detail"><span class="label">Movie</span><span>${m.title}</span></div>
-    <div class="order-detail"><span class="label">Theatre</span><span>${t.name}</span></div>
-    <div class="order-detail"><span class="label">Date</span><span>${dateStr}</span></div>
-    <div class="order-detail"><span class="label">Time</span><span>${s.time} (${s.format})</span></div>
-    <div class="order-detail"><span class="label">Seats</span><span>${state.selectedSeats.join(', ')}</span></div>
+    <div class="order-detail"><span class="label">Movie</span><span>${escapeHTML(m.title)}</span></div>
+    <div class="order-detail"><span class="label">Theatre</span><span>${escapeHTML(t.name)}</span></div>
+    <div class="order-detail"><span class="label">Date</span><span>${escapeHTML(dateStr)}</span></div>
+    <div class="order-detail"><span class="label">Time</span><span>${escapeHTML(s.time)} (${escapeHTML(s.format)})</span></div>
+    <div class="order-detail"><span class="label">Seats</span><span>${escapeHTML(state.selectedSeats.join(', '))}</span></div>
     <div class="order-detail"><span class="label">Tickets</span><span>₹${total.toLocaleString()}</span></div>
     ${snacksHtml}
     <div class="order-detail"><span class="label">Convenience Fee</span><span>₹${convFee}</span></div>
@@ -2087,13 +2132,10 @@ function renderMyBookings() {
   container.innerHTML = state.user.bookings.map(b => `
     <div class="ticket-card" style="margin: 0 auto; margin-bottom: 2rem;">
       <div class="ticket-card-header">
-        <h3 style="margin:0">${b.movie}</h3>
+        <h3 style="margin:0">${escapeHTML(b.movie)}</h3>
         <span class="ticket-logo">CinTic</span>
       </div>
       <div class="ticket-card-body">
-        <div class="ticket-field"><div class="tf-label">Theatre</div><div class="tf-value">${b.theatre}</div></div>
-        <div class="ticket-field"><div class="tf-label">Date</div><div class="tf-value">${b.date}</div></div>
-        <div class="ticket-field"><div class="tf-label">Time</div><div class="tf-value">${b.time}</div></div>
         <div class="ticket-field"><div class="tf-label">Seats</div><div class="tf-value">${b.seats}</div></div>
         <div class="ticket-field"><div class="tf-label">Amount Paid</div><div class="tf-value">₹${b.amount.toLocaleString()}</div></div>
         <div class="ticket-field"><div class="tf-label">Booking ID</div><div class="tf-value">${b.id}</div></div>
@@ -2269,7 +2311,14 @@ function initChatbot() {
       
       const meta = document.createElement('div');
       meta.className = 'mini-meta';
-      meta.innerHTML = `<span class="mini-rating">★ ${m.rating}</span><span class="mini-genre">${m.genre.split(', ')[0]}</span>`;
+      const ratingSpan = document.createElement('span');
+      ratingSpan.className = 'mini-rating';
+      ratingSpan.textContent = `★ ${m.rating}`;
+      const genreSpan = document.createElement('span');
+      genreSpan.className = 'mini-genre';
+      genreSpan.textContent = m.genre.split(', ')[0];
+      meta.appendChild(ratingSpan);
+      meta.appendChild(genreSpan);
       
       const btn = document.createElement('button');
       btn.className = 'mini-book-btn';

@@ -20,13 +20,16 @@ module.exports = async (req, res) => {
 
         // Find user by email
         const user = await usersCollection.findOne({ email });
-        if (!user || !user.password) {
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
+        
+        // Anti-Timing Attack: Always perform a bcrypt comparison (CodeRabbit)
+        // If user not found, compare a dummy hash to keep execution time consistent
+        const DUMMY_HASH = '$2a$10$ZyP8pXG5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5G5'; // Valid-looking bcrypt hash
+        const passwordToCompare = user ? user.password : DUMMY_HASH;
+        const isMatch = await bcrypt.compare(password, passwordToCompare);
 
-        // Compare passwords
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        if (!user || !isMatch) {
+            // Random jitter to further obfuscate timing (10-50ms)
+            await new Promise(r => setTimeout(r, 10 + Math.random() * 40));
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
