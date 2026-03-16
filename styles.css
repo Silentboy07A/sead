@@ -2844,11 +2844,16 @@ ul {
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-  /* Mobile Layout Cleanup & Navigation Consolidation */
+  /* Consolidated Mobile Navigation Cleanup */
+  .nav-links a,
   .nav-links a[data-section],
   .theme-toggle,
   .nav-user {
-    display: none !important; /* Hide redundant top nav items on mobile */
+    display: none !important;
+  }
+
+  .nav-toggle {
+    display: none !important;
   }
 
   .navbar {
@@ -2909,8 +2914,15 @@ ul {
     height: 100% !important;
   }
 
-  .nav-toggle {
-    display: none !important;
+  .global-search-container input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    outline: none !important;
+    width: 100% !important;
+    font-size: 0.85rem !important;
+    padding: 0 !important;
+    height: 100% !important;
   }
 
   /* Interactive Bottom Nav */
@@ -3728,31 +3740,6 @@ ul {
     padding: 2rem 1.5rem;
   }
 
-  .nav-links a {
-    display: none; /* Hide textual links - use bottom nav instead */
-  }
-
-  .nav-logo {
-    font-size: 1.4rem;
-    flex-shrink: 0;
-  }
-
-  .nav-links {
-    gap: 12px;
-    flex: 1;
-    justify-content: flex-end;
-  }
-
-  .global-search-container {
-    margin-left: 10px;
-    flex: 1;
-    max-width: 200px;
-  }
-
-  .global-search-container input {
-    width: 100%;
-  }
-
   .seat-container {
     transform: scale(0.9);
     transform-origin: top center;
@@ -3796,16 +3783,19 @@ ul {
   }
 
   .nav-logo {
-    font-size: 1.2rem;
+    font-size: 1.1rem !important;
+    flex: 0 0 auto !important;
   }
 
   .global-search-container {
-    max-width: 150px;
+    max-width: 140px !important;
+    flex: 1 !important;
+    margin-left: 8px !important;
   }
 
   .search-input-wrapper {
-    padding: 0 10px;
-    height: 36px;
+    padding: 0 8px !important;
+    height: 34px !important;
   }
 
   .auth-form-card {
