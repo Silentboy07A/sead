@@ -53,12 +53,21 @@ module.exports = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Generate verification token
+        const crypto = require('crypto');
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+        const verificationExpires = new Date(Date.now() + 24 * 3600000); // 24 hours
+
         // Create new user
         const newUser = {
             name: cleanName,
             email,
             password: hashedPassword,
             isAdmin: false,
+            isVerified: false,
+            verificationToken: verificationTokenHash,
+            verificationExpires,
             created_at: new Date(),
             last_login: new Date(),
             genre_preferences: [],
@@ -67,18 +76,61 @@ module.exports = async (req, res) => {
 
         const result = await usersCollection.insertOne(newUser);
 
-        // Issue JWT cookie
-        const token = signToken(result.insertedId);
-        res.setHeader('Set-Cookie', buildCookieHeader(token));
+        // Send verification email
+        const nodemailer = require('nodemailer');
+        let transporter;
+        if (process.env.SMTP_HOST) {
+            transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT || '587'),
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+        } else {
+            const testAccount = await nodemailer.createTestAccount();
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                }
+            });
+        }
+
+        const appUrl = (process.env.APP_URL || 'http://localhost:3000').trim();
+        const verificationLink = `${appUrl}/?verify=${verificationToken}&email=${encodeURIComponent(email)}`;
+
+        const info = await transporter.sendMail({
+            from: '"CinTic Support" <noreply@cintic.app>',
+            to: email,
+            subject: '✉️ Verify your CinTic email',
+            html: `
+                <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#141420;border-radius:12px;color:#f1f1f1;">
+                    <h1 style="color:#e63946;font-size:24px;">Welcome to CinTic!</h1>
+                    <p>Hello <strong>${cleanName}</strong>,</p>
+                    <p>Thanks for joining CinTic. Please verify your email address to activate your account:</p>
+                    <a href="${verificationLink}" style="display:inline-block;padding:12px 28px;background:#e63946;color:white;text-decoration:none;border-radius:8px;font-weight:600;margin:20px 0;">Verify Email</a>
+                    <p style="color:#8a8a9a;font-size:13px;">This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+                    <hr style="border-color:#1e1e30;margin:20px 0;">
+                    <p style="color:#8a8a9a;font-size:12px;">— CinTic Team</p>
+                </div>
+            `
+        });
+
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+            console.log('📧 Verification email preview:', previewUrl);
+        }
 
         res.status(201).json({
-            message: 'Registration successful!',
-            user: {
-                id: result.insertedId,
-                name: newUser.name,
-                email: newUser.email,
-                isAdmin: false
-            }
+            message: 'Registration successful! Please check your email to verify your account.',
+            previewUrl: previewUrl || null,
+            verificationLink: process.env.NODE_ENV === 'production' ? null : verificationLink
         });
 
     } catch (error) {

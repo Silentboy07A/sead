@@ -234,6 +234,27 @@ async function initGoogleAuth() {
   }
 }
 
+async function handleEmailVerification(token, email) {
+  showToast('Verifying your email...');
+  try {
+    const res = await fetch('/api/auth/verify-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    showToast(`✓ ${data.message}`, 6000);
+    // Switch to login tab
+    document.querySelectorAll('.auth-tab')[0].click();
+    $('loginEmail').value = email;
+    $('loginPassword').focus();
+  } catch (err) {
+    showToast(`✗ Verification failed: ${err.message}`, 6000);
+  }
+}
+
 async function handleGoogleLogin(response) {
   try {
     const activeTab = document.querySelector('.auth-tab.active');
@@ -452,7 +473,12 @@ async function handleLogin(e) {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (!res.ok) {
+      if (res.status === 403) {
+        throw new Error(data.error || 'Please verify your email before logging in.');
+      }
+      throw new Error(data.error || 'Login failed');
+    }
 
     state.user = data.user;
     btn.innerHTML = '✓';
@@ -495,10 +521,23 @@ async function handleSignup(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-    state.user = data.user;
     btn.innerHTML = '✓';
-    showToast(`Welcome, ${state.user.name}!`);
-    setTimeout(() => enterApp(), 1000);
+    
+    // Show verification message instead of entering app
+    let successMsg = data.message;
+    if (data.previewUrl) {
+      successMsg += ` <a href="${data.previewUrl}" target="_blank" style="color:var(--gold);text-decoration:underline;">[Test Email Link]</a>`;
+    }
+    showToast(successMsg, 10000);
+
+    // Switch to login tab automatically
+    setTimeout(() => {
+      document.querySelectorAll('.auth-tab')[0].click();
+      $('loginEmail').value = email;
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }, 2000);
+
   } catch (error) {
     console.error('Signup error:', error);
     showToast(error.message);

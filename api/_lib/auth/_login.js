@@ -33,6 +33,11 @@ module.exports = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Check verification status
+        if (user.isVerified === false) {
+            return res.status(403).json({ error: 'Please verify your email before logging in.' });
+        }
+
         // Update last login
         await usersCollection.updateOne(
             { _id: user._id },

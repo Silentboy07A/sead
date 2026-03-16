@@ -26,6 +26,8 @@ module.exports = async (req, res) => {
                 return require('../_lib/auth/_reset-password')(req, res);
             case 'change-password':
                 return require('../_lib/auth/_change-password')(req, res);
+            case 'verify-email':
+                return require('../_lib/auth/_verify-email')(req, res);
             default:
                 res.status(404).json({ error: 'Auth route not found' });
         }
