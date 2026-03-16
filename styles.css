@@ -3728,6 +3728,31 @@ ul {
     padding: 2rem 1.5rem;
   }
 
+  .nav-links a {
+    display: none; /* Hide textual links - use bottom nav instead */
+  }
+
+  .nav-logo {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .nav-links {
+    gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .global-search-container {
+    margin-left: 10px;
+    flex: 1;
+    max-width: 200px;
+  }
+
+  .global-search-container input {
+    width: 100%;
+  }
+
   .seat-container {
     transform: scale(0.9);
     transform-origin: top center;
@@ -3771,7 +3796,16 @@ ul {
   }
 
   .nav-logo {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+  }
+
+  .global-search-container {
+    max-width: 150px;
+  }
+
+  .search-input-wrapper {
+    padding: 0 10px;
+    height: 36px;
   }
 
   .auth-form-card {
