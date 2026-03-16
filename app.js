@@ -68,12 +68,15 @@ const SNACKS = [
 
 // ========== UTILITY ==========
 function $(id) { return document.getElementById(id); }
-function showToast(msg, duration = 3000) {
+function showToast(msg, duration = 3000, isHtml = false) {
   const t = $('toast');
-  t.innerHTML = msg; // Support HTML for links
+  if (isHtml) {
+    t.innerHTML = msg; // Only use for trusted content
+  } else {
+    t.textContent = msg;
+  }
   t.classList.add('show');
   
-  // Clear any existing timeout to prevent flickering
   if (t._timeout) clearTimeout(t._timeout);
   
   t._timeout = setTimeout(() => {
@@ -526,9 +529,11 @@ async function handleSignup(e) {
     // Show verification message instead of entering app
     let successMsg = data.message;
     if (data.previewUrl) {
-      successMsg += ` <a href="${data.previewUrl}" target="_blank" style="color:var(--gold);text-decoration:underline;">[Test Email Link]</a>`;
+      successMsg += ` <a href="${data.previewUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">[Test Email Link]</a>`;
+      showToast(successMsg, 10000, true);
+    } else {
+      showToast(successMsg, 10000);
     }
-    showToast(successMsg, 10000);
 
     // Switch to login tab automatically
     setTimeout(() => {
@@ -2343,6 +2348,14 @@ initAuth();
 initPasswordReset();
 initProfileActions();
 
+// Verification link handler (CodeRabbit: ensure invocation)
+const params = new URLSearchParams(window.location.search);
+if (params.has('verify') && params.has('email')) {
+    handleEmailVerification(params.get('verify'), params.get('email'));
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
 // Try to auto-login via JWT cookie
 (async function initSession() {
   // Check if we just logged out — if so, skip auto-login
@@ -2396,7 +2409,7 @@ initProfileActions();
 // ========== AI CONCIERGE LOGIC ==========
 function initChatbot() {
   const toggle = $('chatToggle');
-  const window = $('chatWindow');
+  const chatWin = $('chatWindow');
   const close = $('chatClose');
   const send = $('sendChat');
   const input = $('chatInput');
@@ -2405,8 +2418,8 @@ function initChatbot() {
 
   if (!toggle) return;
 
-  toggle.onclick = () => window.classList.add('active');
-  close.onclick = () => window.classList.remove('active');
+  toggle.onclick = () => chatWin.classList.add('active');
+  close.onclick = () => chatWin.classList.remove('active');
 
   const addMsg = (text, sender, isMedia = false) => {
     const div = document.createElement('div');

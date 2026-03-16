@@ -8,35 +8,6 @@
         content="CinTic — Premium movie ticket booking. Browse movies, select seats, and book tickets with a stunning cinema experience.">
     <title>CinTic — Movie Ticket Booking</title>
     <link rel="stylesheet" href="styles.css?v=3">
-    <!--
-    ============================================
-    BACKEND ARCHITECTURE (Production Reference)
-    ============================================
-    Frontend: HTML/CSS/JS prototype → React.js production
-    Backend:  Django REST Framework
-    Database: MongoDB via PyMongo
-    Auth:     JWT (djangorestframework-simplejwt) + Google OAuth (django-allauth)
-
-    MONGODB COLLECTIONS:
-    - users:    { _id, name, email, password_hash (bcrypt), genre_preferences: [], bookings: [ObjectId], created_at, last_login }
-    - movies:   { _id, title, genre, language, rating, poster_url, description, duration }
-    - theatres: { _id, name, location, city, screens: [] }
-    - shows:    { _id, movie_id, theatre_id, screen, datetime, format, available_seats: [] }
-    - bookings: { _id, user_id, show_id, seats: [], total_price, payment_status, ticket_qr, created_at }
-    - payments: { _id, booking_id, method, amount, status, transaction_id, timestamp }
-
-    DJANGO API ENDPOINTS:
-    POST /api/auth/register        → validate + create user in MongoDB, return JWT
-    POST /api/auth/login           → validate credentials, return JWT tokens
-    POST /api/auth/google          → Google OAuth2 handler
-    POST /api/auth/refresh         → refresh JWT token
-    POST /api/auth/forgot-password → send reset email
-    GET  /api/movies?genre=&language=&city=
-    GET  /api/movies/:id/shows
-    GET  /api/shows/:id/seats
-    POST /api/bookings/create
-    POST /api/payments/process
-    GET  /api/bookings/:id/ticket
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
@@ -110,7 +81,7 @@
                             <div class="input-wrapper">
                                 <input type="password" id="loginPassword" placeholder="Enter your password"
                                     autocomplete="current-password">
-                                <span class="input-icon" id="loginPassToggle" title="Show password">Show</span>
+                                <button type="button" class="input-icon-btn" id="loginPassToggle" title="Show password">Show</button>
                             </div>
                             <div class="form-error hidden" id="loginPasswordError"></div>
                         </div>
@@ -121,7 +92,7 @@
                         </div>
                         <div class="auth-switch">Don't have an account? <a id="switchToSignup">Sign Up</a></div>
                         <div style="text-align: center; margin-top: 1rem;">
-                            <a id="guestLinkLogin" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline; cursor: pointer;">Continue as Guest</a>
+                            <button type="button" id="guestLinkLogin" style="background:none; border:none; color: var(--text-muted); font-size: 0.8rem; text-decoration: underline; cursor: pointer; padding: 0;">Continue as Guest</button>
                         </div>
                     </form>
 

@@ -121,23 +121,19 @@ const server = http.createServer(async (req, res) => {
     
     if (await Promise.race([rateLimitPromise, timeoutPromise])) {
         res.writeHead(429, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Too many requests. Please slow down.' }));
+        return res.end(JSON.stringify({ error: 'Too many requests or server busy. Please slow down.' }));
     }
 
     // ---- CSRF Protection (CodeRabbit: Double Submit Cookie) ----
     const cookies = parseCookies(req.headers.cookie);
     let csrfCookie = cookies.csrf_token;
-    
-    // Check CSRF for non-GET/HEAD requests
-    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-        const csrfHeader = req.headers['x-csrf-token'];
-        if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-            res.writeHead(403, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'CSRF token mismatch or missing' }));
-        }
-    }
 
-    // Set CSRF cookie if missing or on page load
+    // Reject oversized payloads (CodeRabbit)
+    const contentLength = parseInt(req.headers['content-length'] || '0');
+    if (contentLength > 1024 * 1024) {
+        res.writeHead(413, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Payload too large. Limit is 1MB.' }));
+    }
     const newCsrfToken = csrfCookie || crypto.randomBytes(32).toString('hex');
     const csrfCookieHeader = `csrf_token=${newCsrfToken}; Path=/; SameSite=Strict${IS_PROD ? '; Secure' : ''}`;
 

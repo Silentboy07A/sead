@@ -135,6 +135,13 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        // If we created a user but email failed, try to roll back (CodeRabbit)
+        try {
+            const { db } = await connectToDatabase();
+            await db.collection('users').deleteOne({ email: req.body.email, isVerified: false });
+        } catch (dbErr) {
+            console.error('Rollback failed:', dbErr);
+        }
+        res.status(500).json({ error: 'Failed to complete registration. Please try again.' });
     }
 };

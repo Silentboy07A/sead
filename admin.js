@@ -213,7 +213,7 @@ function renderMoviesTable() {
     const tr = document.createElement('tr');
     
     // Convert ID to number just in case
-    const mid = Number(m._id);
+    const mid = m._id;
     
     tr.innerHTML = `
       <td>${mid}</td>
@@ -249,7 +249,7 @@ function renderTheatresTable() {
   tbody.innerHTML = '';
   theatresData.forEach(t => {
     const tr = document.createElement('tr');
-    const tid = Number(t._id);
+    const tid = t._id;
     
     tr.innerHTML = `
       <td>${tid}</td>
@@ -277,13 +277,13 @@ function renderTheatresTable() {
 // ========== EDIT HELPERS ==========
 function editMovie(id) {
   const numericId = Number(id);
-  const movie = moviesData.find(m => Number(m._id) === numericId);
+  const movie = moviesData.find(m => String(m._id) === String(id));
   if (movie) openModal('Edit Movie', 'movie', 'edit', movie);
 }
 
 function editTheatre(id) {
   const numericId = Number(id);
-  const theatre = theatresData.find(t => Number(t._id) === numericId);
+  const theatre = theatresData.find(t => String(t._id) === String(id));
   if (theatre) openModal('Edit Theatre', 'theatre', 'edit', theatre);
 }
 

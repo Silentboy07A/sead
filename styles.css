@@ -626,12 +626,19 @@ ul {
 
 /* Auth forms */
 .auth-form {
-  display: none;
-  animation: fadeIn 0.3s ease;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: none;
 }
 
 .auth-form.active {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  position: relative; /* Take up space when active */
 }
 
 @keyframes fadeIn {

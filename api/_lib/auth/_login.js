@@ -27,15 +27,17 @@ module.exports = async (req, res) => {
         const passwordToCompare = user ? user.password : DUMMY_HASH;
         const isMatch = await bcrypt.compare(password, passwordToCompare);
 
-        if (!user || !isMatch) {
+        // Check verification status (CodeRabbit: prevent credential leakage)
+        const canLogin = user && isMatch && user.isVerified !== false;
+
+        if (!canLogin) {
             // Random jitter to further obfuscate timing (10-50ms)
             await new Promise(r => setTimeout(r, 10 + Math.random() * 40));
+            
+            if (user && isMatch && user.isVerified === false) {
+                 return res.status(403).json({ error: 'Please verify your email before logging in.' });
+            }
             return res.status(401).json({ error: 'Invalid email or password' });
-        }
-
-        // Check verification status
-        if (user.isVerified === false) {
-            return res.status(403).json({ error: 'Please verify your email before logging in.' });
         }
 
         // Update last login
