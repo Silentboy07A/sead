@@ -3689,29 +3689,35 @@ ul {
   }
 
   .hero-content h1 {
-    font-size: 2.8rem;
+    font-size: 2.4rem;
     line-height: 1.1;
+    margin-bottom: 0.8rem;
   }
 
-  .hero::after {
-    background: linear-gradient(to top, var(--bg) 0%, rgba(10, 10, 15, 0.8) 50%, rgba(10, 10, 15, 0.4) 100%);
+  /* Increase touch targets for interactive elements */
+  .btn, .auth-btn, .nav-links a, .bottom-nav-item, .show-badge {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-links {
+    gap: 20px;
+    padding: 10px 0;
   }
 
   .movie-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 15px;
-    padding: 0 15px;
-  }
-
-  .nav-links {
-    background: rgba(10, 10, 15, 0.98);
-    backdrop-filter: blur(20px);
+    gap: 12px;
+    padding: 0 10px;
   }
 
   .auth-container {
     flex-direction: column;
-    width: 95%;
-    max-height: 85vh;
+    width: 92%;
+    max-height: 90vh;
+    border-radius: 20px;
   }
 
   .auth-left {
@@ -3773,10 +3779,26 @@ ul {
   }
 
   .chat-window {
-    width: calc(100vw - 40px);
-    right: -10px;
-    bottom: 80px;
-    height: 480px;
+    width: calc(100vw - 32px);
+    right: -16px;
+    bottom: 70px;
+    height: 75vh;
+    border-radius: 20px;
+  }
+
+  /* Improved Touch Inputs */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    padding: 12px !important;
+  }
+
+  .genre-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .genre-tabs {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding: 5px 0;
   }
 
   .bottom-nav {

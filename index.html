@@ -71,7 +71,7 @@
                         <div class="form-group">
                             <label>Email Address</label>
                             <div class="input-wrapper">
-                                <input type="email" id="loginEmail" placeholder="name@gmail.com" autocomplete="email">
+                                <input type="email" id="loginEmail" placeholder="name@gmail.com" autocomplete="email" inputmode="email">
                                 <span class="input-icon valid-icon" id="loginEmailIcon" style="display:none">✓</span>
                             </div>
                             <div class="form-error hidden" id="loginEmailError"></div>
@@ -109,7 +109,7 @@
                         <div class="form-group">
                             <label>Email Address</label>
                             <div class="input-wrapper">
-                                <input type="email" id="signupEmail" placeholder="name@gmail.com" autocomplete="email">
+                                <input type="email" id="signupEmail" placeholder="name@example.com" autocomplete="email" inputmode="email">
                                 <span class="input-icon valid-icon" id="signupEmailIcon" style="display:none">✓</span>
                             </div>
                             <div class="form-error hidden" id="signupEmailError"></div>
@@ -511,7 +511,7 @@
                         <div class="stripe-header">
                             <div class="stripe-badges">
                                 <span class="stripe-test-badge">TEST MODE</span>
-                                <span class="stripe-logo">� Powered by <b>Stripe</b></span>
+                                <span class="stripe-logo"> Powered by <b>Stripe</b></span>
                             </div>
                             <h2>Complete Payment</h2>
                         </div>
@@ -633,7 +633,7 @@
                 you a secure link to reset your password.</p>
             <form id="forgotPasswordForm">
                 <div class="form-group">
-                    <input type="email" id="forgotEmail" placeholder="Email Address" required
+                    <input type="email" id="forgotEmail" placeholder="Enter your email" required inputmode="email"
                         style="width:100%;padding:12px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'Poppins',sans-serif;margin-bottom:1rem;outline:none;"
                         onfocus="this.style.borderColor='var(--gold, #f4a261)'"
                         onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
