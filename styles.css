@@ -9,12 +9,12 @@
 :root {
   --bg: #0a0a0f;
   --card: #141420;
-  --auth-panel: #0f0f1a;
-  --red: #e63946;
-  --red-dark: #c0392b;
-  --gold: #f4a261;
-  --text: #f1f1f1;
-  --text-muted: #8a8a9a;
+  --auth-panel: transparent; /* Changed to allow background to show */
+  --red: #ff3344;
+  --red-dark: #cc0022;
+  --gold: #ffcc66;
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.6);
   --green: #2ecc71;
   --blue: #3498db;
   --orange: #e67e22;
@@ -349,9 +349,7 @@ ul {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: url('assets/cinema_bg_premium.png') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -359,7 +357,15 @@ ul {
   pointer-events: none !important;
   visibility: hidden !important;
   opacity: 0;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+}
+
+.auth-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(10, 10, 15, 0.4), rgba(10, 10, 15, 0.8));
+  z-index: 1;
 }
 
 .auth-page.active {
@@ -372,16 +378,19 @@ ul {
 .auth-container {
   display: flex;
   width: 100%;
-  max-width: 900px;
-  min-height: 600px;
+  max-width: 960px;
+  min-height: 620px;
   height: auto;
   max-height: 95vh;
-  background: var(--card); /* Reverting to card for better blending */
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  background: rgba(20, 20, 32, 0.4);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-  position: relative; /* Ensure it contains absolute children */
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* Left cinematic panel */
@@ -576,13 +585,14 @@ ul {
 
 .auth-form-card {
   width: 100%;
-  max-width: 420px;
-  background: rgba(20, 20, 32, 0.7);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 /* Auth tabs */
@@ -798,7 +808,28 @@ ul {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
+}
+
+.input-icon-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.input-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
 }
 
 .auth-btn.primary {
