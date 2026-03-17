@@ -1,144 +1,40 @@
+import { $, fetchWithTimeout, showToast, escapeHTML, debounce, getCookie, initCSRF } from './js/utils.js';
+import API from './js/api.js';
+import stateStore, { SEAT_PRICES, GENRES, SNACKS } from './js/state.js';
+import { getDominantColor, updateTheme, initScrollAnimations } from './js/theme.js';
+
 /* ============================================
    CINTIC — Movie Ticket Booking App
-   Main Application Logic
+   Main Application Logic (Refactored)
    ============================================ */
 
 // ---- EMERGENCY CACHE CLEAR ESCAPE HATCH ----
 if (window.location.search.includes('reset=1')) {
-  console.log('Emergency Reset Triggered');
   localStorage.clear();
   sessionStorage.clear();
-  document.cookie.split(";").forEach(function(c) { 
+  document.cookie.split(";").forEach((c) => { 
     document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
   });
   window.history.replaceState({}, document.title, window.location.pathname);
   window.location.reload(true);
 }
-// --------------------------------------------
 
-/**
- * Utility: Fetch with timeout safety
- */
-async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 8000 } = options;
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(resource, { ...options, signal: controller.signal });
-    clearTimeout(id);
-    return response;
-  } catch (err) {
-    clearTimeout(id);
-    throw err;
-  }
-}
+// Initialize CSRF Protection
+initCSRF();
 
-// ========== REAL DATA (Fetched from API) ==========
-let MOVIES = [];
-let THEATRES = [];
+// Use stateStore for global state
+let state = stateStore.getState();
+stateStore.subscribe((newState) => {
+  state = newState;
+});
 
-const SEAT_PRICES = { gold: 150, silver: 200, platinum: 300 };
-const GENRES = ["All", "Action", "Comedy", "Drama", "Horror", "Thriller", "Sci-Fi", "Romance"];
-
-const state = {
-  user: null,
-  movies: [],
-  selectedMovie: null,
-  selectedTheatre: null,
-  selectedShow: null,
-  selectedSeats: [],
-  selectedSnacks: {}, // { snackId: quantity }
-  takenSeats: [], // mock taken
-  lockedSeats: [], // active real-time locks
-  lockExpires: null,
-  lockInterval: null,
-  activePersona: 'Cinephile'
-};
-
-const SNACKS = [
-  { id: 'popcorn_reg', name: 'Salted Popcorn (R)', price: 180, image: 'assets/snacks/popcorn_salted.png', category: 'Snacks' },
-  { id: 'popcorn_large', name: 'Cheese Popcorn (L)', price: 250, image: 'assets/snacks/popcorn_cheese.png', category: 'Snacks' },
-  { id: 'coke', name: 'Coca Cola (500ml)', price: 120, image: 'assets/snacks/coca_cola.png', category: 'Beverages' },
-  { id: 'nachos', name: 'Loaded Nachos', price: 210, image: 'assets/snacks/loaded_nachos.png', category: 'Snacks' },
-  { id: 'burger', name: 'Chicken Burger', price: 190, image: 'assets/snacks/chicken_burger.png', category: 'Snacks' },
-  { id: 'combo1', name: 'Couple Combo', price: 450, desc: '2 Large Popcorn + 2 Coke', image: 'assets/snacks/snack_combo.png', category: 'Value Combos' }
-];
-
-// State is managed via JWT cookies and real-time locking
-
-// ========== UTILITY ==========
-function $(id) { return document.getElementById(id); }
-function showToast(msg, duration = 3000, isHtml = false) {
-  const t = $('toast');
-  if (isHtml) {
-    t.innerHTML = msg; // Only use for trusted content
-  } else {
-    t.textContent = msg;
-  }
-  t.classList.add('show');
-  
-  if (t._timeout) clearTimeout(t._timeout);
-  
-  t._timeout = setTimeout(() => {
-    t.classList.remove('show');
-    t._timeout = null;
-  }, duration);
-}
-
-function escapeHTML(str) {
-  if (str === null || str === undefined) return "";
-  return String(str).replace(/[&<>"']/g, function(m) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m];
-  });
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
+// Helper for saving state
 const saveState = () => {
   if (state.user) {
     localStorage.setItem('cintic_user', JSON.stringify(state.user));
   }
 };
 
-// ========== SECURITY UTILITIES (CSRF) ==========
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return '';
-}
-
-// CodeRabbit Best Practice: Global fetch interceptor to handle CSRF tokens
-const originalFetch = window.fetch;
-window.fetch = function(url, options = {}) {
-  const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
-  const isMutative = options.method && ['POST', 'PUT', 'DELETE'].includes(options.method.toUpperCase());
-  
-  if (isLocal && isMutative) {
-    options.headers = options.headers || {};
-    const csrfToken = getCookie('csrf_token');
-    if (csrfToken) {
-      options.headers['X-CSRF-Token'] = csrfToken;
-    }
-  }
-  return originalFetch(url, options);
-};
 
 // ========== AUTH LOGIC ==========
 function initAuth() {
@@ -240,11 +136,7 @@ async function initGoogleAuth() {
 async function handleEmailVerification(token, email) {
   showToast('Verifying your email...');
   try {
-    const res = await fetch('/api/auth/verify-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, email })
-    });
+    const res = await API.auth.verifyEmail(token, email);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
@@ -263,23 +155,13 @@ async function handleGoogleLogin(response) {
     const activeTab = document.querySelector('.auth-tab.active');
     const mode = activeTab ? activeTab.dataset.tab : 'login';
 
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({
-        credential: response.credential,
-        mode: mode
-      })
-    });
-
+    const res = await API.auth.googleLogin(response.credential, mode);
     const data = await res.json();
     if (!res.ok) throw new Error(data.details || data.error || 'Google login failed');
 
-    state.user = data.user;
-    if (!state.user.bookings) state.user.bookings = [];
+    stateStore.setState({ user: { ...data.user, bookings: data.user.bookings || [] } });
 
-    showToast(data.isNewUser ? `Welcome to CineBook, ${state.user.name}!` : `Welcome back, ${state.user.name}!`);
+    showToast(data.isNewUser ? `Welcome to CineBook, ${data.user.name}!` : `Welcome back, ${data.user.name}!`);
     enterApp();
   } catch (error) {
     console.error('Google Auth Error:', error);
@@ -468,14 +350,9 @@ async function handleLogin(e) {
     const email = $('loginEmail').value;
     const password = $('loginPassword').value;
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ email, password })
-    });
-
+    const res = await API.auth.login(email, password);
     const data = await res.json();
+    
     if (!res.ok) {
       if (res.status === 403) {
         throw new Error(data.error || 'Please verify your email before logging in.');
@@ -483,9 +360,9 @@ async function handleLogin(e) {
       throw new Error(data.error || 'Login failed');
     }
 
-    state.user = data.user;
+    stateStore.setState({ user: data.user });
     btn.innerHTML = '✓';
-    showToast(`Welcome back, ${state.user.name}!`);
+    showToast(`Welcome back, ${data.user.name}!`);
     setTimeout(() => enterApp(), 1000);
   } catch (error) {
     console.error('Login error:', error);
@@ -514,13 +391,7 @@ async function handleSignup(e) {
     const email = $('signupEmail').value;
     const password = $('signupPassword').value;
 
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ name, email, password })
-    });
-
+    const res = await API.auth.register(name, email, password);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
 
@@ -537,7 +408,8 @@ async function handleSignup(e) {
 
     // Switch to login tab automatically
     setTimeout(() => {
-      document.querySelectorAll('.auth-tab')[0].click();
+      const loginTab = document.querySelectorAll('.auth-tab')[0];
+      if (loginTab) loginTab.click();
       $('loginEmail').value = email;
       btn.innerHTML = originalHtml;
       btn.disabled = false;
@@ -625,11 +497,7 @@ function initPasswordReset() {
       btn.disabled = true;
 
       try {
-        const res = await fetch('/api/auth/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
+        const res = await API.auth.forgotPassword(email);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
@@ -682,11 +550,7 @@ function initPasswordReset() {
       btn.disabled = true;
 
       try {
-        const res = await fetch('/api/auth/reset-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, token, newPassword })
-        });
+        const res = await API.auth.resetPassword(email, token, newPassword);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
@@ -695,7 +559,8 @@ function initPasswordReset() {
         resetForm.reset();
         
         // Ensure user is on login tab
-        document.querySelectorAll('.auth-tab')[0].click();
+        const loginTab = document.querySelectorAll('.auth-tab')[0];
+        if (loginTab) loginTab.click();
         $('loginEmail').value = email;
         $('loginPassword').focus();
       } catch (err) {
@@ -715,46 +580,51 @@ async function initApp() {
   isAppInitialized = true;
 
   const grid = $('movieGrid');
-  grid.innerHTML = Array(8).fill(0).map(() => `
-    <div class="movie-card skeleton">
-      <div class="skeleton-shimmer"></div>
-      <div style="height:350px;" class="skeleton-box"></div>
-      <div style="padding:1.5rem">
-        <div style="height:20px;width:70%;margin-bottom:10px;" class="skeleton-box"></div>
-        <div style="height:15px;width:40%;" class="skeleton-box"></div>
+  if (grid) {
+    grid.innerHTML = Array(8).fill(0).map(() => `
+      <div class="movie-card skeleton">
+        <div class="skeleton-shimmer"></div>
+        <div style="height:350px;" class="skeleton-box"></div>
+        <div style="padding:1.5rem">
+          <div style="height:20px;width:70%;margin-bottom:10px;" class="skeleton-box"></div>
+          <div style="height:15px;width:40%;" class="skeleton-box"></div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
 
   try {
     const [moviesRes, theatresRes] = await Promise.all([
-      fetchWithTimeout('/api/movies', { timeout: 5000 }),
-      fetchWithTimeout('/api/theatres', { timeout: 5000 })
+      API.movies.getAll(),
+      API.theatres.getAll()
     ]);
 
-    if (!moviesRes.ok || !theatresRes.ok) throw new Error('Failed to fetch API');
+    if (!moviesRes.ok || !theatresRes.ok) throw new Error('Failed to fetch data');
 
-    MOVIES = await moviesRes.json();
-    THEATRES = await theatresRes.json();
+    let movies = await moviesRes.json();
+    let theatres = await theatresRes.json();
 
     // Rewrite TMDB poster URLs through local proxy to avoid CORS issues
-    MOVIES = MOVIES.map(m => {
+    movies = movies.map(m => {
       let posterUrl = m.poster;
       if (posterUrl && (posterUrl.includes('image.tmdb.org') || posterUrl.startsWith('https://image.tmdb.org'))) {
         posterUrl = `/api/poster?url=${encodeURIComponent(posterUrl)}`;
       }
       return { ...m, poster: posterUrl };
     });
+
+    stateStore.setState({ movies, theatres });
+
   } catch (error) {
     console.error('Error fetching data:', error);
     showToast('Failed to load data from database.');
-    $('movieGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--red)">Failed to load data.</div>';
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--red)">Failed to load data.</div>';
     return;
   }
 
   generateTakenSeats();
 
-  if (MOVIES.length > 0) {
+  if (state.movies.length > 0) {
     renderHero();
   }
 
@@ -763,40 +633,65 @@ async function initApp() {
   initNavigation();
   initSearch();
   initChatbot();
+
+  // Initialize scroll animations
+  window.movieScrollObserver = initScrollAnimations();
 }
 
 function generateTakenSeats() {
-  state.takenSeats = [];
+  const takenSeats = [];
   const rows = 'ABCDEFGHIJ';
   for (let i = 0; i < 15; i++) {
     const r = rows[Math.floor(Math.random() * 10)];
     const s = Math.floor(Math.random() * 10) + 1;
     const seat = r + s;
-    if (!state.takenSeats.includes(seat)) state.takenSeats.push(seat);
+    if (!takenSeats.includes(seat)) takenSeats.push(seat);
   }
+  stateStore.setState({ takenSeats });
 }
 
 // ========== HERO ==========
-function renderHero() {
-  const m = MOVIES[0];
+async function renderHero() {
+  const m = state.movies[0];
   if (!m) return;
   const posterUrl = m.poster;
   
-  $('heroBg').style.backgroundImage = `url(${posterUrl})`;
-  $('heroTitle').textContent = m.title;
-  $('heroRating').textContent = 'Rating ' + m.rating;
-  $('heroDuration').textContent = m.duration + ' • ' + m.language;
-  $('heroDesc').textContent = m.description;
-  $('heroGenreTags').textContent = '';
-  const gSpan = document.createElement('span');
-  gSpan.className = 'genre-tag';
-  gSpan.textContent = m.genre;
-  const lSpan = document.createElement('span');
-  lSpan.className = 'genre-tag';
-  lSpan.textContent = m.language;
-  $('heroGenreTags').appendChild(gSpan);
-  $('heroGenreTags').appendChild(lSpan);
-  $('heroBookBtn').onclick = () => selectMovie(m);
+  const heroBg = $('heroBg');
+  const heroTitle = $('heroTitle');
+  const heroRating = $('heroRating');
+  const heroDuration = $('heroDuration');
+  const heroDesc = $('heroDesc');
+  const heroGenreTags = $('heroGenreTags');
+  const heroBookBtn = $('heroBookBtn');
+
+  if (heroBg) heroBg.style.backgroundImage = `url(${posterUrl})`;
+  if (heroTitle) heroTitle.textContent = m.title;
+  if (heroRating) heroRating.textContent = 'Rating ' + m.rating;
+  if (heroDuration) heroDuration.textContent = m.duration + ' • ' + m.language;
+  if (heroDesc) heroDesc.textContent = m.description;
+  
+  if (heroGenreTags) {
+    heroGenreTags.textContent = '';
+    const gSpan = document.createElement('span');
+    gSpan.className = 'genre-tag';
+    gSpan.textContent = m.genre;
+    const lSpan = document.createElement('span');
+    lSpan.className = 'genre-tag';
+    lSpan.textContent = m.language;
+    heroGenreTags.appendChild(gSpan);
+    heroGenreTags.appendChild(lSpan);
+  }
+
+  if (heroBookBtn) heroBookBtn.onclick = () => selectMovie(m);
+
+  // Dynamic Theme Extraction for Hero
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = posterUrl;
+  img.onload = async () => {
+    const color = await getDominantColor(img);
+    updateTheme(color);
+  };
 }
 
 // ========== GENRE TABS ==========
@@ -814,7 +709,7 @@ function renderGenreTabs() {
 
 // ========== MOVIE GRID ==========
 function renderMovies(genre, searchTerm = '', lang = '', city = '') {
-  let filtered = MOVIES;
+  let filtered = state.movies;
   if (genre && genre !== 'All') filtered = filtered.filter(m => m.genre.includes(genre));
   if (searchTerm) {
     const s = searchTerm.toLowerCase();
@@ -826,7 +721,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
   
   if (city) {
     // Only show movies that have shows in the selected city
-    const theatresInCity = THEATRES.filter(t => t.city === city);
+    const theatresInCity = state.theatres.filter(t => t.city === city);
     filtered = filtered.filter(m => {
       return theatresInCity.some(t => t.shows && t.shows.length > 0);
       // Note: In this app's seed, every theatre has all movies effectively (simplified)
@@ -850,7 +745,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
     return `
     <div class="movie-card" data-id="${m.id}">
       <div style="position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;border-radius:0.5rem 0.5rem 0 0;flex-shrink:0">
-        <img class="movie-poster" src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
+        <img class="movie-poster" src="${escapeHTML(m.poster)}" alt="${escapeHTML(m.title)}" onerror="${onErr}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;top:0;left:0">
         <div id="${fallbackId}" style="display:none;background:linear-gradient(160deg,${gc[0]},${gc[1]});width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;padding:1.2rem;text-align:center;position:absolute;top:0;left:0">
           <div style="font-size:2.8rem;margin-bottom:0.6rem;opacity:0.5;color:#fff">
             <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
@@ -860,7 +755,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
         </div>
         <div class="movie-overlay">
           <div class="overlay-content">
-            <button class="play-btn" onclick="openTrailer('${m.trailerId}', event)">
+            <button class="play-btn" onclick="openTrailer('${escapeHTML(m.trailerId)}', event)">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </button>
             <p>${escapeHTML(m.description.substring(0, 80))}...</p>
@@ -996,12 +891,12 @@ function initNavigation() {
         return;
       }
 
-      const matchedMovies = MOVIES.filter(m =>
+      const matchedMovies = state.movies.filter(m =>
         m.title.toLowerCase().includes(query) ||
         m.genre.toLowerCase().includes(query)
       ).slice(0, 5); // top 5 results
 
-      const matchedTheatres = THEATRES.filter(t =>
+      const matchedTheatres = state.theatres.filter(t =>
         t.name.toLowerCase().includes(query) ||
         t.location.toLowerCase().includes(query) ||
         t.city.toLowerCase().includes(query)
@@ -1157,7 +1052,7 @@ function initNavigation() {
 
 // ========== GLOBAL SEARCH HELPERS ==========
 function selectMovieFromGlobal(movieId) {
-  const movie = MOVIES.find(m => m.id === movieId);
+  const movie = state.movies.find(m => m.id === movieId);
   if (movie) {
     if ($('globalSearchResults')) $('globalSearchResults').style.display = 'none';
     if ($('globalSearchInput')) $('globalSearchInput').value = '';
@@ -1177,7 +1072,7 @@ function selectTheatreFromGlobal(theatreId) {
 
   showPage('theatreSection');
   const searchInput = $('theatreSearchInput');
-  const theatre = THEATRES.find(t => t.id === theatreId);
+  const theatre = state.theatres.find(t => t.id === theatreId);
   if (searchInput && theatre) {
     searchInput.value = theatre.name;
     renderTheatres();
@@ -1277,7 +1172,7 @@ function showPage(id) {
 function selectMovie(movieOrId) {
   if (typeof movieOrId === 'number' || typeof movieOrId === 'string' || !movieOrId.title) {
     const id = (typeof movieOrId === 'object') ? movieOrId.id : movieOrId;
-    state.selectedMovie = MOVIES.find(m => m.id == id);
+    state.selectedMovie = state.movies.find(m => m.id == id);
   } else {
     state.selectedMovie = movieOrId;
   }
@@ -1334,7 +1229,7 @@ function renderTheatres() {
     </div>
   `;
   const city = $('cityFilter').value;
-  let theatres = THEATRES;
+  let theatres = state.theatres;
   if (city) theatres = theatres.filter(t => t.city === city);
 
   const searchInput = $('theatreSearchInput');
@@ -1372,7 +1267,7 @@ async function selectShow(theatreId, showIndex) {
   // Tactile feedback (vibration) for mobile
   if (navigator.vibrate) navigator.vibrate(15);
 
-  const theatre = THEATRES.find(t => t.id === theatreId);
+  const theatre = state.theatres.find(t => t.id === theatreId);
   state.selectedTheatre = theatre;
   state.selectedShow = theatre.shows[showIndex];
   state.selectedSeats = [];
@@ -2399,6 +2294,9 @@ if (params.has('verify') && params.has('email')) {
     // Default is usually logic tab, only click if it's not active
     if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
   }
+  
+  // Initialize auth forms and logic
+  initAuth();
   
   // Load data immediately even for guests
   initApp();

@@ -115,18 +115,20 @@ const server = http.createServer(async (req, res) => {
         return res.end('pong');
     }
     
+    // ---- CSRF Protection (CodeRabbit: Double Submit Cookie) ----
+    const cookies = parseCookies(req.headers.cookie);
+    let csrfCookie = cookies.csrf_token;
+    
     // Safety: Timeout for rate-limit check (CodeRabbit)
+    // Harden: Fail-closed on timeout for security, but allow static assets
+    const isApi = url.pathname.startsWith('/api/');
     const rateLimitPromise = isRateLimited(ip, url.pathname);
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(false), 2000));
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(isApi), 2000));
     
     if (await Promise.race([rateLimitPromise, timeoutPromise])) {
         res.writeHead(429, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Too many requests or server busy. Please slow down.' }));
     }
-
-    // ---- CSRF Protection (CodeRabbit: Double Submit Cookie) ----
-    const cookies = parseCookies(req.headers.cookie);
-    let csrfCookie = cookies.csrf_token;
 
     // Reject oversized payloads (CodeRabbit)
     const contentLength = parseInt(req.headers['content-length'] || '0');
@@ -134,6 +136,17 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(413, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Payload too large. Limit is 1MB.' }));
     }
+
+    // Validate CSRF for mutative requests
+    const isMutative = ['POST', 'PUT', 'DELETE'].includes(req.method.toUpperCase());
+    if (isMutative && isApi) {
+        const headerToken = req.headers['x-csrf-token'];
+        if (!csrfCookie || !headerToken || csrfCookie !== headerToken) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'CSRF token mismatch or missing' }));
+        }
+    }
+
     const newCsrfToken = csrfCookie || crypto.randomBytes(32).toString('hex');
     const csrfCookieHeader = `csrf_token=${newCsrfToken}; Path=/; SameSite=Strict${IS_PROD ? '; Secure' : ''}`;
 
@@ -237,7 +250,7 @@ const server = http.createServer(async (req, res) => {
                 queryParams.type = typeMap[route];
             }
             
-            req.query = queryParams;
+            req.query = { ...queryParams, ...(req.query || {}) };
 
             try {
                 if (body) req.body = JSON.parse(body);

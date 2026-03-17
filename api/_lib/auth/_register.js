@@ -138,7 +138,9 @@ module.exports = async (req, res) => {
         // If we created a user but email failed, try to roll back (CodeRabbit)
         try {
             const { db } = await connectToDatabase();
-            await db.collection('users').deleteOne({ email: req.body.email, isVerified: false });
+            if (email) {
+                await db.collection('users').deleteOne({ email, isVerified: false });
+            }
         } catch (dbErr) {
             console.error('Rollback failed:', dbErr);
         }

@@ -15,7 +15,7 @@
 <body>
     <!-- Noise overlay removed to prevent potential click blockage -->
     <!-- ========== TOAST ========== -->
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 
     <!-- ========== AUTH PAGE ========== -->
     <div class="auth-page" id="authPage">
@@ -62,8 +62,8 @@
             <div class="auth-right">
                 <div class="auth-form-card" id="authFormCard">
                     <div class="auth-tabs">
-                        <button class="auth-tab active" data-tab="login">Login</button>
-                        <button class="auth-tab" data-tab="signup">Sign Up</button>
+                        <a href="javascript:void(0)" class="auth-tab active" data-tab="login">Login</a>
+                        <a href="javascript:void(0)" class="auth-tab" data-tab="signup">Sign Up</a>
                     </div>
 
                     <!-- LOGIN FORM -->
@@ -95,7 +95,7 @@
                             <div class="form-error hidden" id="loginPasswordError"></div>
                         </div>
                         <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
-                        <button type="submit" class="auth-btn primary" id="loginBtn" disabled>Login</button>
+                        <button type="submit" class="btn-auth" id="loginBtn" aria-label="Login to your account">Login</button>
                         <div class="auth-divider">or continue with</div>
                         <div id="googleLoginBtn" style="display: flex; justify-content: center; margin-top: 1rem;">
                         </div>
@@ -163,7 +163,7 @@
                             </div>
                             <div class="form-error hidden" id="signupConfirmError"></div>
                         </div>
-                        <button type="submit" class="auth-btn primary" id="signupBtn" disabled>Create Account</button>
+                        <button type="submit" class="btn-auth" id="signupBtn" aria-label="Create your account">Create Account</button>
                         <div class="auth-switch">Already have an account? <a id="switchToLogin">Login</a></div>
                         <div style="text-align: center; margin-top: 1rem;">
                             <a id="guestLinkSignup" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline; cursor: pointer;">Continue as Guest</a>
@@ -175,16 +175,16 @@
     </div>
 
     <!-- ========== MAIN APP (hidden until auth) ========== -->
-    <div id="mainApp" style="display: none;">
+    <main id="mainApp" class="fade-in" style="display: none;">
 
         <!-- NAVBAR -->
         <nav class="navbar" id="navbar">
             <span class="nav-logo" id="navLogo">CinTic</span>
             <button class="nav-toggle" id="navToggle">Menu</button>
             <div class="nav-links" id="navLinks">
-                <a data-section="heroSection" class="active">Home</a>
-                <a data-section="moviesSection">Movies</a>
-                <a data-section="snacksSection">Snacks</a>
+                <a href="javascript:void(0)" data-section="heroSection">Home</a>
+                <a href="javascript:void(0)" data-section="moviesSection">Browse</a>
+                <a href="javascript:void(0)" data-section="theatreSection">Theatres</a>
                 <a data-section="myBookingsSection" id="myBookingsNav">My Bookings</a>
 
                 <!-- Global Search -->
@@ -737,7 +737,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3"></script>
+    <script type="module" src="app.js?v=4"></script>
 
 </body>
 

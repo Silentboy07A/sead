@@ -10,12 +10,22 @@
   --bg: #0a0a0f;
   --card: #141420;
   --auth-panel: transparent; /* Changed to allow background to show */
-  --red: #ff3344;
-  --red-dark: #cc0022;
-  --gold: #ffcc66;
+  --red: #e50914;
+  --red-hover: #b0060f;
+  --dark: #080808;
+  --surface: #121212;
+  --surface-light: #1e1e1e;
   --text: #ffffff;
   --text-muted: rgba(255, 255, 255, 0.6);
+  --gold: #f4c542;
   --green: #2ecc71;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  
+  /* Dynamic Theme Variables */
+  --movie-theme: var(--red);
+  --movie-theme-muted: rgba(229, 9, 20, 0.2);
+  --movie-theme-glow: rgba(229, 9, 20, 0.5);
   --blue: #3498db;
   --orange: #e67e22;
   --yellow: #f1c40f;
@@ -232,6 +242,33 @@
   transform: scale(0.8);
 }
 
+/* Animation: Reveal on Scroll */
+.animate-reveal {
+  animation: revealUp 0.8s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+@keyframes revealUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced Movie Card Glow */
+.movie-card {
+  transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.4s ease;
+  will-change: transform;
+  opacity: 0; /* Hidden initially for reveal animation */
+}
+
+.movie-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--movie-theme-muted);
+}
 /* Movie Filters Centering */
 .search-section .search-bar {
   justify-content: center;

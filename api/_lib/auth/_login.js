@@ -34,10 +34,8 @@ module.exports = async (req, res) => {
             // Random jitter to further obfuscate timing (10-50ms)
             await new Promise(r => setTimeout(r, 10 + Math.random() * 40));
             
-            if (user && isMatch && user.isVerified === false) {
-                 return res.status(403).json({ error: 'Please verify your email before logging in.' });
-            }
-            return res.status(401).json({ error: 'Invalid email or password' });
+            // CodeRabbit: Generic message to prevent account enumeration
+            return res.status(401).json({ error: 'Invalid email or password, or email not verified.' });
         }
 
         // Update last login

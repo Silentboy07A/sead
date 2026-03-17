@@ -216,7 +216,7 @@ function renderMoviesTable() {
     const mid = m._id;
     
     tr.innerHTML = `
-      <td>${mid}</td>
+      <td>${escapeHTML(mid)}</td>
       <td class="movie-title-cell"></td>
       <td class="movie-genre-cell"></td>
       <td class="movie-lang-cell"></td>
@@ -252,7 +252,7 @@ function renderTheatresTable() {
     const tid = t._id;
     
     tr.innerHTML = `
-      <td>${tid}</td>
+      <td>${escapeHTML(tid)}</td>
       <td class="theatre-name-cell"></td>
       <td class="theatre-loc-cell"></td>
       <td class="theatre-city-cell"></td>
@@ -275,15 +275,11 @@ function renderTheatresTable() {
 }
 
 // ========== EDIT HELPERS ==========
-function editMovie(id) {
-  const numericId = Number(id);
-  const movie = moviesData.find(m => String(m._id) === String(id));
+  const movie = moviesData.find(m => String(m._id) == String(id));
   if (movie) openModal('Edit Movie', 'movie', 'edit', movie);
 }
 
-function editTheatre(id) {
-  const numericId = Number(id);
-  const theatre = theatresData.find(t => String(t._id) === String(id));
+  const theatre = theatresData.find(t => String(t._id) == String(id));
   if (theatre) openModal('Edit Theatre', 'theatre', 'edit', theatre);
 }
 
