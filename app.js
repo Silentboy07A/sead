@@ -94,7 +94,10 @@ function initAuth() {
   setTimeout(initGoogleAuth, 100);
 }
 
+let isGoogleAuthInitialized = false;
 async function initGoogleAuth() {
+  if (isGoogleAuthInitialized) return;
+  
   if (typeof google === 'undefined' || !google.accounts) {
     // Retry if script not loaded yet
     setTimeout(initGoogleAuth, 500);
@@ -128,6 +131,7 @@ async function initGoogleAuth() {
         width: 320
       });
     }
+    isGoogleAuthInitialized = true;
   } catch (err) {
     console.error('Failed to init Google Auth:', err);
   }
@@ -2443,3 +2447,16 @@ function initChatbot() {
     }
   };
 }
+
+// Expose functions to global window for inline HTML handlers (Module Scoping Fix)
+window.selectMovie = selectMovie;
+window.selectShow = selectShow;
+window.openTrailer = openTrailer;
+window.closeTrailer = closeTrailer;
+window.toggleSeat = toggleSeat;
+window.updateSnackQty = updateSnackQty;
+window.recommendSeats = recommendSeats;
+window.selectMovieFromGlobal = selectMovieFromGlobal;
+window.selectTheatreFromGlobal = selectTheatreFromGlobal;
+window.viewAllResults = viewAllResults;
+window.showPage = showPage;

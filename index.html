@@ -8,6 +8,7 @@
         content="CinTic — Premium movie ticket booking. Browse movies, select seats, and book tickets with a stunning cinema experience.">
     <title>CinTic — Movie Ticket Booking</title>
     <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="icon" href="assets/logo.png" type="image/png">
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
@@ -33,7 +34,8 @@
                     <div class="film-particle"></div>
                 </div>
                 <div class="logo-section">
-                    <h1>CinTic</h1>
+                    <img src="assets/logo.png" alt="CinTic Logo" class="auth-logo">
+                    <h1 class="hidden">CinTic</h1>
                     <p class="tagline">Your Cinema. Your Seats. Your Story.</p>
                 </div>
                 <div class="genre-pills">
@@ -179,7 +181,10 @@
 
         <!-- NAVBAR -->
         <nav class="navbar" id="navbar">
-            <span class="nav-logo" id="navLogo">CinTic</span>
+            <div class="nav-logo" id="navLogo">
+                <img src="assets/logo.png" alt="CinTic">
+                <span>CinTic</span>
+            </div>
             <button class="nav-toggle" id="navToggle">Menu</button>
             <div class="nav-links" id="navLinks">
                 <a href="javascript:void(0)" data-section="heroSection">Home</a>
