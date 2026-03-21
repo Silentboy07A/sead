@@ -260,9 +260,14 @@
 
 /* Enhanced Movie Card Glow */
 .movie-card {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.4s ease;
   will-change: transform;
-  opacity: 0; /* Hidden initially for reveal animation */
+  opacity: 1; /* Fixed: default to visible if animation fails */
 }
 
 .movie-card:hover {
@@ -630,6 +635,41 @@ ul {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
+}
+
+.btn-auth {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--red), #b30610);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+  transition: var(--transition);
+  box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
+  margin-top: 1rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-auth:hover {
+  background: linear-gradient(135deg, #f40b17, #e50914);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(229, 9, 20, 0.5);
+}
+
+.btn-auth:active {
+  transform: translateY(0);
+}
+
+.btn-auth:disabled {
+  background: #2a2a3a;
+  color: #6a6a8a;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Auth tabs */
@@ -3266,10 +3306,7 @@ ul {
    ============================================ */
 /* Noise overlay removed for accessibility */
 
-.movie-card {
-  position: relative;
-  overflow: visible !important; /* Allow neon glow to exceed bounds */
-}
+/* Consolidated into main declaration at Ln 262 */
 
 /* Removed intense neon glow to focus on movie posters */
 /* .movie-card::after {

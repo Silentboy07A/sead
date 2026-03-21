@@ -2265,7 +2265,7 @@ if (params.has('verify') && params.has('email')) {
     try {
       const res = await fetchWithTimeout('/api/auth/me', { 
         credentials: 'same-origin', 
-        timeout: 3000,
+        timeout: 8000,
         cache: 'no-store' // Force browser to bypass local fetch cache
       });
       if (res.ok) {
