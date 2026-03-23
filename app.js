@@ -84,6 +84,8 @@ function initAuth() {
     if (authPage) authPage.remove();
     const mainApp = $('mainApp');
     if (mainApp) mainApp.style.display = 'block';
+    const chatbot = document.getElementById('chatbotWidget');
+    if (chatbot) chatbot.style.display = 'block';
     initApp();
   };
 
