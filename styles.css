@@ -3446,15 +3446,35 @@ ul {
   .auth-left {
     display: none;
   }
+
+  .auth-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    min-height: 100vh;
+    border-radius: 0;
+    max-height: none;
+  }
   
   .auth-right {
     padding: 1.5rem;
+    width: 100%;
+    justify-content: center;
   }
   
   .auth-form-card {
-    padding: 1.5rem;
-    margin: 10px;
+    padding: 2rem 1.5rem;
+    margin: 0 auto;
     z-index: 10;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   
   .auth-tabs {

@@ -867,16 +867,19 @@ function initNavigation() {
   });
 
   // Logout
-  $('logoutBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-      // Set a flag to prevent immediate auto-login loop
-      sessionStorage.setItem('just_logged_out', 'true');
-      localStorage.removeItem('cintic_user'); // Clear local state
-      await fetch('/api/auth/logout', { credentials: 'same-origin' });
-    } catch (err) { console.warn('Logout fetch failed:', err); }
-    state.user = null;
-    window.location.reload();
+  const logoutBtns = [$('logoutBtn'), $('mobileLogoutBtn')].filter(Boolean);
+  logoutBtns.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        // Set a flag to prevent immediate auto-login loop
+        sessionStorage.setItem('just_logged_out', 'true');
+        localStorage.removeItem('cintic_user'); // Clear local state
+        await fetch('/api/auth/logout', { credentials: 'same-origin' });
+      } catch (err) { console.warn('Logout fetch failed:', err); }
+      state.user = null;
+      window.location.reload();
+    });
   });
 
   // Trailer Modal
