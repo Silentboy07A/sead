@@ -1209,34 +1209,42 @@ function selectMovie(movieOrId) {
 // ========== THEATRE RENDERING ==========
 function renderTheatres() {
   const m = state.selectedMovie;
-  if (!m) return;
 
-  if ($('selectedMovieInfo')) {
-    const bgUrl = m.poster || '';
-    $('selectedMovieInfo').style.setProperty('--movie-bg', bgUrl ? `url(${bgUrl})` : 'none');
+  if (m) {
+    if ($('selectedMovieInfo')) {
+      $('selectedMovieInfo').style.display = 'flex';
+      const bgUrl = m.poster || '';
+      $('selectedMovieInfo').style.setProperty('--movie-bg', bgUrl ? `url(${bgUrl})` : 'none');
+      
+      const posterHtml = m.poster 
+        ? `<img src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
+        : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
+             <div class="premium-sparkle-icon">
+               <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M12 2l2.4 7.2L22 12l-7.6 2.4L12 22l-2.4-7.2L2 12l7.6-2.4z"/></svg>
+             </div>
+           </div>`;
+
+      $('selectedMovieInfo').innerHTML = `
+        ${posterHtml}
+        <div class="movie-details">
+          <h3>${escapeHTML(m.title) || 'Movie Details'}</h3>
+          <p>
+            ${escapeHTML(m.genre) || 'Various'} • 
+            ${escapeHTML(m.language) || 'Multiple'} • 
+            ${escapeHTML(m.duration) || 'N/A'} • 
+            Rating ${escapeHTML(m.rating) || 'N/A'}
+          </p>
+          ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.6rem 1.2rem; font-size:0.85rem; border-radius: 50px;">Watch Trailer</button>` : ''}
+        </div>
+      `;
+    }
+  } else {
+    if ($('selectedMovieInfo')) {
+      $('selectedMovieInfo').style.display = 'none';
+      $('selectedMovieInfo').innerHTML = '';
+    }
   }
 
-  const posterHtml = m.poster 
-    ? `<img src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
-    : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
-         <div class="premium-sparkle-icon">
-           <svg viewBox="0 0 24 24" width="48" height="48"><path fill="currentColor" d="M12 2l2.4 7.2L22 12l-7.6 2.4L12 22l-2.4-7.2L2 12l7.6-2.4z"/></svg>
-         </div>
-       </div>`;
-
-  $('selectedMovieInfo').innerHTML = `
-    ${posterHtml}
-    <div class="movie-details">
-      <h3>${escapeHTML(m.title) || 'Movie Details'}</h3>
-      <p>
-        ${escapeHTML(m.genre) || 'Various'} • 
-        ${escapeHTML(m.language) || 'Multiple'} • 
-        ${escapeHTML(m.duration) || 'N/A'} • 
-        Rating ${escapeHTML(m.rating) || 'N/A'}
-      </p>
-      ${m.trailerId ? `<button onclick="openTrailer('${m.trailerId}')" class="btn-primary" style="margin-top:12px; padding:0.6rem 1.2rem; font-size:0.85rem; border-radius: 50px;">Watch Trailer</button>` : ''}
-    </div>
-  `;
   const city = $('cityFilter').value;
   let theatres = state.theatres;
   if (city) theatres = theatres.filter(t => t.city === city);
@@ -1258,6 +1266,7 @@ function renderTheatres() {
       <div class="theatre-card">
         <h3>${escapeHTML(t.name)}</h3>
         <p class="location">${escapeHTML(t.location)}, ${escapeHTML(t.city)}</p>
+        ${m ? `
         <div class="show-times">
           ${t.shows.map((s, i) => `
             <div class="show-badge" onclick="selectShow(${t.id}, ${i})" data-theatre="${t.id}" data-show="${i}">
@@ -1265,7 +1274,7 @@ function renderTheatres() {
               <span class="format">${escapeHTML(s.format)}</span>
             </div>
           `).join('')}
-        </div>
+        </div>` : '<p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem">Select a movie from the home page to see available showtimes here.</p>'}
       </div>
     `).join('');
   }
