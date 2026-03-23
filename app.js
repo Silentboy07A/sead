@@ -786,10 +786,13 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
 // ========== SEARCH ==========
 function initSearch() {
   const debouncedApplyFilters = debounce(applyFilters, 300);
+  const debouncedRenderTheatres = debounce(renderTheatres, 300);
   
   $('globalSearchInput').addEventListener('input', () => {
     if ($('moviesSection').classList.contains('active')) {
       debouncedApplyFilters();
+    } else if ($('theatreSection').classList.contains('active')) {
+      debouncedRenderTheatres();
     }
   });
   
@@ -1119,6 +1122,10 @@ function showPage(id) {
   if (id === 'myBookingsSection') {
     renderMyBookings();
   }
+
+  if (id === 'theatreSection') {
+    renderTheatres();
+  }
   
   if (id === 'snacksSection') {
     renderSnacks();
@@ -1196,13 +1203,6 @@ function selectMovie(movieOrId) {
   state.selectedSeats = [];
   renderTheatres();
 
-  const searchInput = $('theatreSearchInput');
-  if (searchInput) {
-    searchInput.value = '';
-    const debouncedRender = debounce(renderTheatres, 250);
-    searchInput.oninput = () => debouncedRender();
-  }
-
   showPage('theatreSection');
 }
 
@@ -1249,7 +1249,7 @@ function renderTheatres() {
   let theatres = state.theatres;
   if (city) theatres = theatres.filter(t => t.city === city);
 
-  const searchInput = $('theatreSearchInput');
+  const searchInput = $('globalSearchInput');
   if (searchInput && searchInput.value) {
     const s = searchInput.value.toLowerCase();
     theatres = theatres.filter(t =>
