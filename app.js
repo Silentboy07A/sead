@@ -1651,7 +1651,7 @@ function toggleSeat(seatId, cat) {
   } else {
     state.selectedSeats.splice(idx, 1);
     if (seatEl) {
-      seatEl.classList.remove('selected', 'gold-cat');
+      seatEl.classList.remove('selected', 'gold-cat', 'recommended');
     }
   }
   updateSeatSummary();
@@ -1746,12 +1746,12 @@ async function recommendSeats() {
           const hasCorner = nums.some(v => v === 1 || v === 10);
           
           if (persona === 'Couple') {
-            // Stronger preference for back rows (Row I, J) and corners
-            if (rowIndex >= 8) personaMultiplier *= 0.4;
-            else if (rowIndex >= 6) personaMultiplier *= 0.8;
-            else personaMultiplier *= 1.5; // Avoid front for couples
+            // Extreme preference for Platinum (Rows H, I, J) and corners
+            if (rowIndex >= 7) personaMultiplier *= 0.01; // Platinum rows
+            else personaMultiplier *= 50; // Avoid non-platinum
 
-            if (hasCorner) personaMultiplier *= 0.05; // EVEN STRONGER corner preference for couples
+            if (hasCorner) personaMultiplier *= 0.01; // Platinum corner preference
+            else personaMultiplier *= 50; // Avoid center for couples
           } else if (persona === 'Introvert') {
             verticalFocusWeight = 0.8; 
             // Introverts want "Social Distancing"
@@ -1868,14 +1868,18 @@ async function recommendSeats() {
     showToast(`Vision IQ 9.2: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
     
     // Clear old visual classes
-    document.querySelectorAll('.seat.recommended').forEach(s => s.classList.remove('recommended'));
+    document.querySelectorAll('.seat.recommended, .seat.selected').forEach(s => {
+      s.classList.remove('recommended', 'selected', 'gold-cat');
+    });
     
     // High-end animation feedback
     state.selectedSeats.forEach((seatId, i) => {
       setTimeout(() => {
         const el = document.querySelector(`.seat[data-seat="${seatId}"]`);
         if (el) {
-          el.classList.add('recommended');
+          el.classList.add('recommended', 'selected');
+          const cat = el.getAttribute('data-cat');
+          if (cat === 'gold') el.classList.add('gold-cat');
           if (navigator.vibrate) navigator.vibrate(20);
         }
       }, i * 100);
