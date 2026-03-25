@@ -275,10 +275,12 @@ function renderTheatresTable() {
 }
 
 // ========== EDIT HELPERS ==========
+function editMovie(id) {
   const movie = moviesData.find(m => String(m._id) == String(id));
   if (movie) openModal('Edit Movie', 'movie', 'edit', movie);
 }
 
+function editTheatre(id) {
   const theatre = theatresData.find(t => String(t._id) == String(id));
   if (theatre) openModal('Edit Theatre', 'theatre', 'edit', theatre);
 }
