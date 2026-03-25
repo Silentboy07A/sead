@@ -145,11 +145,11 @@ $('modalForm').addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Operation failed');
 
-    showToast(modalMode === 'add' ? '✅ Added successfully!' : '✅ Updated successfully!');
+    showToast(modalMode === 'add' ? 'Added successfully!' : 'Updated successfully!');
     closeModal();
     loadData();
   } catch (err) {
-    showToast('❌ ' + err.message);
+    showToast(err.message);
   } finally {
     saveBtn.textContent = 'Save';
     saveBtn.disabled = false;
@@ -170,10 +170,10 @@ async function deleteItem(type, id) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-    showToast('🗑️ Deleted successfully');
+    showToast('Deleted successfully');
     loadData();
   } catch (err) {
-    showToast('❌ ' + err.message);
+    showToast(err.message);
   }
 }
 
@@ -223,8 +223,8 @@ function renderMoviesTable() {
       <td>★ ${escapeHTML(m.rating)}</td>
       <td>${escapeHTML(m.year) || '—'}</td>
       <td>
-        <button class="action-btn edit-btn">✏️ Edit</button>
-        <button class="action-btn delete delete-btn">🗑️</button>
+        <button class="action-btn edit-btn">Edit</button>
+        <button class="action-btn delete delete-btn">Delete</button>
       </td>
     `;
     
@@ -258,8 +258,8 @@ function renderTheatresTable() {
       <td class="theatre-city-cell"></td>
       <td>${(t.shows || []).length} shows</td>
       <td>
-        <button class="action-btn edit-btn">✏️ Edit</button>
-        <button class="action-btn delete delete-btn">🗑️</button>
+        <button class="action-btn edit-btn">Edit</button>
+        <button class="action-btn delete delete-btn">Delete</button>
       </td>
     `;
     
