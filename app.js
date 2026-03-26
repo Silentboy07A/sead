@@ -1733,46 +1733,76 @@ async function recommendSeats() {
       });
       
         if (isConsecutive) {
-          // Calculate Vision Physics Score (Closer to 0 is better)
           const avgPos = nums.reduce((a, b) => a + b, 0) / n;
-          const xDist = Math.abs(5.5 - avgPos); // Distance from horizontal center
           const rowIndex = rows.indexOf(row);
-          const yDist = Math.abs(5.5 - rowIndex); // Distance from row F/E (vertical screen center)
+          const y = rowIndex + 1; // 1-indexed (A=1, J=10)
+          const x = avgPos;
           
-          // Persona Weighting & Row Preference
-          let personaMultiplier = 1;
-          let verticalFocusWeight = 1.5; // Default: prioritize middle rows (D-G)
-          
-          const hasCorner = nums.some(v => v === 1 || v === 10);
+          let score = 0;
           
           if (persona === 'Couple') {
-            // Extreme preference for Platinum (Rows H, I, J) and corners
-            if (rowIndex >= 7) personaMultiplier *= 0.01; // Platinum rows
-            else personaMultiplier *= 50; // Avoid non-platinum
-
-            if (hasCorner) personaMultiplier *= 0.01; // Platinum corner preference
-            else personaMultiplier *= 50; // Avoid center for couples
+             // Prefer Platinum (Rows H, I, J -> y=8,9,10) and corners
+             const yDist = Math.abs(10 - y); 
+             const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x)); // Distance to nearest edge
+             score = yDist * 2 + xDist;
+             if (y < 8) score += 20; // Heavy penalty for non-platinum
           } else if (persona === 'Introvert') {
-            verticalFocusWeight = 0.8; 
-            // Introverts want "Social Distancing"
-            let neighborsCount = 0;
-            nums.forEach(s => {
-              if (state.takenSeats.includes(row + (s-1)) || state.lockedSeats.includes(row + (s-1))) neighborsCount++;
-              if (state.takenSeats.includes(row + (s+1)) || state.lockedSeats.includes(row + (s+1))) neighborsCount++;
-            });
-            personaMultiplier *= (1 + (neighborsCount * 1.5)); // Heavier penalty for each occupied neighbor
-            if (hasCorner) personaMultiplier *= 0.3; // Stronger bias towards corners (maximized privacy)
-          } else if (persona === 'Cinephile') {
-            verticalFocusWeight = 0.4; // Broaden row variety significantly
-            if (rowIndex >= 3 && rowIndex <= 7 && xDist < 2) personaMultiplier *= 0.6; // Gentle sweet spot bias
-          } else if (persona === 'Friends' || persona === 'Family') {
-            verticalFocusWeight = 0.1; // All rows are valid (near-zero vertical penalty)
-            personaMultiplier *= 0.8; // General boost to variety
+             // Prefer Corners, strictly NOT platinum
+             const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x));
+             let yDist = Math.abs(4 - y); // Row D is y=4
+             score = yDist * 0.5 + xDist * 2;
+             if (y >= 8) score += 20; // Exclude Platinum
+             
+             let neighborsCount = 0;
+             nums.forEach(s => {
+               if (state.takenSeats.includes(row + (s-1)) || state.lockedSeats.includes(row + (s-1))) neighborsCount++;
+               if (state.takenSeats.includes(row + (s+1)) || state.lockedSeats.includes(row + (s+1))) neighborsCount++;
+             });
+             score += neighborsCount * 5; // Heavy penalty for neighbors
+          } else {
+             // ---------------------------------------------------------
+             // TRUE VIEWING ANGLE (ARC CALCULUS ALGORITHM)
+             // ---------------------------------------------------------
+             // 1. Neck Strain (Vertical Angle)
+             // Rows 1-3 have severe neck strain. Rows 5-7 are ideal.
+             let neckStrain = 0;
+             if (y < 4) neckStrain = (4 - y) * 3; // +3 to +9 penalty
+             else if (y > 7) neckStrain = (y - 7) * 1.5; // Slight penalty for far back
+             
+             // 2. Parallax Skew (Horizontal Viewing Cone)
+             // Skew matters A LOT in the front row, but barely matters in the back row.
+             // We divide the horizontal distance from center by the depth squared.
+             const xDistFromCenter = Math.abs(5.5 - x);
+             const depthFactor = y + 2; // +2 offsets the screen distance
+             const parallaxSkew = (xDistFromCenter * xDistFromCenter) / depthFactor * 2;
+             
+             // 3. Anti-Stranding Logic
+             // Penalize leaving exactly 1 empty seat next to the chunk
+             let strandingPenalty = 0;
+             const leftSeatObj = row + (nums[0] - 2);
+             const leftSeatBoundary = row + (nums[0] - 1);
+             const rightSeatObj = row + (nums[nums.length-1] + 2);
+             const rightSeatBoundary = row + (nums[nums.length-1] + 1);
+             
+             const isLeftStranded = (!state.takenSeats.includes(leftSeatBoundary) && !state.lockedSeats.includes(leftSeatBoundary) && nums[0] - 1 > 0) &&
+                                    (nums[0] - 2 === 0 || state.takenSeats.includes(leftSeatObj) || state.lockedSeats.includes(leftSeatObj));
+             const isRightStranded = (!state.takenSeats.includes(rightSeatBoundary) && !state.lockedSeats.includes(rightSeatBoundary) && nums[nums.length-1] + 1 <= 10) &&
+                                     (nums[nums.length-1] + 2 > 10 || state.takenSeats.includes(rightSeatObj) || state.lockedSeats.includes(rightSeatObj));
+             
+             if (isLeftStranded) strandingPenalty += 4;
+             if (isRightStranded) strandingPenalty += 4;
+             
+             score = neckStrain + parallaxSkew + strandingPenalty;
+             
+             // Cinephile is stricter on the sweet spot, Family is more forgiving but strongly hates stranding
+             if (persona === 'Cinephile') {
+                if (xDistFromCenter < 1.5 && y >= 5 && y <= 7) score -= 3; // Huge bonus for perfect center
+             } else if (persona === 'Friends' || persona === 'Family') {
+                if (strandingPenalty > 0) score += 5; // Absolutely hate stranding
+             }
           }
           
-          // Diversity Jitter: Stronger jitter to ensure variety (CodeRabbit)
-          const jitter = Math.random() * 6.0; 
-          const score = (xDist + (yDist * verticalFocusWeight)) * personaMultiplier + jitter;
+          score += Math.random() * 0.2; // Tiny tie-breaker
           seatOptions.push({ chunk, score });
         }
     }
@@ -1839,6 +1869,11 @@ async function recommendSeats() {
           if (rowDiff === 0) pairScore *= 0.8;
           else if (rowDiff === 1) pairScore *= 0.9;
           else pairScore *= (1 + rowDiff * 0.5);
+
+          const avgCol1 = b1.chunk.map(s => parseInt(s.slice(1))).reduce((a,b)=>a+b,0) / b1.chunk.length;
+          const avgCol2 = b2.chunk.map(s => parseInt(s.slice(1))).reduce((a,b)=>a+b,0) / b2.chunk.length;
+          const colDiff = Math.abs(avgCol1 - avgCol2);
+          pairScore += colDiff * 2; // Penalty for horizontal separation
 
           subOptions.push({ chunk: allSeats, score: pairScore });
         }
