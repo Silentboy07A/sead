@@ -29,14 +29,47 @@
     <div class="admin-layout">
         <!-- Sidebar -->
         <nav class="admin-sidebar">
-            <a class="sidebar-link active" data-tab="movies">Movies</a>
+            <a class="sidebar-link active" data-tab="analytics">Analytics</a>
+            <a class="sidebar-link" data-tab="movies">Movies</a>
             <a class="sidebar-link" data-tab="theatres">Theatres</a>
         </nav>
 
         <!-- Content -->
         <main class="admin-content">
+            <!-- Analytics Tab -->
+            <section class="tab-panel active" id="analyticsPanel">
+                <div class="panel-header">
+                    <h2>Analytics Dashboard</h2>
+                </div>
+                <div style="display:flex;gap:1.5rem;margin-bottom:2rem;flex-wrap:wrap;">
+                    <div style="background:var(--surface,#1a1a2e);padding:1.5rem;border-radius:1rem;flex:1;min-width:200px;border:1px solid rgba(255,255,255,0.05);">
+                        <h4 style="color:var(--text-muted,#aaa);margin-bottom:0.8rem;font-weight:500;">Total Revenue</h4>
+                        <h2 id="analyticTotalRevenue" style="color:var(--gold,#f4a261);font-family:'Playfair Display',serif;font-size:2.5rem;margin:0;">₹0</h2>
+                    </div>
+                    <div style="background:var(--surface,#1a1a2e);padding:1.5rem;border-radius:1rem;flex:1;min-width:200px;border:1px solid rgba(255,255,255,0.05);">
+                        <h4 style="color:var(--text-muted,#aaa);margin-bottom:0.8rem;font-weight:500;">Tickets Sold</h4>
+                        <h2 id="analyticTotalTickets" style="color:#fff;font-family:'Playfair Display',serif;font-size:2.5rem;margin:0;">0</h2>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <h3 style="margin-bottom:1rem;font-family:'Playfair Display',serif;">Top Selling Movies</h3>
+                    <table id="analyticsTable">
+                        <thead>
+                            <tr>
+                                <th>Movie</th>
+                                <th>Tickets Sold</th>
+                                <th>Revenue Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <tr><td colspan="3" class="loading-cell">Loading analytics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Movies Tab -->
-            <section class="tab-panel active" id="moviesPanel">
+            <section class="tab-panel" id="moviesPanel">
                 <div class="panel-header">
                     <h2>Movies</h2>
                     <button class="btn-add" id="addMovieBtn">+ Add Movie</button>

@@ -180,12 +180,14 @@ async function deleteItem(type, id) {
 // ========== DATA LOADING ==========
 let moviesData = [];
 let theatresData = [];
+let analyticsData = null;
 
 async function loadData() {
   try {
-    const [moviesRes, theatresRes] = await Promise.all([
+    const [moviesRes, theatresRes, analyticsRes] = await Promise.all([
       fetch('/api/admin/movies', { credentials: 'same-origin' }),
-      fetch('/api/admin/theatres', { credentials: 'same-origin' })
+      fetch('/api/admin/theatres', { credentials: 'same-origin' }),
+      fetch('/api/admin/analytics', { credentials: 'same-origin' })
     ]);
 
     if (moviesRes.ok) {
@@ -196,10 +198,37 @@ async function loadData() {
       theatresData = await theatresRes.json();
       renderTheatresTable();
     }
+    if (analyticsRes.ok) {
+      analyticsData = await analyticsRes.json();
+      renderAnalytics();
+    }
   } catch (err) {
     showToast('Failed to load data');
     console.error(err);
   }
+}
+
+function renderAnalytics() {
+  if (!analyticsData) return;
+  $('analyticTotalRevenue').textContent = '₹' + (analyticsData.totalRevenue || 0).toLocaleString();
+  $('analyticTotalTickets').textContent = (analyticsData.totalTickets || 0).toLocaleString();
+  
+  const tbody = $('analyticsTableBody');
+  if (!analyticsData.topMovies || analyticsData.topMovies.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="loading-cell">No bookings found yet.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  analyticsData.topMovies.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600; color:#fff">${escapeHTML(m.title)}</td>
+      <td>${escapeHTML(m.ticketsSold)} seats</td>
+      <td style="color:var(--gold,#f4a261)">₹${escapeHTML(m.revenue.toLocaleString())}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function renderMoviesTable() {

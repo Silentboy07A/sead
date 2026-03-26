@@ -7,6 +7,8 @@ module.exports = async (req, res) => {
                 return require('../_lib/admin/_movies')(req, res);
             case 'theatres':
                 return require('../_lib/admin/_theatres')(req, res);
+            case 'analytics':
+                return require('../_lib/admin/_analytics')(req, res);
             default:
                 res.status(404).json({ error: 'Admin resource not found' });
         }
