@@ -1662,6 +1662,11 @@ function updateSeatSummary() {
   if (state.selectedSeats.length === 0) { summary.style.display = 'none'; return; }
   summary.style.display = 'flex';
   $('selectedSeatsList').textContent = state.selectedSeats.join(', ');
+  
+  const capacity = (state.takenSeats.length + state.lockedSeats.length) / 100;
+  const isHighDemand = capacity >= 0.8;
+  if ($('highDemandBadge')) $('highDemandBadge').style.display = isHighDemand ? 'block' : 'none';
+
   let total = 0;
   const cats = {};
   state.selectedSeats.forEach(s => {
@@ -1669,7 +1674,12 @@ function updateSeatSummary() {
     let cat = 'silver';
     if ('ABC'.includes(row)) cat = 'gold';
     else if ('HIJ'.includes(row)) cat = 'platinum';
-    total += SEAT_PRICES[cat];
+    
+    let price = SEAT_PRICES[cat];
+    if (isHighDemand && cat === 'platinum') price = Math.floor(price * 1.15);
+    if (isHighDemand && cat === 'gold') price = Math.floor(price * 0.90);
+    
+    total += price;
     cats[cat] = (cats[cat] || 0) + 1;
   });
   $('totalPrice').textContent = total.toLocaleString();
@@ -1701,18 +1711,98 @@ async function recommendSeats() {
   const n = parseInt($('groupSize') ? $('groupSize').value : 2) || 2;
   const persona = state.activePersona || 'Cinephile';
   
-  // 1. Dynamic Scanning Simulation with "Prime Zone" discovery
+  // 1. Waitlist / Rush Seating Analytics
+  let isRushHour = false;
+  try {
+    const showTimeStr = state.selectedShow?.time;
+    if (showTimeStr) {
+      const now = new Date();
+      const showDate = new Date();
+      const match = showTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        let m = parseInt(match[2], 10);
+        if (match[3]) {
+          if (match[3].toUpperCase() === 'PM' && h < 12) h += 12;
+          if (match[3].toUpperCase() === 'AM' && h === 12) h = 0;
+        }
+        showDate.setHours(h, m, 0, 0);
+        const diffMins = (showDate.getTime() - now.getTime()) / 60000;
+        // Rush hour: 35 minutes before start, up to 30 mins after start
+        if (diffMins <= 35 && diffMins >= -30) isRushHour = true;
+      }
+    }
+  } catch (e) {
+    console.warn('Rush hour parse failed', e);
+  }
+
+  if (isRushHour) {
+    showToast("🕒 RUSH SEATING ACTIVE: Premium Front Rows (A-C) unlocked for walk-ins!");
+  }
+
+  // 1.5 ACCESSIBILITY (ADA) BYPASS
+  const isAda = $('adaToggle') && $('adaToggle').checked;
+  if (isAda) {
+    const adaBlocks = [['J1', 'J2'], ['J9', 'J10'], ['D1', 'D2'], ['D9', 'D10']];
+    state.selectedSeats = [];
+    for (const block of adaBlocks) {
+      if (block.every(s => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s))) {
+        state.selectedSeats = block.slice(0, n);
+        if (n > 2) {
+           const otherBlock = adaBlocks.find(b => b !== block && b.every(s => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s)));
+           if (otherBlock) state.selectedSeats = state.selectedSeats.concat(otherBlock.slice(0, n - 2));
+        }
+        break;
+      }
+    }
+    if (state.selectedSeats.length > 0) {
+      updateSeatSummary();
+      showToast(`ADA Mode: Secured ${state.selectedSeats.length} accessible seats.`);
+      renderSeats();
+      return;
+    } else {
+      showToast("ADA Mode: All accessible designated blocks are taken.");
+      renderSeats();
+      return;
+    }
+  }
+
+  // 1.8 HISTORICAL AI LEARNING (Find user's favorite row)
+  let aiSweetSpotRow = -1;
+  if (state.user && state.user.bookings && state.user.bookings.length > 0) {
+    const rowFreq = {};
+    state.user.bookings.forEach(b => {
+      if (b.seats) {
+        b.seats.split(', ').forEach(s => {
+          const r = s.charAt(0);
+          rowFreq[r] = (rowFreq[r] || 0) + 1;
+        });
+      }
+    });
+    let maxFreq = 0, bestRow = '';
+    for (const [r, count] of Object.entries(rowFreq)) {
+      if (count > maxFreq) { maxFreq = count; bestRow = r; }
+    }
+    const rowsArr = 'ABCDEFGHIJ'.split('');
+    if (bestRow && rowsArr.includes(bestRow)) {
+      aiSweetSpotRow = rowsArr.indexOf(bestRow) + 1;
+    }
+  }
+
+  // 2. Dynamic Scanning Simulation with "Prime Zone" discovery
   await runAiScanning(2500); 
   
   state.selectedSeats = [];
   const rows = 'ABCDEFGHIJ'.split('');
   let seatOptions = [];
 
-  // 2. VISION PHYSICS: Priority Matrix
-  // Row Weight: F > E > G > D (Middle cluster = 0 offset)
-  // Seat Weight: 5,6 > 4,7 > 3,8 (Center cluster)
+  // 3. VISION PHYSICS: Priority Matrix
   
   for (const row of rows) {
+    const rowIndex = rows.indexOf(row);
+    // WAITLIST BLOCK: Exclude Rows A-C unless Rush Hour is active
+    if (!isRushHour && rowIndex < 3) continue;
+    
     const available = [];
     for (let s = 1; s <= 10; s++) {
       const seatId = row + s;
@@ -1763,11 +1853,16 @@ async function recommendSeats() {
              // ---------------------------------------------------------
              // TRUE VIEWING ANGLE (ARC CALCULUS ALGORITHM)
              // ---------------------------------------------------------
-             // 1. Neck Strain (Vertical Angle)
+             // 1. Neck Strain (Vertical Angle) & AI Target Override
              // Rows 1-3 have severe neck strain. Rows 5-7 are ideal.
              let neckStrain = 0;
              if (y < 4) neckStrain = (4 - y) * 3; // +3 to +9 penalty
              else if (y > 7) neckStrain = (y - 7) * 1.5; // Slight penalty for far back
+             
+             // AI Target overwrite (Cinephiles/Default trust the AI)
+             if (aiSweetSpotRow !== -1 && (persona === 'Cinephile' || persona === 'Friends' || persona === 'Family')) {
+                neckStrain = Math.abs(aiSweetSpotRow - y) * 2; // AI strictly optimizes to historical sweet spot row
+             }
              
              // 2. Parallax Skew (Horizontal Viewing Cone)
              // Skew matters A LOT in the front row, but barely matters in the back row.
@@ -1821,6 +1916,10 @@ async function recommendSeats() {
       const remainderBlocks = []; // For the second half if different size
 
       for (const row of rows) {
+        const rowIndex = rows.indexOf(row);
+        // WAITLIST BLOCK: Combine rule applies here too
+        if (!isRushHour && rowIndex < 3) continue;
+
         const avail = [];
         for (let s = 1; s <= 10; s++) {
           const id = row + s;
@@ -1925,6 +2024,10 @@ async function recommendSeats() {
     const shuffledRows = [...rows].sort(() => Math.random() - 0.5);
     const allAvailable = [];
     for (const row of shuffledRows) {
+      const rowIndex = rows.indexOf(row);
+      // WAITLIST BLOCK
+      if (!isRushHour && rowIndex < 3) continue;
+      
       for (let s = 1; s <= 10; s++) {
         const id = row + s;
         if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) allAvailable.push(id);
@@ -1935,7 +2038,7 @@ async function recommendSeats() {
     if (state.selectedSeats.length > 0) {
       showToast(`Vision IQ 8.7: Randomized best available seats.`);
     } else {
-      showToast("Vision IQ: Cinema is fully booked!");
+      showToast(isRushHour ? "Vision IQ: Cinema is fully booked!" : "Vision IQ: All prime seats taken! Front row Waitlist blocked until 30 mins before showtime.");
     }
   }
   renderSeats();
@@ -1946,13 +2049,22 @@ function renderPayment() {
   const m = state.selectedMovie;
   const t = state.selectedTheatre;
   const s = state.selectedShow;
+  
+  const capacity = (state.takenSeats.length + state.lockedSeats.length) / 100;
+  const isHighDemand = capacity >= 0.8;
+  
   let total = 0;
   state.selectedSeats.forEach(seat => {
     const row = seat.charAt(0);
     let cat = 'silver';
     if ('ABC'.includes(row)) cat = 'gold';
     else if ('HIJ'.includes(row)) cat = 'platinum';
-    total += SEAT_PRICES[cat];
+    
+    let price = SEAT_PRICES[cat];
+    if (isHighDemand && cat === 'platinum') price = Math.floor(price * 1.15);
+    if (isHighDemand && cat === 'gold') price = Math.floor(price * 0.90);
+    
+    total += price;
   });
   const convFee = Math.round(total * 0.05);
 
