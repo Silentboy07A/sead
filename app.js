@@ -1767,27 +1767,6 @@ async function recommendSeats() {
     }
   }
 
-  // 1.8 HISTORICAL AI LEARNING (Find user's favorite row)
-  let aiSweetSpotRow = -1;
-  if (state.user && state.user.bookings && state.user.bookings.length > 0) {
-    const rowFreq = {};
-    state.user.bookings.forEach(b => {
-      if (b.seats) {
-        b.seats.split(', ').forEach(s => {
-          const r = s.charAt(0);
-          rowFreq[r] = (rowFreq[r] || 0) + 1;
-        });
-      }
-    });
-    let maxFreq = 0, bestRow = '';
-    for (const [r, count] of Object.entries(rowFreq)) {
-      if (count > maxFreq) { maxFreq = count; bestRow = r; }
-    }
-    const rowsArr = 'ABCDEFGHIJ'.split('');
-    if (bestRow && rowsArr.includes(bestRow)) {
-      aiSweetSpotRow = rowsArr.indexOf(bestRow) + 1;
-    }
-  }
 
   // 2. Dynamic Scanning Simulation with "Prime Zone" discovery
   await runAiScanning(2500); 
@@ -1859,10 +1838,6 @@ async function recommendSeats() {
              if (y < 4) neckStrain = (4 - y) * 3; // +3 to +9 penalty
              else if (y > 7) neckStrain = (y - 7) * 1.5; // Slight penalty for far back
              
-             // AI Target overwrite (Cinephiles/Default trust the AI)
-             if (aiSweetSpotRow !== -1 && (persona === 'Cinephile' || persona === 'Friends' || persona === 'Family')) {
-                neckStrain = Math.abs(aiSweetSpotRow - y) * 2; // AI strictly optimizes to historical sweet spot row
-             }
              
              // 2. Parallax Skew (Horizontal Viewing Cone)
              // Skew matters A LOT in the front row, but barely matters in the back row.
