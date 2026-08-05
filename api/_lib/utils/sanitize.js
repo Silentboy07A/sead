@@ -10,7 +10,7 @@ function sanitize(v) {
       }
     }
   } else if (typeof v === 'object' && v !== null) {
-    Object.keys(v).forEach(key => {
+    Object.keys(v).forEach((key) => {
       if (key.startsWith('$')) {
         delete v[key];
       } else if (typeof v[key] === 'object' && v[key] !== null) {

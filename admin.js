@@ -2,7 +2,7 @@
    CINTIC ADMIN — Dashboard Logic
    ============================================ */
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
 function showToast(msg) {
   const t = $('toast');
@@ -12,16 +12,14 @@ function showToast(msg) {
 }
 
 function escapeHTML(str) {
-  if (!str) return "";
-  return String(str).replace(/[&<>"']/g, function(m) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m];
-  });
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[m]));
 }
 
 // ========== AUTH CHECK ==========
@@ -43,12 +41,12 @@ async function checkAdmin() {
 
 // ========== TAB NAVIGATION ==========
 function initTabs() {
-  document.querySelectorAll('.sidebar-link').forEach(link => {
+  document.querySelectorAll('.sidebar-link').forEach((link) => {
     link.addEventListener('click', () => {
-      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach((l) => l.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
       link.classList.add('active');
-      $(link.dataset.tab + 'Panel').classList.add('active');
+      $(`${link.dataset.tab}Panel`).classList.add('active');
     });
   });
 }
@@ -119,7 +117,7 @@ $('modalForm').addEventListener('submit', async (e) => {
         duration: $('f_duration').value,
         description: $('f_description').value,
         poster: $('f_poster').value,
-        trailerId: $('f_trailerId').value
+        trailerId: $('f_trailerId').value,
       };
     } else {
       url = '/api/admin/theatres';
@@ -129,7 +127,7 @@ $('modalForm').addEventListener('submit', async (e) => {
         name: $('f_name').value,
         location: $('f_location').value,
         city: $('f_city').value,
-        shows
+        shows,
       };
     }
 
@@ -139,7 +137,7 @@ $('modalForm').addEventListener('submit', async (e) => {
       method: modalMode === 'add' ? 'POST' : 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -166,7 +164,7 @@ async function deleteItem(type, id) {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ _id: id })
+      body: JSON.stringify({ _id: id }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
@@ -187,7 +185,7 @@ async function loadData() {
     const [moviesRes, theatresRes, analyticsRes] = await Promise.all([
       fetch('/api/admin/movies', { credentials: 'same-origin' }),
       fetch('/api/admin/theatres', { credentials: 'same-origin' }),
-      fetch('/api/admin/analytics', { credentials: 'same-origin' })
+      fetch('/api/admin/analytics', { credentials: 'same-origin' }),
     ]);
 
     if (moviesRes.ok) {
@@ -210,17 +208,17 @@ async function loadData() {
 
 function renderAnalytics() {
   if (!analyticsData) return;
-  $('analyticTotalRevenue').textContent = '₹' + (analyticsData.totalRevenue || 0).toLocaleString();
+  $('analyticTotalRevenue').textContent = `₹${(analyticsData.totalRevenue || 0).toLocaleString()}`;
   $('analyticTotalTickets').textContent = (analyticsData.totalTickets || 0).toLocaleString();
-  
+
   const tbody = $('analyticsTableBody');
   if (!analyticsData.topMovies || analyticsData.topMovies.length === 0) {
     tbody.innerHTML = '<tr><td colspan="3" class="loading-cell">No bookings found yet.</td></tr>';
     return;
   }
-  
+
   tbody.innerHTML = '';
-  analyticsData.topMovies.forEach(m => {
+  analyticsData.topMovies.forEach((m) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-weight:600; color:#fff">${escapeHTML(m.title)}</td>
@@ -238,12 +236,12 @@ function renderMoviesTable() {
     return;
   }
   tbody.innerHTML = '';
-  moviesData.forEach(m => {
+  moviesData.forEach((m) => {
     const tr = document.createElement('tr');
-    
+
     // Convert ID to number just in case
     const mid = m._id;
-    
+
     tr.innerHTML = `
       <td>${escapeHTML(mid)}</td>
       <td class="movie-title-cell"></td>
@@ -256,15 +254,15 @@ function renderMoviesTable() {
         <button class="action-btn delete delete-btn">Delete</button>
       </td>
     `;
-    
+
     // Safely set text content for user-provided strings
     tr.querySelector('.movie-title-cell').textContent = m.title;
     tr.querySelector('.movie-genre-cell').textContent = m.genre;
     tr.querySelector('.movie-lang-cell').textContent = m.language;
-    
+
     tr.querySelector('.edit-btn').onclick = () => editMovie(mid);
-    tr.querySelector('.delete-btn').onclick = () => deleteItem("movie", mid);
-    
+    tr.querySelector('.delete-btn').onclick = () => deleteItem('movie', mid);
+
     tbody.appendChild(tr);
   });
 }
@@ -276,10 +274,10 @@ function renderTheatresTable() {
     return;
   }
   tbody.innerHTML = '';
-  theatresData.forEach(t => {
+  theatresData.forEach((t) => {
     const tr = document.createElement('tr');
     const tid = t._id;
-    
+
     tr.innerHTML = `
       <td>${escapeHTML(tid)}</td>
       <td class="theatre-name-cell"></td>
@@ -291,26 +289,26 @@ function renderTheatresTable() {
         <button class="action-btn delete delete-btn">Delete</button>
       </td>
     `;
-    
+
     tr.querySelector('.theatre-name-cell').textContent = t.name;
     tr.querySelector('.theatre-loc-cell').textContent = t.location;
     tr.querySelector('.theatre-city-cell').textContent = t.city;
-    
+
     tr.querySelector('.edit-btn').onclick = () => editTheatre(tid);
-    tr.querySelector('.delete-btn').onclick = () => deleteItem("theatre", tid);
-    
+    tr.querySelector('.delete-btn').onclick = () => deleteItem('theatre', tid);
+
     tbody.appendChild(tr);
   });
 }
 
 // ========== EDIT HELPERS ==========
 function editMovie(id) {
-  const movie = moviesData.find(m => String(m._id) == String(id));
+  const movie = moviesData.find((m) => String(m._id) == String(id));
   if (movie) openModal('Edit Movie', 'movie', 'edit', movie);
 }
 
 function editTheatre(id) {
-  const theatre = theatresData.find(t => String(t._id) == String(id));
+  const theatre = theatresData.find((t) => String(t._id) == String(id));
   if (theatre) openModal('Edit Theatre', 'theatre', 'edit', theatre);
 }
 
@@ -328,4 +326,4 @@ $('adminLogout').addEventListener('click', async () => {
   await checkAdmin();
   initTabs();
   loadData();
-})();
+}());

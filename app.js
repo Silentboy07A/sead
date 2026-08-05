@@ -1,4 +1,6 @@
-import { $, fetchWithTimeout, showToast, escapeHTML, debounce, getCookie, initCSRF } from './js/utils.js';
+import {
+  $, fetchWithTimeout, showToast, escapeHTML, debounce, getCookie, initCSRF,
+} from './js/utils.js';
 import API from './js/api.js';
 import stateStore, { SEAT_PRICES, GENRES, SNACKS } from './js/state.js';
 import { getDominantColor, updateTheme, initScrollAnimations } from './js/theme.js';
@@ -12,8 +14,8 @@ import { getDominantColor, updateTheme, initScrollAnimations } from './js/theme.
 if (window.location.search.includes('reset=1')) {
   localStorage.clear();
   sessionStorage.clear();
-  document.cookie.split(";").forEach((c) => { 
-    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+  document.cookie.split(';').forEach((c) => {
+    document.cookie = c.replace(/^ +/, '').replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
   });
   window.history.replaceState({}, document.title, window.location.pathname);
   window.location.reload(true);
@@ -35,17 +37,16 @@ const saveState = () => {
   }
 };
 
-
 let isAuthInitialized = false;
 function initAuth() {
   if (isAuthInitialized) return;
   isAuthInitialized = true;
   // Tab switching
-  document.querySelectorAll('.auth-tab').forEach(tab => {
+  document.querySelectorAll('.auth-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       if (tab.classList.contains('active')) return; // Guard against redundant clicks
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.querySelectorAll('.auth-tab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach((f) => f.classList.remove('active'));
       tab.classList.add('active');
       const formId = tab.dataset.tab === 'login' ? 'loginForm' : 'signupForm';
       $(formId).classList.add('active');
@@ -101,7 +102,7 @@ function initAuth() {
 let isGoogleAuthInitialized = false;
 async function initGoogleAuth() {
   if (isGoogleAuthInitialized) return;
-  
+
   if (typeof google === 'undefined' || !google.accounts) {
     // Retry if script not loaded yet
     setTimeout(initGoogleAuth, 500);
@@ -132,7 +133,7 @@ async function initGoogleAuth() {
         size: 'large',
         text: 'continue_with',
         shape: 'rectangular',
-        width: 320
+        width: 320,
       });
     }
     isGoogleAuthInitialized = true;
@@ -173,21 +174,21 @@ async function handleGoogleLogin(response) {
     enterApp();
   } catch (error) {
     console.error('Google Auth Error:', error);
-    showToast('Google sign-in failed: ' + (error.message || 'Please try again'));
+    showToast(`Google sign-in failed: ${error.message || 'Please try again'}`);
   }
 }
 
 function togglePassword(inputId, toggleId) {
   const inp = $(inputId);
   const tog = $(toggleId);
-  if (inp.type === 'password') { 
-    inp.type = 'text'; 
+  if (inp.type === 'password') {
+    inp.type = 'text';
     tog.innerHTML = `<svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
       <line x1="1" y1="1" x2="23" y2="23"></line>
     </svg>`;
-  } else { 
-    inp.type = 'password'; 
+  } else {
+    inp.type = 'password';
     tog.innerHTML = `<svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
       <circle cx="12" cy="12" r="3"></circle>
@@ -202,7 +203,7 @@ function checkEmail(value) {
   const [local, domain] = value.split('@');
   if (!local) return { valid: false, msg: "✗ Please enter your username before '@'" };
   if (!domain) return { valid: false, msg: "✗ Please enter a domain after '@' — e.g. gmail.com" };
-  if (!domain.includes('.')) return { valid: false, msg: "✗ Domain must include a dot — e.g. @gmail.com" };
+  if (!domain.includes('.')) return { valid: false, msg: '✗ Domain must include a dot — e.g. @gmail.com' };
   return { valid: true, msg: '' };
 }
 
@@ -301,11 +302,11 @@ function validateName() {
   const icon = $('signupNameIcon');
   inp.classList.remove('valid', 'invalid');
   if (!val) { err.classList.add('hidden'); icon.style.display = 'none'; return false; }
-  if (val.trim().length === 0) { setErr("✗ Please enter a valid name"); return false; }
-  if (val.length < 3) { setErr("✗ Name must be at least 3 characters"); return false; }
-  if (val.length > 30) { setErr("✗ Name cannot exceed 30 characters"); return false; }
-  if (/[0-9]/.test(val)) { setErr("✗ Name should only contain letters and spaces"); return false; }
-  if (/[^a-zA-Z\s\-']/.test(val)) { setErr("✗ Only letters, spaces, hyphens allowed"); return false; }
+  if (val.trim().length === 0) { setErr('✗ Please enter a valid name'); return false; }
+  if (val.length < 3) { setErr('✗ Name must be at least 3 characters'); return false; }
+  if (val.length > 30) { setErr('✗ Name cannot exceed 30 characters'); return false; }
+  if (/[0-9]/.test(val)) { setErr('✗ Name should only contain letters and spaces'); return false; }
+  if (/[^a-zA-Z\s\-']/.test(val)) { setErr('✗ Only letters, spaces, hyphens allowed'); return false; }
   inp.classList.add('valid');
   err.classList.add('hidden');
   icon.style.display = 'inline';
@@ -325,13 +326,13 @@ function validateConfirm() {
   if (!conf) { err.classList.add('hidden'); icon.style.display = 'none'; return false; }
   if (conf !== pass) {
     inp.classList.add('invalid');
-    err.textContent = "✗ Passwords do not match";
+    err.textContent = '✗ Passwords do not match';
     err.classList.remove('hidden');
     icon.style.display = 'none';
     return false;
   }
   inp.classList.add('valid');
-  err.textContent = "✓ Passwords match";
+  err.textContent = '✓ Passwords match';
   err.style.color = 'var(--green)';
   err.classList.remove('hidden');
   icon.style.display = 'inline';
@@ -371,7 +372,7 @@ async function handleLogin(e) {
 
     const res = await API.auth.login(email, password);
     const data = await res.json();
-    
+
     if (!res.ok) {
       if (res.status === 403) {
         throw new Error(data.error || 'Please verify your email before logging in.');
@@ -415,7 +416,7 @@ async function handleSignup(e) {
     if (!res.ok) throw new Error(data.error || 'Registration failed');
 
     btn.innerHTML = '✓';
-    
+
     // Show verification message instead of entering app
     let successMsg = data.message;
     if (data.previewUrl) {
@@ -433,7 +434,6 @@ async function handleSignup(e) {
       btn.innerHTML = originalHtml;
       btn.disabled = false;
     }, 2000);
-
   } catch (error) {
     console.error('Signup error:', error);
     showToast(error.message);
@@ -456,22 +456,22 @@ function enterApp() {
     authPage.remove();
     console.log('Auth page removed from DOM');
   }
-  
+
   // Also kill any remaining .auth-page elements (paranoid cleanup)
-  document.querySelectorAll('.auth-page').forEach(el => {
+  document.querySelectorAll('.auth-page').forEach((el) => {
     el.remove();
     console.log('Removed stale .auth-page element');
   });
-  
+
   const mainApp = document.getElementById('mainApp');
   if (mainApp) mainApp.style.display = 'block';
-  
+
   const chatbot = document.getElementById('chatbotWidget');
-  if (chatbot) chatbot.style.display = 'block'; 
-  
+  if (chatbot) chatbot.style.display = 'block';
+
   updateNavUser();
   initApp();
-  
+
   // Delayed failsafe: re-check after 500ms to catch any race conditions
   setTimeout(() => {
     const ghost = document.getElementById('authPage');
@@ -479,7 +479,7 @@ function enterApp() {
       ghost.remove();
       console.warn('Failsafe: removed ghost authPage');
     }
-    document.querySelectorAll('.auth-page').forEach(el => el.remove());
+    document.querySelectorAll('.auth-page').forEach((el) => el.remove());
   }, 500);
 }
 
@@ -544,7 +544,7 @@ function initPasswordReset() {
   if (resetToken && resetEmail) {
     // Clean URL
     window.history.replaceState({}, document.title, window.location.pathname);
-    
+
     // Show reset modal
     const resetModal = $('resetPasswordModal');
     if (resetModal) {
@@ -562,7 +562,7 @@ function initPasswordReset() {
       const email = $('resetEmail').value;
       const token = $('resetToken').value;
       const newPassword = $('resetNewPassword').value;
-      
+
       const btn = $('resetSubmitBtn');
       const originalText = btn.textContent;
       btn.textContent = 'Updating...';
@@ -576,7 +576,7 @@ function initPasswordReset() {
         showToast(data.message);
         $('resetPasswordModal').style.display = 'none';
         resetForm.reset();
-        
+
         // Ensure user is on login tab
         const loginTab = document.querySelectorAll('.auth-tab')[0];
         if (loginTab) loginTab.click();
@@ -615,16 +615,16 @@ async function initApp() {
   try {
     const [moviesRes, theatresRes] = await Promise.all([
       API.movies.getAll(),
-      API.theatres.getAll()
+      API.theatres.getAll(),
     ]);
 
     if (!moviesRes.ok || !theatresRes.ok) throw new Error('Failed to fetch data');
 
     let movies = await moviesRes.json();
-    let theatres = await theatresRes.json();
+    const theatres = await theatresRes.json();
 
     // Rewrite TMDB poster URLs through local proxy to avoid CORS issues
-    movies = movies.map(m => {
+    movies = movies.map((m) => {
       let posterUrl = m.poster;
       if (posterUrl && (posterUrl.includes('image.tmdb.org') || posterUrl.startsWith('https://image.tmdb.org'))) {
         posterUrl = `/api/poster?url=${encodeURIComponent(posterUrl)}`;
@@ -633,7 +633,6 @@ async function initApp() {
     });
 
     stateStore.setState({ movies, theatres });
-
   } catch (error) {
     console.error('Error fetching data:', error);
     showToast('Failed to load data from database.');
@@ -674,7 +673,7 @@ async function renderHero() {
   const m = state.movies[0];
   if (!m) return;
   const posterUrl = m.poster;
-  
+
   const heroBg = $('heroBg');
   const heroTitle = $('heroTitle');
   const heroRating = $('heroRating');
@@ -685,10 +684,10 @@ async function renderHero() {
 
   if (heroBg) heroBg.style.backgroundImage = `url(${posterUrl})`;
   if (heroTitle) heroTitle.textContent = m.title;
-  if (heroRating) heroRating.textContent = 'Rating ' + m.rating;
-  if (heroDuration) heroDuration.textContent = m.duration + ' • ' + m.language;
+  if (heroRating) heroRating.textContent = `Rating ${m.rating}`;
+  if (heroDuration) heroDuration.textContent = `${m.duration} • ${m.language}`;
   if (heroDesc) heroDesc.textContent = m.description;
-  
+
   if (heroGenreTags) {
     heroGenreTags.textContent = '';
     const gSpan = document.createElement('span');
@@ -705,7 +704,7 @@ async function renderHero() {
 
   // Dynamic Theme Extraction for Hero
   const img = new Image();
-  img.crossOrigin = "Anonymous";
+  img.crossOrigin = 'Anonymous';
   img.src = posterUrl;
   img.onload = async () => {
     const color = await getDominantColor(img);
@@ -715,12 +714,10 @@ async function renderHero() {
 
 // ========== GENRE TABS ==========
 function renderGenreTabs() {
-  $('genreTabs').innerHTML = GENRES.map(g =>
-    `<button class="${g === 'All' ? 'active' : ''}" data-genre="${g}">${g}</button>`
-  ).join('');
+  $('genreTabs').innerHTML = GENRES.map((g) => `<button class="${g === 'All' ? 'active' : ''}" data-genre="${g}">${g}</button>`).join('');
   $('genreTabs').addEventListener('click', (e) => {
     if (e.target.tagName !== 'BUTTON') return;
-    $('genreTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    $('genreTabs').querySelectorAll('button').forEach((b) => b.classList.remove('active'));
     e.target.classList.add('active');
     renderMovies(e.target.dataset.genre);
   });
@@ -729,37 +726,40 @@ function renderGenreTabs() {
 // ========== MOVIE GRID ==========
 function renderMovies(genre, searchTerm = '', lang = '', city = '') {
   let filtered = state.movies;
-  if (genre && genre !== 'All') filtered = filtered.filter(m => m.genre.includes(genre));
+  if (genre && genre !== 'All') filtered = filtered.filter((m) => m.genre.includes(genre));
   if (searchTerm) {
     const s = searchTerm.toLowerCase();
-    filtered = filtered.filter(m =>
-      m.title.toLowerCase().includes(s) || m.genre.toLowerCase().includes(s) || m.language.toLowerCase().includes(s)
-    );
+    filtered = filtered.filter((m) => m.title.toLowerCase().includes(s) || m.genre.toLowerCase().includes(s) || m.language.toLowerCase().includes(s));
   }
-  if (lang) filtered = filtered.filter(m => m.language === lang);
-  
+  if (lang) filtered = filtered.filter((m) => m.language === lang);
+
   if (city) {
     // Only show movies that have shows in the selected city
-    const theatresInCity = state.theatres.filter(t => t.city === city);
-    filtered = filtered.filter(m => {
-      return theatresInCity.some(t => t.shows && t.shows.length > 0);
+    const theatresInCity = state.theatres.filter((t) => t.city === city);
+    filtered = filtered.filter((m) => theatresInCity.some((t) => t.shows && t.shows.length > 0),
       // Note: In this app's seed, every theatre has all movies effectively (simplified)
       // but we filter by the existence of any theatre in that city to start.
-    });
+    );
   }
 
   const GENRE_COLORS = {
-    'Action': ['#e50914', '#7b0009'], 'Thriller': ['#1a1a2e', '#e50914'],
-    'Sci-Fi': ['#003366', '#0066cc'], 'Drama': ['#2c3e50', '#4ca1af'],
-    'Comedy': ['#f7971e', '#ffd200'], 'Horror': ['#0d0d0d', '#4a0008'],
-    'Romance': ['#f857a6', '#ff5858'], 'Anime': ['#7f00ff', '#e100ff'],
-    'Survival': ['#355c7d', '#6c5b7b'], 'Documentary': ['#232526', '#414345'],
-    'Biography': ['#4b3832', '#854442'], 'default': ['#1a1a2e', '#16213e']
+    Action: ['#e50914', '#7b0009'],
+    Thriller: ['#1a1a2e', '#e50914'],
+    'Sci-Fi': ['#003366', '#0066cc'],
+    Drama: ['#2c3e50', '#4ca1af'],
+    Comedy: ['#f7971e', '#ffd200'],
+    Horror: ['#0d0d0d', '#4a0008'],
+    Romance: ['#f857a6', '#ff5858'],
+    Anime: ['#7f00ff', '#e100ff'],
+    Survival: ['#355c7d', '#6c5b7b'],
+    Documentary: ['#232526', '#414345'],
+    Biography: ['#4b3832', '#854442'],
+    default: ['#1a1a2e', '#16213e'],
   };
 
-  $('movieGrid').innerHTML = filtered.length ? filtered.map(m => {
+  $('movieGrid').innerHTML = filtered.length ? filtered.map((m) => {
     const gc = GENRE_COLORS[m.genre] || GENRE_COLORS.default;
-    const fallbackId = 'fb_' + m.id;
+    const fallbackId = `fb_${m.id}`;
     const onErr = `this.style.display='none';document.getElementById('${fallbackId}').style.display='flex'`;
     return `
     <div class="movie-card" data-id="${m.id}">
@@ -791,7 +791,8 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
         <button class="btn-book" onclick="selectMovie(${m.id})">Book Now</button>
       </div>
     </div>
-  `}).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
+  `;
+  }).join('') : '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:3rem">No movies found</p>';
 
   // Removed 3D Tilt logic
 }
@@ -800,7 +801,7 @@ function renderMovies(genre, searchTerm = '', lang = '', city = '') {
 function initSearch() {
   const debouncedApplyFilters = debounce(applyFilters, 300);
   const debouncedRenderTheatres = debounce(renderTheatres, 300);
-  
+
   $('globalSearchInput').addEventListener('input', () => {
     if ($('moviesSection').classList.contains('active')) {
       debouncedApplyFilters();
@@ -808,12 +809,12 @@ function initSearch() {
       debouncedRenderTheatres();
     }
   });
-  
+
   $('langFilter').addEventListener('change', debouncedApplyFilters);
   $('cityFilter').addEventListener('change', async (e) => {
     if (e.target.value === '_detect_') {
       e.target.disabled = true;
-      const originalOptions = Array.from(e.target.options).map(o => o.value);
+      const originalOptions = Array.from(e.target.options).map((o) => o.value);
 
       try {
         const pos = await new Promise((resolve, reject) => {
@@ -865,7 +866,7 @@ function applyFilters() {
 // ========== NAVIGATION ==========
 function initNavigation() {
   // Nav links
-  document.querySelectorAll('.nav-links a[data-section]').forEach(a => {
+  document.querySelectorAll('.nav-links a[data-section]').forEach((a) => {
     a.addEventListener('click', () => showPage(a.dataset.section));
   });
   $('navLogo').addEventListener('click', () => showPage('heroSection'));
@@ -884,7 +885,7 @@ function initNavigation() {
 
   // Logout
   const logoutBtns = [$('logoutBtn'), $('mobileLogoutBtn')].filter(Boolean);
-  logoutBtns.forEach(btn => {
+  logoutBtns.forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       try {
@@ -916,21 +917,17 @@ function initNavigation() {
         return;
       }
 
-      const matchedMovies = state.movies.filter(m =>
-        m.title.toLowerCase().includes(query) ||
-        m.genre.toLowerCase().includes(query)
-      ).slice(0, 5); // top 5 results
+      const matchedMovies = state.movies.filter((m) => m.title.toLowerCase().includes(query)
+        || m.genre.toLowerCase().includes(query)).slice(0, 5); // top 5 results
 
-      const matchedTheatres = state.theatres.filter(t =>
-        t.name.toLowerCase().includes(query) ||
-        t.location.toLowerCase().includes(query) ||
-        t.city.toLowerCase().includes(query)
-      ).slice(0, 3);
+      const matchedTheatres = state.theatres.filter((t) => t.name.toLowerCase().includes(query)
+        || t.location.toLowerCase().includes(query)
+        || t.city.toLowerCase().includes(query)).slice(0, 3);
 
       let html = '';
       if (matchedMovies.length > 0) {
         html += '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;">Movies</div>';
-        matchedMovies.forEach(m => {
+        matchedMovies.forEach((m) => {
           html += `
             <div class="global-search-item fade-in" onclick="selectMovieFromGlobal(${m.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
               <img src="${m.poster}" style="width:30px;height:40px;border-radius:4px;object-fit:cover;">
@@ -946,7 +943,7 @@ function initNavigation() {
       if (matchedTheatres.length > 0) {
         if (html !== '') html += '<div style="margin:0.5rem 0;border-top:1px solid rgba(255,255,255,0.1);"></div>';
         html += '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;">Theatres</div>';
-        matchedTheatres.forEach(t => {
+        matchedTheatres.forEach((t) => {
           html += `
             <div class="global-search-item fade-in" onclick="selectTheatreFromGlobal(${t.id})" style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.75rem;">
               <div style="font-size:1.2rem;opacity:0.6;"></div>
@@ -1001,12 +998,12 @@ function initNavigation() {
       $('profileEmail').textContent = state.user.email;
       $('profileAvatar').textContent = state.user.name.charAt(0).toUpperCase();
       $('profileJoined').textContent = 'Today';
-      
+
       // Update points UI
       const points = state.user.points || 0;
       const progress = Math.min(100, (points / 1000) * 100);
       $('profilePoints').textContent = points.toLocaleString();
-      $('pointsProgress').style.width = progress + '%';
+      $('pointsProgress').style.width = `${progress}%`;
       $('pointsToNext').textContent = points >= 1000 ? 'You have a free snack!' : `${1000 - points} more to free snack`;
     }
     if ($('userDropdown')) $('userDropdown').classList.remove('show');
@@ -1028,9 +1025,9 @@ function initNavigation() {
   }
 
   // Bottom Nav Interactions
-  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+  document.querySelectorAll('.bottom-nav-item').forEach((item) => {
     item.addEventListener('click', () => {
-      const section = item.dataset.section;
+      const { section } = item.dataset;
       if (section) {
         showPage(section);
       }
@@ -1057,9 +1054,9 @@ function initNavigation() {
   });
 
   // Persona Selection
-  document.querySelectorAll('.persona-btn').forEach(btn => {
+  document.querySelectorAll('.persona-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.persona-btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       state.activePersona = btn.dataset.persona;
       recommendSeats(); // Auto-update recommendation
@@ -1077,7 +1074,7 @@ function initNavigation() {
 
 // ========== GLOBAL SEARCH HELPERS ==========
 function selectMovieFromGlobal(movieId) {
-  const movie = state.movies.find(m => m.id === movieId);
+  const movie = state.movies.find((m) => m.id === movieId);
   if (movie) {
     if ($('globalSearchResults')) $('globalSearchResults').style.display = 'none';
     if ($('globalSearchInput')) $('globalSearchInput').value = '';
@@ -1097,7 +1094,7 @@ function selectTheatreFromGlobal(theatreId) {
 
   showPage('theatreSection');
   const searchInput = $('theatreSearchInput');
-  const theatre = state.theatres.find(t => t.id === theatreId);
+  const theatre = state.theatres.find((t) => t.id === theatreId);
   if (searchInput && theatre) {
     searchInput.value = theatre.name;
     renderTheatres();
@@ -1139,7 +1136,7 @@ function showPage(id) {
   if (id === 'theatreSection') {
     renderTheatres();
   }
-  
+
   if (id === 'snacksSection') {
     renderSnacks();
     // Handle standalone vs booking context
@@ -1150,7 +1147,7 @@ function showPage(id) {
 
     if (backBtn) backBtn.style.display = isBooking ? 'block' : 'none';
     if (skipBtn) skipBtn.style.display = isBooking ? 'block' : 'none';
-    
+
     // Update confirm button text and logic
     if (confirmBtn) {
       if (isBooking) {
@@ -1166,9 +1163,9 @@ function showPage(id) {
       }
     }
   }
-  
+
   const pages = document.querySelectorAll('#mainApp .page');
-  pages.forEach(p => {
+  pages.forEach((p) => {
     p.classList.remove('active');
     p.style.opacity = '0';
     p.style.transform = 'translateY(8px)';
@@ -1176,21 +1173,21 @@ function showPage(id) {
 
   const activePage = $(id);
   activePage.classList.add('active');
-  
+
   // Smooth Entry Animation
   setTimeout(() => {
     activePage.style.transition = 'all 0.4s cubic-bezier(0.2, 0, 0.2, 1)';
     activePage.style.opacity = '1';
     activePage.style.transform = 'translateY(0)';
   }, 50);
-  
+
   // Desktop Nav Links
-  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach((a) => a.classList.remove('active'));
   const navA = document.querySelector(`.nav-links a[data-section="${id}"]`);
   if (navA) navA.classList.add('active');
 
   // Bottom Nav Links
-  document.querySelectorAll('.bottom-nav-item').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-item').forEach((a) => a.classList.remove('active'));
   const bottomA = document.querySelector(`.bottom-nav-item[data-section="${id}"]`);
   if (bottomA) bottomA.classList.add('active');
 
@@ -1201,11 +1198,11 @@ function showPage(id) {
 function selectMovie(movieOrId) {
   if (typeof movieOrId === 'number' || typeof movieOrId === 'string' || !movieOrId.title) {
     const id = (typeof movieOrId === 'object') ? movieOrId.id : movieOrId;
-    state.selectedMovie = state.movies.find(m => m.id == id);
+    state.selectedMovie = state.movies.find((m) => m.id == id);
   } else {
     state.selectedMovie = movieOrId;
   }
-  
+
   if (!state.selectedMovie) {
     console.error('Movie selection failed: Movie not found');
     showToast('Something went wrong. Please select another movie.');
@@ -1228,8 +1225,8 @@ function renderTheatres() {
       $('selectedMovieInfo').style.display = 'flex';
       const bgUrl = m.poster || '';
       $('selectedMovieInfo').style.setProperty('--movie-bg', bgUrl ? `url(${bgUrl})` : 'none');
-      
-      const posterHtml = m.poster 
+
+      const posterHtml = m.poster
         ? `<img src="${m.poster}" alt="${escapeHTML(m.title)}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=No+Poster'">`
         : `<div class="movie-poster-placeholder" style="width:150px;height:220px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.6);z-index:1;position:relative;">
              <div class="premium-sparkle-icon">
@@ -1251,31 +1248,27 @@ function renderTheatres() {
         </div>
       `;
     }
-  } else {
-    if ($('selectedMovieInfo')) {
-      $('selectedMovieInfo').style.display = 'none';
-      $('selectedMovieInfo').innerHTML = '';
-    }
+  } else if ($('selectedMovieInfo')) {
+    $('selectedMovieInfo').style.display = 'none';
+    $('selectedMovieInfo').innerHTML = '';
   }
 
   const city = $('cityFilter').value;
-  let theatres = state.theatres;
-  if (city) theatres = theatres.filter(t => t.city === city);
+  let { theatres } = state;
+  if (city) theatres = theatres.filter((t) => t.city === city);
 
   const searchInput = $('globalSearchInput');
   if (searchInput && searchInput.value) {
     const s = searchInput.value.toLowerCase();
-    theatres = theatres.filter(t =>
-      t.name.toLowerCase().includes(s) ||
-      t.location.toLowerCase().includes(s) ||
-      t.city.toLowerCase().includes(s)
-    );
+    theatres = theatres.filter((t) => t.name.toLowerCase().includes(s)
+      || t.location.toLowerCase().includes(s)
+      || t.city.toLowerCase().includes(s));
   }
 
   if (theatres.length === 0) {
     $('theatreList').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:3rem">No theatres found</p>';
   } else {
-    $('theatreList').innerHTML = theatres.map(t => `
+    $('theatreList').innerHTML = theatres.map((t) => `
       <div class="theatre-card">
         <h3>${escapeHTML(t.name)}</h3>
         <p class="location">${escapeHTML(t.location)}, ${escapeHTML(t.city)}</p>
@@ -1298,7 +1291,7 @@ async function selectShow(theatreId, showIndex) {
   // Tactile feedback (vibration) for mobile
   if (navigator.vibrate) navigator.vibrate(15);
 
-  const theatre = state.theatres.find(t => t.id === theatreId);
+  const theatre = state.theatres.find((t) => t.id === theatreId);
   state.selectedTheatre = theatre;
   state.selectedShow = theatre.shows[showIndex];
   state.selectedSeats = [];
@@ -1314,8 +1307,8 @@ async function selectShow(theatreId, showIndex) {
       body: JSON.stringify({
         theatreId,
         showIndex,
-        date: new Date().toISOString().split('T')[0]
-      })
+        date: new Date().toISOString().split('T')[0],
+      }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -1401,8 +1394,8 @@ function renderSeats() {
           theatreId: state.selectedTheatre.id,
           showIndex,
           date: new Date().toISOString().split('T')[0],
-          seats: state.selectedSeats
-        })
+          seats: state.selectedSeats,
+        }),
       });
       const data = await res.json();
 
@@ -1433,7 +1426,7 @@ function renderSnacks() {
   const grid = $('snacksGrid');
   if (!grid) return;
 
-  grid.innerHTML = SNACKS.map(s => {
+  grid.innerHTML = SNACKS.map((s) => {
     const qty = state.selectedSnacks[s.id] || 0;
     return `
       <div class="snack-card ${qty > 0 ? 'selected' : ''}">
@@ -1472,7 +1465,7 @@ function renderSnackTray() {
   }
 
   tray.innerHTML = selectedEntries.map(([id, qty]) => {
-    const snack = SNACKS.find(s => s.id === id);
+    const snack = SNACKS.find((s) => s.id === id);
     if (!snack) return '';
     return `
       <div class="tray-item" title="${escapeHTML(snack.name)}">
@@ -1488,9 +1481,9 @@ function updateSnackQty(id, delta, event) {
   const next = Math.max(0, current + delta);
   if (next === 0) delete state.selectedSnacks[id];
   else state.selectedSnacks[id] = next;
-  
+
   if (navigator.vibrate) navigator.vibrate(5);
-  
+
   // Trigger animation if adding
   if (delta > 0 && event) {
     animateSnackToTray(id, event.target);
@@ -1508,14 +1501,14 @@ function updateSnackQty(id, delta, event) {
 }
 
 function animateSnackToTray(snackId, targetElement) {
-  const snack = SNACKS.find(s => s.id === snackId);
+  const snack = SNACKS.find((s) => s.id === snackId);
   if (!snack) return;
 
   const rect = targetElement.getBoundingClientRect();
   const flying = document.createElement('img');
   flying.src = snack.image;
   flying.className = 'flying-snack';
-  
+
   // Start position
   flying.style.left = `${rect.left}px`;
   flying.style.top = `${rect.top}px`;
@@ -1529,29 +1522,29 @@ function animateSnackToTray(snackId, targetElement) {
 
   // Animate using Web Animations API
   flying.animate([
-    { 
-      left: `${rect.left}px`, 
-      top: `${rect.top}px`, 
+    {
+      left: `${rect.left}px`,
+      top: `${rect.top}px`,
       transform: 'scale(1) rotate(0deg)',
-      opacity: 1 
+      opacity: 1,
     },
-    { 
-      left: `${targetX}px`, 
-      top: `${targetY}px`, 
+    {
+      left: `${targetX}px`,
+      top: `${targetY}px`,
       transform: 'scale(0.3) rotate(360deg)',
-      opacity: 0.5 
-    }
+      opacity: 0.5,
+    },
   ], {
     duration: 800,
     easing: 'cubic-bezier(0.6, -0.28, 0.735, 0.045)', // Gravity/arc feel
-    fill: 'forwards'
+    fill: 'forwards',
   }).onfinish = () => {
     flying.remove();
     // Small bounce on tray
     tray.animate([
       { transform: 'scale(1)' },
       { transform: 'scale(1.02)' },
-      { transform: 'scale(1)' }
+      { transform: 'scale(1)' },
     ], { duration: 200 });
   };
 }
@@ -1560,7 +1553,7 @@ function updateSnacksSummary() {
   let total = 0;
   let count = 0;
   Object.entries(state.selectedSnacks).forEach(([id, qty]) => {
-    const snack = SNACKS.find(s => s.id === id);
+    const snack = SNACKS.find((s) => s.id === id);
     if (snack) {
       total += snack.price * qty;
       count += qty;
@@ -1569,7 +1562,7 @@ function updateSnacksSummary() {
 
   $('snacksCount').textContent = `${count} item${count !== 1 ? 's' : ''} added`;
   $('snacksTotal').textContent = `Total: ₹${total.toLocaleString()}`;
-  
+
   const confirmBtn = $('confirmSnacks');
   if (count > 0) {
     confirmBtn.textContent = 'Add & Continue →';
@@ -1641,7 +1634,7 @@ function stopLockTimer() {
 function toggleSeat(seatId, cat) {
   const idx = state.selectedSeats.indexOf(seatId);
   const seatEl = document.querySelector(`.seat[data-seat="${seatId}"]`);
-  
+
   if (idx === -1) {
     state.selectedSeats.push(seatId);
     if (seatEl) {
@@ -1662,23 +1655,23 @@ function updateSeatSummary() {
   if (state.selectedSeats.length === 0) { summary.style.display = 'none'; return; }
   summary.style.display = 'flex';
   $('selectedSeatsList').textContent = state.selectedSeats.join(', ');
-  
+
   const capacity = (state.takenSeats.length + state.lockedSeats.length) / 100;
   const isHighDemand = capacity >= 0.8;
   if ($('highDemandBadge')) $('highDemandBadge').style.display = isHighDemand ? 'block' : 'none';
 
   let total = 0;
   const cats = {};
-  state.selectedSeats.forEach(s => {
+  state.selectedSeats.forEach((s) => {
     const row = s.charAt(0);
     let cat = 'silver';
     if ('ABC'.includes(row)) cat = 'gold';
     else if ('HIJ'.includes(row)) cat = 'platinum';
-    
+
     let price = SEAT_PRICES[cat];
     if (isHighDemand && cat === 'platinum') price = Math.floor(price * 1.15);
     if (isHighDemand && cat === 'gold') price = Math.floor(price * 0.90);
-    
+
     total += price;
     cats[cat] = (cats[cat] || 0) + 1;
   });
@@ -1691,14 +1684,14 @@ let isAiScanning = false;
 async function runAiScanning(duration = 2000) {
   if (isAiScanning) return; // Prevent rapid invocations (CodeRabbit)
   isAiScanning = true;
-  
+
   const overlay = $('scanningOverlay');
   if (!overlay) { isAiScanning = false; return; }
-  
+
   overlay.classList.add('active');
   if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 50]);
-  
-  return new Promise(resolve => {
+
+  return new Promise((resolve) => {
     setTimeout(() => {
       overlay.classList.remove('active');
       isAiScanning = false;
@@ -1710,7 +1703,7 @@ async function runAiScanning(duration = 2000) {
 async function recommendSeats() {
   const n = parseInt($('groupSize') ? $('groupSize').value : 2) || 2;
   const persona = state.activePersona || 'Cinephile';
-  
+
   // 1. Waitlist / Rush Seating Analytics
   let isRushHour = false;
   try {
@@ -1721,7 +1714,7 @@ async function recommendSeats() {
       const match = showTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
       if (match) {
         let h = parseInt(match[1], 10);
-        let m = parseInt(match[2], 10);
+        const m = parseInt(match[2], 10);
         if (match[3]) {
           if (match[3].toUpperCase() === 'PM' && h < 12) h += 12;
           if (match[3].toUpperCase() === 'AM' && h === 12) h = 0;
@@ -1737,7 +1730,7 @@ async function recommendSeats() {
   }
 
   if (isRushHour) {
-    showToast("🕒 RUSH SEATING ACTIVE: Premium Front Rows (A-C) unlocked for walk-ins!");
+    showToast('🕒 RUSH SEATING ACTIVE: Premium Front Rows (A-C) unlocked for walk-ins!');
   }
 
   // 1.5 ACCESSIBILITY (ADA) BYPASS
@@ -1746,11 +1739,11 @@ async function recommendSeats() {
     const adaBlocks = [['J1', 'J2'], ['J9', 'J10'], ['D1', 'D2'], ['D9', 'D10']];
     state.selectedSeats = [];
     for (const block of adaBlocks) {
-      if (block.every(s => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s))) {
+      if (block.every((s) => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s))) {
         state.selectedSeats = block.slice(0, n);
         if (n > 2) {
-           const otherBlock = adaBlocks.find(b => b !== block && b.every(s => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s)));
-           if (otherBlock) state.selectedSeats = state.selectedSeats.concat(otherBlock.slice(0, n - 2));
+          const otherBlock = adaBlocks.find((b) => b !== block && b.every((s) => !state.takenSeats.includes(s) && !state.lockedSeats.includes(s)));
+          if (otherBlock) state.selectedSeats = state.selectedSeats.concat(otherBlock.slice(0, n - 2));
         }
         break;
       }
@@ -1760,28 +1753,26 @@ async function recommendSeats() {
       showToast(`ADA Mode: Secured ${state.selectedSeats.length} accessible seats.`);
       renderSeats();
       return;
-    } else {
-      showToast("ADA Mode: All accessible designated blocks are taken.");
-      renderSeats();
-      return;
     }
+    showToast('ADA Mode: All accessible designated blocks are taken.');
+    renderSeats();
+    return;
   }
 
-
   // 2. Dynamic Scanning Simulation with "Prime Zone" discovery
-  await runAiScanning(2500); 
-  
+  await runAiScanning(2500);
+
   state.selectedSeats = [];
   const rows = 'ABCDEFGHIJ'.split('');
-  let seatOptions = [];
+  const seatOptions = [];
 
   // 3. VISION PHYSICS: Priority Matrix
-  
+
   for (const row of rows) {
     const rowIndex = rows.indexOf(row);
     // WAITLIST BLOCK: Exclude Rows A-C unless Rush Hour is active
     if (!isRushHour && rowIndex < 3) continue;
-    
+
     const available = [];
     for (let s = 1; s <= 10; s++) {
       const seatId = row + s;
@@ -1791,196 +1782,195 @@ async function recommendSeats() {
     // Find consecutive potential blocks
     for (let i = 0; i <= available.length - n; i++) {
       const chunk = available.slice(i, i + n);
-      const nums = chunk.map(s => parseInt(s.slice(1)));
+      const nums = chunk.map((s) => parseInt(s.slice(1)));
       const isConsecutive = nums.every((v, j) => {
-          if (j === 0) return true;
-          if (v !== nums[j - 1] + 1) return false;
-          // Aisle check: seats are numerically consecutive but physically separated
-          if (nums[j-1] === 3 && v === 4) return false;
-          if (nums[j-1] === 7 && v === 8) return false;
-          return true;
+        if (j === 0) return true;
+        if (v !== nums[j - 1] + 1) return false;
+        // Aisle check: seats are numerically consecutive but physically separated
+        if (nums[j - 1] === 3 && v === 4) return false;
+        if (nums[j - 1] === 7 && v === 8) return false;
+        return true;
       });
-      
-        if (isConsecutive) {
-          const avgPos = nums.reduce((a, b) => a + b, 0) / n;
-          const rowIndex = rows.indexOf(row);
-          const y = rowIndex + 1; // 1-indexed (A=1, J=10)
-          const x = avgPos;
-          
-          let score = 0;
-          
-          if (persona === 'Couple') {
-             // Prefer Platinum (Rows H, I, J -> y=8,9,10) and corners
-             const yDist = Math.abs(10 - y); 
-             const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x)); // Distance to nearest edge
-             score = yDist * 2 + xDist;
-             if (y < 8) score += 20; // Heavy penalty for non-platinum
-          } else if (persona === 'Introvert') {
-             // Prefer Corners, strictly NOT platinum
-             const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x));
-             let yDist = Math.abs(4 - y); // Row D is y=4
-             score = yDist * 0.5 + xDist * 2;
-             if (y >= 8) score += 20; // Exclude Platinum
-             
-             let neighborsCount = 0;
-             nums.forEach(s => {
-               if (state.takenSeats.includes(row + (s-1)) || state.lockedSeats.includes(row + (s-1))) neighborsCount++;
-               if (state.takenSeats.includes(row + (s+1)) || state.lockedSeats.includes(row + (s+1))) neighborsCount++;
-             });
-             score += neighborsCount * 5; // Heavy penalty for neighbors
-          } else {
-             // ---------------------------------------------------------
-             // TRUE VIEWING ANGLE (ARC CALCULUS ALGORITHM)
-             // ---------------------------------------------------------
-             // 1. Neck Strain (Vertical Angle) & AI Target Override
-             // Rows 1-3 have severe neck strain. Rows 5-7 are ideal.
-             let neckStrain = 0;
-             if (y < 4) neckStrain = (4 - y) * 3; // +3 to +9 penalty
-             else if (y > 7) neckStrain = (y - 7) * 1.5; // Slight penalty for far back
-             
-             
-             // 2. Parallax Skew (Horizontal Viewing Cone)
-             // Skew matters A LOT in the front row, but barely matters in the back row.
-             // We divide the horizontal distance from center by the depth squared.
-             const xDistFromCenter = Math.abs(5.5 - x);
-             const depthFactor = y + 2; // +2 offsets the screen distance
-             const parallaxSkew = (xDistFromCenter * xDistFromCenter) / depthFactor * 2;
-             
-             // 3. Anti-Stranding Logic
-             // Penalize leaving exactly 1 empty seat next to the chunk
-             let strandingPenalty = 0;
-             const leftSeatObj = row + (nums[0] - 2);
-             const leftSeatBoundary = row + (nums[0] - 1);
-             const rightSeatObj = row + (nums[nums.length-1] + 2);
-             const rightSeatBoundary = row + (nums[nums.length-1] + 1);
-             
-             const isLeftStranded = (!state.takenSeats.includes(leftSeatBoundary) && !state.lockedSeats.includes(leftSeatBoundary) && nums[0] - 1 > 0) &&
-                                    (nums[0] - 2 === 0 || state.takenSeats.includes(leftSeatObj) || state.lockedSeats.includes(leftSeatObj));
-             const isRightStranded = (!state.takenSeats.includes(rightSeatBoundary) && !state.lockedSeats.includes(rightSeatBoundary) && nums[nums.length-1] + 1 <= 10) &&
-                                     (nums[nums.length-1] + 2 > 10 || state.takenSeats.includes(rightSeatObj) || state.lockedSeats.includes(rightSeatObj));
-             
-             if (isLeftStranded) strandingPenalty += 4;
-             if (isRightStranded) strandingPenalty += 4;
-             
-             score = neckStrain + parallaxSkew + strandingPenalty;
-             
-             // Cinephile is stricter on the sweet spot, Family is more forgiving but strongly hates stranding
-             if (persona === 'Cinephile') {
-                if (xDistFromCenter < 1.5 && y >= 5 && y <= 7) score -= 3; // Huge bonus for perfect center
-             } else if (persona === 'Friends' || persona === 'Family') {
-                if (strandingPenalty > 0) score += 5; // Absolutely hate stranding
-             }
+
+      if (isConsecutive) {
+        const avgPos = nums.reduce((a, b) => a + b, 0) / n;
+        const rowIndex = rows.indexOf(row);
+        const y = rowIndex + 1; // 1-indexed (A=1, J=10)
+        const x = avgPos;
+
+        let score = 0;
+
+        if (persona === 'Couple') {
+          // Prefer Platinum (Rows H, I, J -> y=8,9,10) and corners
+          const yDist = Math.abs(10 - y);
+          const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x)); // Distance to nearest edge
+          score = yDist * 2 + xDist;
+          if (y < 8) score += 20; // Heavy penalty for non-platinum
+        } else if (persona === 'Introvert') {
+          // Prefer Corners, strictly NOT platinum
+          const xDist = Math.min(Math.abs(1 - x), Math.abs(10 - x));
+          const yDist = Math.abs(4 - y); // Row D is y=4
+          score = yDist * 0.5 + xDist * 2;
+          if (y >= 8) score += 20; // Exclude Platinum
+
+          let neighborsCount = 0;
+          nums.forEach((s) => {
+            if (state.takenSeats.includes(row + (s - 1)) || state.lockedSeats.includes(row + (s - 1))) neighborsCount++;
+            if (state.takenSeats.includes(row + (s + 1)) || state.lockedSeats.includes(row + (s + 1))) neighborsCount++;
+          });
+          score += neighborsCount * 5; // Heavy penalty for neighbors
+        } else {
+          // ---------------------------------------------------------
+          // TRUE VIEWING ANGLE (ARC CALCULUS ALGORITHM)
+          // ---------------------------------------------------------
+          // 1. Neck Strain (Vertical Angle) & AI Target Override
+          // Rows 1-3 have severe neck strain. Rows 5-7 are ideal.
+          let neckStrain = 0;
+          if (y < 4) neckStrain = (4 - y) * 3; // +3 to +9 penalty
+          else if (y > 7) neckStrain = (y - 7) * 1.5; // Slight penalty for far back
+
+          // 2. Parallax Skew (Horizontal Viewing Cone)
+          // Skew matters A LOT in the front row, but barely matters in the back row.
+          // We divide the horizontal distance from center by the depth squared.
+          const xDistFromCenter = Math.abs(5.5 - x);
+          const depthFactor = y + 2; // +2 offsets the screen distance
+          const parallaxSkew = (xDistFromCenter * xDistFromCenter) / depthFactor * 2;
+
+          // 3. Anti-Stranding Logic
+          // Penalize leaving exactly 1 empty seat next to the chunk
+          let strandingPenalty = 0;
+          const leftSeatObj = row + (nums[0] - 2);
+          const leftSeatBoundary = row + (nums[0] - 1);
+          const rightSeatObj = row + (nums[nums.length - 1] + 2);
+          const rightSeatBoundary = row + (nums[nums.length - 1] + 1);
+
+          const isLeftStranded = (!state.takenSeats.includes(leftSeatBoundary) && !state.lockedSeats.includes(leftSeatBoundary) && nums[0] - 1 > 0)
+                                    && (nums[0] - 2 === 0 || state.takenSeats.includes(leftSeatObj) || state.lockedSeats.includes(leftSeatObj));
+          const isRightStranded = (!state.takenSeats.includes(rightSeatBoundary) && !state.lockedSeats.includes(rightSeatBoundary) && nums[nums.length - 1] + 1 <= 10)
+                                     && (nums[nums.length - 1] + 2 > 10 || state.takenSeats.includes(rightSeatObj) || state.lockedSeats.includes(rightSeatObj));
+
+          if (isLeftStranded) strandingPenalty += 4;
+          if (isRightStranded) strandingPenalty += 4;
+
+          score = neckStrain + parallaxSkew + strandingPenalty;
+
+          // Cinephile is stricter on the sweet spot, Family is more forgiving but strongly hates stranding
+          if (persona === 'Cinephile') {
+            if (xDistFromCenter < 1.5 && y >= 5 && y <= 7) score -= 3; // Huge bonus for perfect center
+          } else if (persona === 'Friends' || persona === 'Family') {
+            if (strandingPenalty > 0) score += 5; // Absolutely hate stranding
           }
-          
-          score += Math.random() * 0.2; // Tiny tie-breaker
-          seatOptions.push({ chunk, score });
         }
+
+        score += Math.random() * 0.2; // Tiny tie-breaker
+        seatOptions.push({ chunk, score });
+      }
     }
   }
 
-    // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters (especially for 4+)
-    if (seatOptions.length === 0 && n >= 4) {
-      const splitSize = Math.floor(n / 2);
-      const rem = n - splitSize; // Renamed to avoid confusion (CodeRabbit)
-      
-      // Attempt to find two separate blocks
-      let subOptions = [];
-      
-      // Find all possible smaller blocks
-      const smallerBlocks = [];
-      const remainderBlocks = []; // For the second half if different size
+  // 3. CLUSTER IQ: If no premium large block found, split into Mirror Clusters (especially for 4+)
+  if (seatOptions.length === 0 && n >= 4) {
+    const splitSize = Math.floor(n / 2);
+    const rem = n - splitSize; // Renamed to avoid confusion (CodeRabbit)
 
-      for (const row of rows) {
-        const rowIndex = rows.indexOf(row);
-        // WAITLIST BLOCK: Combine rule applies here too
-        if (!isRushHour && rowIndex < 3) continue;
+    // Attempt to find two separate blocks
+    const subOptions = [];
 
-        const avail = [];
-        for (let s = 1; s <= 10; s++) {
-          const id = row + s;
-          if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) avail.push(id);
+    // Find all possible smaller blocks
+    const smallerBlocks = [];
+    const remainderBlocks = []; // For the second half if different size
+
+    for (const row of rows) {
+      const rowIndex = rows.indexOf(row);
+      // WAITLIST BLOCK: Combine rule applies here too
+      if (!isRushHour && rowIndex < 3) continue;
+
+      const avail = [];
+      for (let s = 1; s <= 10; s++) {
+        const id = row + s;
+        if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) avail.push(id);
+      }
+
+      // Find blocks of splitSize
+      for (let i = 0; i <= avail.length - splitSize; i++) {
+        const chunk = avail.slice(i, i + splitSize);
+        const nums = chunk.map((s) => parseInt(s.slice(1)));
+        const isConsec = nums.every((v, j) => j === 0 || (v === nums[j - 1] + 1 && !(nums[j - 1] === 3 && v === 4) && !(nums[j - 1] === 7 && v === 8)));
+        if (isConsec) {
+          smallerBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a, b) => a + b, 0) / splitSize)) });
         }
+      }
 
-        // Find blocks of splitSize
-        for (let i = 0; i <= avail.length - splitSize; i++) {
-          const chunk = avail.slice(i, i + splitSize);
-          const nums = chunk.map(s => parseInt(s.slice(1)));
-          const isConsec = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
+      // Find blocks of rem (if different)
+      if (rem !== splitSize) {
+        for (let i = 0; i <= avail.length - rem; i++) {
+          const chunk = avail.slice(i, i + rem);
+          const nums = chunk.map((s) => parseInt(s.slice(1)));
+          const isConsec = nums.every((v, j) => j === 0 || (v === nums[j - 1] + 1 && !(nums[j - 1] === 3 && v === 4) && !(nums[j - 1] === 7 && v === 8)));
           if (isConsec) {
-            smallerBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a,b)=>a+b,0)/splitSize)) });
+            remainderBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a, b) => a + b, 0) / rem)) });
           }
         }
-
-        // Find blocks of rem (if different)
-        if (rem !== splitSize) {
-          for (let i = 0; i <= avail.length - rem; i++) {
-            const chunk = avail.slice(i, i + rem);
-            const nums = chunk.map(s => parseInt(s.slice(1)));
-            const isConsec = nums.every((v, j) => j === 0 || (v === nums[j-1] + 1 && !(nums[j-1] === 3 && v === 4) && !(nums[j-1] === 7 && v === 8)));
-            if (isConsec) {
-              remainderBlocks.push({ chunk, rowIndex: rows.indexOf(row), score: Math.abs(5.5 - (nums.reduce((a,b)=>a+b,0)/rem)) });
-            }
-          }
-        }
-      }
-
-      const secondSet = rem === splitSize ? smallerBlocks : remainderBlocks;
-
-      // Try to pair them (Fixed: 'remainder' bug - CodeRabbit)
-      for (let i = 0; i < smallerBlocks.length; i++) {
-        for (let j = 0; j < secondSet.length; j++) {
-          const b1 = smallerBlocks[i];
-          const b2 = secondSet[j];
-          if (b1 === b2) continue; // Don't pair with self
-          
-          // Check if overlapping
-          const allSeats = [...b1.chunk, ...b2.chunk];
-          if (new Set(allSeats).size < (b1.chunk.length + b2.chunk.length)) continue;
-
-          let pairScore = b1.score + b2.score;
-          const rowDiff = Math.abs(b1.rowIndex - b2.rowIndex);
-          
-          if (rowDiff === 0) pairScore *= 0.8;
-          else if (rowDiff === 1) pairScore *= 0.9;
-          else pairScore *= (1 + rowDiff * 0.5);
-
-          const avgCol1 = b1.chunk.map(s => parseInt(s.slice(1))).reduce((a,b)=>a+b,0) / b1.chunk.length;
-          const avgCol2 = b2.chunk.map(s => parseInt(s.slice(1))).reduce((a,b)=>a+b,0) / b2.chunk.length;
-          const colDiff = Math.abs(avgCol1 - avgCol2);
-          pairScore += colDiff * 2; // Penalty for horizontal separation
-
-          subOptions.push({ chunk: allSeats, score: pairScore });
-        }
-      }
-      
-      if (subOptions.length > 0) {
-        subOptions.sort((a, b) => a.score - b.score);
-        seatOptions.push(subOptions[0]);
       }
     }
 
+    const secondSet = rem === splitSize ? smallerBlocks : remainderBlocks;
+
+    // Try to pair them (Fixed: 'remainder' bug - CodeRabbit)
+    for (let i = 0; i < smallerBlocks.length; i++) {
+      for (let j = 0; j < secondSet.length; j++) {
+        const b1 = smallerBlocks[i];
+        const b2 = secondSet[j];
+        if (b1 === b2) continue; // Don't pair with self
+
+        // Check if overlapping
+        const allSeats = [...b1.chunk, ...b2.chunk];
+        if (new Set(allSeats).size < (b1.chunk.length + b2.chunk.length)) continue;
+
+        let pairScore = b1.score + b2.score;
+        const rowDiff = Math.abs(b1.rowIndex - b2.rowIndex);
+
+        if (rowDiff === 0) pairScore *= 0.8;
+        else if (rowDiff === 1) pairScore *= 0.9;
+        else pairScore *= (1 + rowDiff * 0.5);
+
+        const avgCol1 = b1.chunk.map((s) => parseInt(s.slice(1))).reduce((a, b) => a + b, 0) / b1.chunk.length;
+        const avgCol2 = b2.chunk.map((s) => parseInt(s.slice(1))).reduce((a, b) => a + b, 0) / b2.chunk.length;
+        const colDiff = Math.abs(avgCol1 - avgCol2);
+        pairScore += colDiff * 2; // Penalty for horizontal separation
+
+        subOptions.push({ chunk: allSeats, score: pairScore });
+      }
+    }
+
+    if (subOptions.length > 0) {
+      subOptions.sort((a, b) => a.score - b.score);
+      seatOptions.push(subOptions[0]);
+    }
+  }
+
   // 4. Final Selection with Variety Cluster (Top K)
-  seatOptions.sort((a,b) => a.score - b.score);
+  seatOptions.sort((a, b) => a.score - b.score);
 
   if (seatOptions.length > 0) {
     // Pick randomly from the top 3 options if available for better variety
     const k = Math.min(3, seatOptions.length);
     const selectedOption = seatOptions[Math.floor(Math.random() * k)];
-    
+
     state.selectedSeats = selectedOption.chunk;
     updateSeatSummary();
-    
-    const rationale = (persona === 'Couple' && state.selectedSeats.some(s => s.endsWith('1') || s.endsWith('10'))) 
-      ? "Corner Privacy Mode" 
-      : (persona === 'Introvert' ? "Social Distancing Mode" : 
-        (n >= 4 && !selectedOption.chunk.every(s => s.charAt(0) === selectedOption.chunk[0].charAt(0)) ? "Smart Group Split" : "Vision Variety Cluster"));
+
+    const rationale = (persona === 'Couple' && state.selectedSeats.some((s) => s.endsWith('1') || s.endsWith('10')))
+      ? 'Corner Privacy Mode'
+      : (persona === 'Introvert' ? 'Social Distancing Mode'
+        : (n >= 4 && !selectedOption.chunk.every((s) => s.charAt(0) === selectedOption.chunk[0].charAt(0)) ? 'Smart Group Split' : 'Vision Variety Cluster'));
     showToast(`Vision IQ 9.2: ${state.selectedSeats.length} seats secured. Logic: ${rationale}.`);
-    
+
     // Clear old visual classes
-    document.querySelectorAll('.seat.recommended, .seat.selected').forEach(s => {
+    document.querySelectorAll('.seat.recommended, .seat.selected').forEach((s) => {
       s.classList.remove('recommended', 'selected', 'gold-cat');
     });
-    
+
     // High-end animation feedback
     state.selectedSeats.forEach((seatId, i) => {
       setTimeout(() => {
@@ -2002,7 +1992,7 @@ async function recommendSeats() {
       const rowIndex = rows.indexOf(row);
       // WAITLIST BLOCK
       if (!isRushHour && rowIndex < 3) continue;
-      
+
       for (let s = 1; s <= 10; s++) {
         const id = row + s;
         if (!state.takenSeats.includes(id) && !state.lockedSeats.includes(id)) allAvailable.push(id);
@@ -2011,9 +2001,9 @@ async function recommendSeats() {
     state.selectedSeats = allAvailable.slice(0, n);
     updateSeatSummary();
     if (state.selectedSeats.length > 0) {
-      showToast(`Vision IQ 8.7: Randomized best available seats.`);
+      showToast('Vision IQ 8.7: Randomized best available seats.');
     } else {
-      showToast(isRushHour ? "Vision IQ: Cinema is fully booked!" : "Vision IQ: All prime seats taken! Front row Waitlist blocked until 30 mins before showtime.");
+      showToast(isRushHour ? 'Vision IQ: Cinema is fully booked!' : 'Vision IQ: All prime seats taken! Front row Waitlist blocked until 30 mins before showtime.');
     }
   }
   renderSeats();
@@ -2024,21 +2014,21 @@ function renderPayment() {
   const m = state.selectedMovie;
   const t = state.selectedTheatre;
   const s = state.selectedShow;
-  
+
   const capacity = (state.takenSeats.length + state.lockedSeats.length) / 100;
   const isHighDemand = capacity >= 0.8;
-  
+
   let total = 0;
-  state.selectedSeats.forEach(seat => {
+  state.selectedSeats.forEach((seat) => {
     const row = seat.charAt(0);
     let cat = 'silver';
     if ('ABC'.includes(row)) cat = 'gold';
     else if ('HIJ'.includes(row)) cat = 'platinum';
-    
+
     let price = SEAT_PRICES[cat];
     if (isHighDemand && cat === 'platinum') price = Math.floor(price * 1.15);
     if (isHighDemand && cat === 'gold') price = Math.floor(price * 0.90);
-    
+
     total += price;
   });
   const convFee = Math.round(total * 0.05);
@@ -2046,7 +2036,7 @@ function renderPayment() {
   let snacksTotal = 0;
   let snacksHtml = '';
   Object.entries(state.selectedSnacks).forEach(([id, qty]) => {
-    const snack = SNACKS.find(s => s.id === id);
+    const snack = SNACKS.find((s) => s.id === id);
     if (snack) {
       const sub = snack.price * qty;
       snacksTotal += sub;
@@ -2055,7 +2045,9 @@ function renderPayment() {
   });
 
   const today = new Date();
-  const dateStr = today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const dateStr = today.toLocaleDateString('en-IN', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  });
 
   $('orderSummary').innerHTML = `
     <h2>Summary</h2>
@@ -2081,7 +2073,7 @@ function renderPayment() {
   });
   $('cardExpiry').addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '').substring(0, 4);
-    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    if (v.length > 2) v = `${v.slice(0, 2)}/${v.slice(2)}`;
     e.target.value = v;
   });
 
@@ -2107,7 +2099,7 @@ function renderPayment() {
     }
     const [mm, yy] = cardExp.split('/');
     const month = parseInt(mm, 10);
-    const year = parseInt('20' + yy, 10);
+    const year = parseInt(`20${yy}`, 10);
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
@@ -2136,26 +2128,26 @@ function renderPayment() {
     setTimeout(async () => {
       stopLockTimer(); // Clear the lock timer
 
-      const bookingId = 'CB' + Date.now().toString(36).toUpperCase();
+      const bookingId = `CB${Date.now().toString(36).toUpperCase()}`;
 
       if (state.user) {
         if (!state.user.bookings) state.user.bookings = [];
-        
+
         // Award CinePoints (10% of booking total)
         const pointsEarned = Math.floor(finalTotal * 0.1);
-        
+
         const bookingData = {
-          bookingId: bookingId,
+          bookingId,
           movie: state.selectedMovie.title,
           poster: state.selectedMovie.poster,
-          theatre: state.selectedTheatre.name + ', ' + state.selectedTheatre.location,
+          theatre: `${state.selectedTheatre.name}, ${state.selectedTheatre.location}`,
           theatreId: state.selectedTheatre.id,
           showIndex: state.selectedTheatre.shows.indexOf(state.selectedShow),
           date: dateStr,
-          time: state.selectedShow.time + ' (' + state.selectedShow.format + ')',
+          time: `${state.selectedShow.time} (${state.selectedShow.format})`,
           seats: state.selectedSeats,
           amount: finalTotal,
-          pointsEarned: pointsEarned
+          pointsEarned,
         };
 
         // Persist to BACKEND (The Bridge)
@@ -2163,14 +2155,14 @@ function renderPayment() {
           await fetch('/api/bookings/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingData)
+            body: JSON.stringify(bookingData),
           });
         } catch (backendErr) {
           console.warn('Backend persistence failed (offline mode):', backendErr);
         }
 
         state.user.points = (state.user.points || 0) + pointsEarned;
-        state.user.bookings.unshift({...bookingData, seats: bookingData.seats.join(', ')});
+        state.user.bookings.unshift({ ...bookingData, seats: bookingData.seats.join(', ') });
         saveState();
         showToast(`Congrats! You earned ${pointsEarned} CinePoints!`);
       }
@@ -2188,24 +2180,24 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
   const m = state.selectedMovie;
   const t = state.selectedTheatre;
   const s = state.selectedShow;
-  const bookingId = passBookingId || ('CB' + Date.now().toString(36).toUpperCase());
+  const bookingId = passBookingId || (`CB${Date.now().toString(36).toUpperCase()}`);
 
   $('ticketMovieName').textContent = m.title;
-  $('ticketTheatre').textContent = t.name + ', ' + t.location;
+  $('ticketTheatre').textContent = `${t.name}, ${t.location}`;
   $('ticketDate').textContent = dateStr;
-  $('ticketTime').textContent = s.time + ' (' + s.format + ')';
+  $('ticketTime').textContent = `${s.time} (${s.format})`;
   $('ticketSeats').textContent = state.selectedSeats.join(', ');
-  $('ticketAmount').textContent = '₹' + totalAmount.toLocaleString();
+  $('ticketAmount').textContent = `₹${totalAmount.toLocaleString()}`;
   $('ticketBookingId').textContent = bookingId;
 
   // QR encodes all ticket details
   drawQR(bookingId, {
     movie: m.title,
-    theatre: t.name + ', ' + t.location,
+    theatre: `${t.name}, ${t.location}`,
     date: dateStr,
-    time: s.time + ' (' + s.format + ')',
+    time: `${s.time} (${s.format})`,
     seats: state.selectedSeats.join(', '),
-    amount: '₹' + totalAmount.toLocaleString()
+    amount: `₹${totalAmount.toLocaleString()}`,
   });
 
   // Download
@@ -2222,7 +2214,7 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
         scale: 2,
         backgroundColor: '#0d0d1a',
         useCORS: true,
-        logging: false
+        logging: false,
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -2230,7 +2222,7 @@ function renderTicket(totalAmount, dateStr, passBookingId) {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
-        format: [canvas.width / 2, canvas.height / 2]
+        format: [canvas.width / 2, canvas.height / 2],
       });
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
       const bookingId = $('ticketBookingId').textContent || 'ticket';
@@ -2264,13 +2256,13 @@ function drawQR(bookingId, ticketInfo) {
       theatre: ticketInfo.theatre,
       date: ticketInfo.date,
       time: ticketInfo.time,
-      seats: ticketInfo.seats
+      seats: ticketInfo.seats,
     });
 
-    const path = window.location.pathname.endsWith('index.html') 
-      ? window.location.pathname.replace('index.html', '') 
-      : window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
-    
+    const path = window.location.pathname.endsWith('index.html')
+      ? window.location.pathname.replace('index.html', '')
+      : window.location.pathname.endsWith('/') ? window.location.pathname : `${window.location.pathname}/`;
+
     const baseUrl = window.location.origin + path;
     const verifyUrl = `${baseUrl}verify.html?data=${encodeURIComponent(btoa(ticketDetails))}`;
 
@@ -2293,7 +2285,7 @@ function drawQR(bookingId, ticketInfo) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 120, 120);
     ctx.fillStyle = '#000'; ctx.font = '9px monospace';
-    ctx.fillText('ID: ' + bookingId, 8, 60);
+    ctx.fillText(`ID: ${bookingId}`, 8, 60);
   }
 }
 // ========== MY BOOKINGS ==========
@@ -2305,7 +2297,7 @@ function renderMyBookings() {
     return;
   }
 
-  container.innerHTML = state.user.bookings.map(b => `
+  container.innerHTML = state.user.bookings.map((b) => `
     <div class="ticket-card" style="margin: 0 auto; margin-bottom: 2rem;">
       <div class="ticket-card-header">
         <h3 style="margin:0">${escapeHTML(b.movie)}</h3>
@@ -2368,7 +2360,7 @@ function initProfileActions() {
         const res = await fetch('/api/auth/change-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentPassword, newPassword })
+          body: JSON.stringify({ currentPassword, newPassword }),
         });
         const data = await res.json();
 
@@ -2403,9 +2395,9 @@ initProfileActions();
 // Verification link handler (CodeRabbit: ensure invocation)
 const params = new URLSearchParams(window.location.search);
 if (params.has('verify') && params.has('email')) {
-    handleEmailVerification(params.get('verify'), params.get('email'));
-    // Clean URL
-    window.history.replaceState({}, document.title, window.location.pathname);
+  handleEmailVerification(params.get('verify'), params.get('email'));
+  // Clean URL
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 // Try to auto-login via JWT cookie
@@ -2416,10 +2408,10 @@ if (params.has('verify') && params.has('email')) {
     // Still run the rest of the logic to set up the auth page
   } else {
     try {
-      const res = await fetchWithTimeout('/api/auth/me', { 
-        credentials: 'same-origin', 
+      const res = await fetchWithTimeout('/api/auth/me', {
+        credentials: 'same-origin',
         timeout: 8000,
-        cache: 'no-store' // Force browser to bypass local fetch cache
+        cache: 'no-store', // Force browser to bypass local fetch cache
       });
       if (res.ok) {
         const data = await res.json();
@@ -2436,13 +2428,13 @@ if (params.has('verify') && params.has('email')) {
   // No valid session — show auth page with correct tab
   const hasVisited = localStorage.getItem('cintic_visited');
   const tabs = document.querySelectorAll('.auth-tab');
-  
+
   const authPage = $('authPage');
   if (authPage) {
     authPage.classList.add('active');
     console.log('Guest user detected, showing auth overlay');
   }
-  
+
   if (!hasVisited) {
     if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
     showToast('Welcome! Join CinTic today to book your favorite movies.');
@@ -2451,15 +2443,15 @@ if (params.has('verify') && params.has('email')) {
     // Default is usually logic tab, only click if it's not active
     if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
   }
-  
+
   // Initialize auth forms and logic
   initAuth();
-  
+
   // Load data immediately even for guests
   initApp();
   const mainApp = $('mainApp');
   if (mainApp) mainApp.style.display = 'block';
-})();
+}());
 
 // ========== AI CONCIERGE LOGIC ==========
 function initChatbot() {
@@ -2479,7 +2471,7 @@ function initChatbot() {
   const addMsg = (text, sender, isMedia = false) => {
     const div = document.createElement('div');
     div.className = `message ${sender} ${isMedia ? 'media-container' : ''}`;
-    
+
     if (isMedia) {
       // isMedia is only used for bot-generated template content (like recommendations)
       // which we control via renderMovieCards. Regular text uses textContent.
@@ -2487,7 +2479,7 @@ function initChatbot() {
     } else {
       div.textContent = text;
     }
-    
+
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
@@ -2496,22 +2488,22 @@ function initChatbot() {
   const renderMovieCards = (movies) => {
     const scrollDiv = document.createElement('div');
     scrollDiv.className = 'chat-media-scroll';
-    
-    movies.forEach(m => {
+
+    movies.forEach((m) => {
       const card = document.createElement('div');
       card.className = 'chat-movie-mini-card';
-      
+
       // Use secure elements for user-controlled/external data (CodeRabbit)
       const img = document.createElement('img');
       img.src = m.poster;
       img.alt = m.title;
-      
+
       const info = document.createElement('div');
       info.className = 'mini-card-info';
-      
+
       const h6 = document.createElement('h6');
       h6.textContent = m.title;
-      
+
       const meta = document.createElement('div');
       meta.className = 'mini-meta';
       const ratingSpan = document.createElement('span');
@@ -2522,7 +2514,7 @@ function initChatbot() {
       genreSpan.textContent = m.genre.split(', ')[0];
       meta.appendChild(ratingSpan);
       meta.appendChild(genreSpan);
-      
+
       const btn = document.createElement('button');
       btn.className = 'mini-book-btn';
       btn.textContent = 'Book';
@@ -2530,16 +2522,16 @@ function initChatbot() {
         $('chatWindow').classList.remove('active');
         selectMovie(m.id);
       };
-      
+
       info.appendChild(h6);
       info.appendChild(meta);
       info.appendChild(btn);
-      
+
       card.appendChild(img);
       card.appendChild(info);
       scrollDiv.appendChild(card);
     });
-    
+
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message bot media';
     msgDiv.appendChild(scrollDiv);
@@ -2561,32 +2553,32 @@ function initChatbot() {
       // Prepare user data for personalization
       const userData = state.user ? {
         points: state.user.points || 0,
-        bookings: state.user.bookings || []
+        bookings: state.user.bookings || [],
       } : null;
 
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: val,
-          userData: userData,
+          userData,
           context: {
             currentView: document.querySelector('.section.active')?.id || 'home',
             selectedMovie: state.selectedMovie?.title,
             selectedTheatre: state.selectedTheatre?.name,
-            selectedSeats: state.selectedSeats
-          }
-        })
+            selectedSeats: state.selectedSeats,
+          },
+        }),
       });
       const data = await res.json();
-      
+
       typing.textContent = data.response;
-      
+
       if (data.recommendations && data.recommendations.length > 0) {
         setTimeout(() => renderMovieCards(data.recommendations), 400);
       }
     } catch (e) {
-      typing.textContent = "I apologize, but I am currently unable to process your request. Please try again later.";
+      typing.textContent = 'I apologize, but I am currently unable to process your request. Please try again later.';
     }
   };
 

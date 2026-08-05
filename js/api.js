@@ -19,7 +19,7 @@ export const API = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
     },
     async register(name, email, password) {
@@ -27,7 +27,7 @@ export const API = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password }),
       });
     },
     async googleLogin(credential, mode) {
@@ -35,33 +35,33 @@ export const API = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ credential, mode })
+        body: JSON.stringify({ credential, mode }),
       });
     },
     async verifyEmail(token, email) {
       return fetch(`${API_BASE}/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, email })
+        body: JSON.stringify({ token, email }),
       });
     },
     async forgotPassword(email) {
       return fetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
     },
     async resetPassword(email, token, newPassword) {
       return fetch(`${API_BASE}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token, newPassword })
+        body: JSON.stringify({ email, token, newPassword }),
       });
     },
     async logout() {
       return fetch(`${API_BASE}/auth/logout`, { credentials: 'same-origin' });
-    }
+    },
   },
 
   /**
@@ -70,12 +70,12 @@ export const API = {
   movies: {
     async getAll() {
       return fetchWithTimeout(`${API_BASE}/movies`, { timeout: 5000 });
-    }
+    },
   },
   theatres: {
     async getAll() {
       return fetchWithTimeout(`${API_BASE}/theatres`, { timeout: 5000 });
-    }
+    },
   },
 
   /**
@@ -86,24 +86,26 @@ export const API = {
       return fetch(`${API_BASE}/check-locked-seats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theatreId, showIndex, date })
+        body: JSON.stringify({ theatreId, showIndex, date }),
       });
     },
     async lockSeats(theatreId, showIndex, date, seats) {
       return fetch(`${API_BASE}/lock-seats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theatreId, showIndex, date, seats })
+        body: JSON.stringify({
+          theatreId, showIndex, date, seats,
+        }),
       });
     },
     async createBooking(bookingData) {
       return fetch(`${API_BASE}/booking`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData)
+        body: JSON.stringify(bookingData),
       });
-    }
-  }
+    },
+  },
 };
 
 export default API;

@@ -30,16 +30,16 @@ export const $ = (id) => document.getElementById(id);
 export function showToast(msg, duration = 3000, isHtml = false) {
   const t = $('toast');
   if (!t) return;
-  
+
   if (isHtml) {
     t.innerHTML = msg;
   } else {
     t.textContent = msg;
   }
   t.classList.add('show');
-  
+
   if (t._timeout) clearTimeout(t._timeout);
-  
+
   t._timeout = setTimeout(() => {
     t.classList.remove('show');
     t._timeout = null;
@@ -50,13 +50,13 @@ export function showToast(msg, duration = 3000, isHtml = false) {
  * Basic HTML escaping for security
  */
 export function escapeHTML(str) {
-  if (str === null || str === undefined) return "";
+  if (str === null || str === undefined) return '';
   return String(str).replace(/[&<>"']/g, (m) => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;'
+    "'": '&#39;',
   })[m]);
 }
 
@@ -90,10 +90,10 @@ export function getCookie(name) {
  */
 export function initCSRF() {
   const originalFetch = window.fetch;
-  window.fetch = function(url, options = {}) {
+  window.fetch = function (url, options = {}) {
     const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
     const isMutative = options.method && ['POST', 'PUT', 'DELETE'].includes(options.method.toUpperCase());
-    
+
     if (isLocal && isMutative) {
       options.headers = options.headers || {};
       const csrfToken = getCookie('csrf_token');
