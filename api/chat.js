@@ -80,7 +80,8 @@ async function checkMaliciousIntent(message, groqKey) {
 
     if (!res.ok) {
       judgeFailureStreak += 1;
-      console.error('Judge model non-OK response:', res.status);
+      const errorText = await res.text();
+      console.error(`Judge model non-OK response: ${res.status}. Body: ${errorText}`);
       return { unsafe: judgeFailureStreak >= JUDGE_FAILURE_BLOCK_THRESHOLD, failed: true };
     }
 
@@ -190,7 +191,8 @@ module.exports = async (req, res) => {
     }, CHAT_TIMEOUT_MS);
 
     if (!groqRes.ok) {
-      console.error('Chat model non-OK response:', groqRes.status);
+      const errorText = await groqRes.text();
+      console.error(`Chat model non-OK response: ${groqRes.status}. Body: ${errorText}`);
       return res.status(502).json({ response: FRIENDLY_RETRY_MESSAGE });
     }
 
