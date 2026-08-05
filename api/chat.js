@@ -2,8 +2,8 @@ const { connectToDatabase } = require('./_lib/utils/db');
 const { authMiddleware } = require('./_lib/utils/jwt');
 const sanitize = require('./_lib/utils/sanitize');
 
-const JUDGE_MODEL = "qwen/qwen3.6-27b";
-const CHAT_MODEL = "qwen/qwen3.6-27b";
+const JUDGE_MODEL = "openai/gpt-oss-20b";
+const CHAT_MODEL = "openai/gpt-oss-20b";
 const JUDGE_TIMEOUT_MS = 6000;
 const CHAT_TIMEOUT_MS = 12000;
 const JUDGE_FAILURE_BLOCK_THRESHOLD = 3;
@@ -185,7 +185,7 @@ module.exports = async (req, res) => {
           { role: "user", content: `${sD}\n${processed}\n${eD}` }
         ],
         temperature: 0.1,
-        max_tokens: 4096,
+        max_tokens: 2048,
         include_reasoning: false
       })
     }, CHAT_TIMEOUT_MS);
