@@ -1,9 +1,9 @@
 import {
   $, fetchWithTimeout, showToast, escapeHTML, debounce, getCookie, initCSRF,
-} from './js/utils.js';
-import API from './js/api.js';
-import stateStore, { SEAT_PRICES, GENRES, SNACKS } from './js/state.js';
-import { getDominantColor, updateTheme, initScrollAnimations } from './js/theme.js';
+} from './utils.js';
+import API from './api.js';
+import stateStore, { SEAT_PRICES, GENRES, SNACKS } from './state.js';
+import { getDominantColor, updateTheme, initScrollAnimations } from './theme.js';
 
 /* ============================================
    CINTIC — Movie Ticket Booking App
