@@ -11,7 +11,7 @@ import { getDominantColor, updateTheme, initScrollAnimations } from './js/theme.
    ============================================ */
 
 // ---- EMERGENCY CACHE CLEAR ESCAPE HATCH ----
-if (window.location.search.includes('reset=1')) {
+if (typeof window !== 'undefined' && window.location && window.location.search.includes('reset=1')) {
   localStorage.clear();
   sessionStorage.clear();
   document.cookie.split(';').forEach((c) => {
@@ -2387,71 +2387,73 @@ function initProfileActions() {
 }
 
 // ========== MAIN APP INIT ==========
-initTheme();
-initAuth();
-initPasswordReset();
-initProfileActions();
-
-// Verification link handler (CodeRabbit: ensure invocation)
-const params = new URLSearchParams(window.location.search);
-if (params.has('verify') && params.has('email')) {
-  handleEmailVerification(params.get('verify'), params.get('email'));
-  // Clean URL
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-// Try to auto-login via JWT cookie
-(async function initSession() {
-  // Check if we just logged out — if so, skip auto-login
-  if (sessionStorage.getItem('just_logged_out')) {
-    sessionStorage.removeItem('just_logged_out');
-    // Still run the rest of the logic to set up the auth page
-  } else {
-    try {
-      const res = await fetchWithTimeout('/api/auth/me', {
-        credentials: 'same-origin',
-        timeout: 8000,
-        cache: 'no-store', // Force browser to bypass local fetch cache
-      });
-      if (res.ok) {
-        const data = await res.json();
-        state.user = data.user;
-        if (!state.user.bookings) state.user.bookings = [];
-        enterApp();
-        return;
-      }
-    } catch (err) {
-      console.warn('Session check failed:', err);
-    }
-  }
-
-  // No valid session — show auth page with correct tab
-  const hasVisited = localStorage.getItem('cintic_visited');
-  const tabs = document.querySelectorAll('.auth-tab');
-
-  const authPage = $('authPage');
-  if (authPage) {
-    authPage.classList.add('active');
-    console.log('Guest user detected, showing auth overlay');
-  }
-
-  if (!hasVisited) {
-    if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
-    showToast('Welcome! Join CinTic today to book your favorite movies.');
-    localStorage.setItem('cintic_visited', 'true');
-  } else {
-    // Default is usually logic tab, only click if it's not active
-    if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
-  }
-
-  // Initialize auth forms and logic
+if (typeof window !== 'undefined') {
+  initTheme();
   initAuth();
+  initPasswordReset();
+  initProfileActions();
 
-  // Load data immediately even for guests
-  initApp();
-  const mainApp = $('mainApp');
-  if (mainApp) mainApp.style.display = 'block';
-}());
+  // Verification link handler (CodeRabbit: ensure invocation)
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('verify') && params.has('email')) {
+    handleEmailVerification(params.get('verify'), params.get('email'));
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // Try to auto-login via JWT cookie
+  (async function initSession() {
+    // Check if we just logged out — if so, skip auto-login
+    if (sessionStorage.getItem('just_logged_out')) {
+      sessionStorage.removeItem('just_logged_out');
+      // Still run the rest of the logic to set up the auth page
+    } else {
+      try {
+        const res = await fetchWithTimeout('/api/auth/me', {
+          credentials: 'same-origin',
+          timeout: 8000,
+          cache: 'no-store', // Force browser to bypass local fetch cache
+        });
+        if (res.ok) {
+          const data = await res.json();
+          state.user = data.user;
+          if (!state.user.bookings) state.user.bookings = [];
+          enterApp();
+          return;
+        }
+      } catch (err) {
+        console.warn('Session check failed:', err);
+      }
+    }
+
+    // No valid session — show auth page with correct tab
+    const hasVisited = localStorage.getItem('cintic_visited');
+    const tabs = document.querySelectorAll('.auth-tab');
+
+    const authPage = $('authPage');
+    if (authPage) {
+      authPage.classList.add('active');
+      console.log('Guest user detected, showing auth overlay');
+    }
+
+    if (!hasVisited) {
+      if (tabs[1]) tabs[1].click(); // Switch to Signup for first time users
+      showToast('Welcome! Join CinTic today to book your favorite movies.');
+      localStorage.setItem('cintic_visited', 'true');
+    } else {
+      // Default is usually logic tab, only click if it's not active
+      if (tabs[0] && !tabs[0].classList.contains('active')) tabs[0].click();
+    }
+
+    // Initialize auth forms and logic
+    initAuth();
+
+    // Load data immediately even for guests
+    initApp();
+    const mainApp = $('mainApp');
+    if (mainApp) mainApp.style.display = 'block';
+  }());
+}
 
 // ========== AI CONCIERGE LOGIC ==========
 function initChatbot() {
@@ -2594,14 +2596,16 @@ function initChatbot() {
 }
 
 // Expose functions to global window for inline HTML handlers (Module Scoping Fix)
-window.selectMovie = selectMovie;
-window.selectShow = selectShow;
-window.openTrailer = openTrailer;
-window.closeTrailer = closeTrailer;
-window.toggleSeat = toggleSeat;
-window.updateSnackQty = updateSnackQty;
-window.recommendSeats = recommendSeats;
-window.selectMovieFromGlobal = selectMovieFromGlobal;
-window.selectTheatreFromGlobal = selectTheatreFromGlobal;
-window.viewAllResults = viewAllResults;
-window.showPage = showPage;
+if (typeof window !== 'undefined') {
+  window.selectMovie = selectMovie;
+  window.selectShow = selectShow;
+  window.openTrailer = openTrailer;
+  window.closeTrailer = closeTrailer;
+  window.toggleSeat = toggleSeat;
+  window.updateSnackQty = updateSnackQty;
+  window.recommendSeats = recommendSeats;
+  window.selectMovieFromGlobal = selectMovieFromGlobal;
+  window.selectTheatreFromGlobal = selectTheatreFromGlobal;
+  window.viewAllResults = viewAllResults;
+  window.showPage = showPage;
+}

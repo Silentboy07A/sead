@@ -4,6 +4,7 @@
   "description": "CineBook — Movie Ticket Booking App",
   "private": true,
   "scripts": {
+    "build": "echo 'Static build step complete'",
     "start": "node server.js",
     "dev": "node server.js",
     "production": "pm2 start ecosystem.config.js"

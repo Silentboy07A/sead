@@ -2,7 +2,7 @@
    CINTIC ADMIN — Dashboard Logic
    ============================================ */
 
-const $ = (id) => document.getElementById(id);
+const $ = (id) => (typeof document !== 'undefined' ? document.getElementById(id) : null);
 
 function showToast(msg) {
   const t = $('toast');
@@ -91,68 +91,93 @@ function openModal(title, type, mode = 'add', data = {}) {
 
 function closeModal() {
   $('modalOverlay').classList.remove('show');
-}
+}// ========== INIT ==========
+if (typeof window !== 'undefined') {
+  const modalClose = $('modalClose');
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+  const modalCancel = $('modalCancel');
+  if (modalCancel) modalCancel.addEventListener('click', closeModal);
 
-$('modalClose').addEventListener('click', closeModal);
-$('modalCancel').addEventListener('click', closeModal);
+  const modalForm = $('modalForm');
+  if (modalForm) {
+    modalForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = $('modalSave');
+      saveBtn.textContent = 'Saving...';
+      saveBtn.disabled = true;
 
-$('modalForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const saveBtn = $('modalSave');
-  saveBtn.textContent = 'Saving...';
-  saveBtn.disabled = true;
+      try {
+        let body = {};
+        let url = '';
 
-  try {
-    let body = {};
-    let url = '';
+        if (modalType === 'movie') {
+          url = '/api/admin/movies';
+          body = {
+            title: $('f_title').value,
+            poster: $('f_poster').value,
+            rating: parseFloat($('f_rating').value) || 0,
+            genre: $('f_genre').value,
+            duration: parseInt($('f_duration').value, 10) || 120,
+            synopsis: $('f_synopsis').value,
+            director: $('f_director').value,
+            cast: $('f_cast').value.split(',').map((s) => s.trim()).filter(Boolean),
+            trailerUrl: $('f_trailerUrl').value,
+          };
+        } else {
+          url = '/api/admin/theatres';
+          body = {
+            name: $('f_name').value,
+            location: $('f_location').value,
+            city: $('f_city').value,
+            shows: JSON.parse($('f_shows').value),
+          };
+        }
 
-    if (modalType === 'movie') {
-      url = '/api/admin/movies';
-      body = {
-        title: $('f_title').value,
-        genre: $('f_genre').value,
-        language: $('f_language').value,
-        year: parseInt($('f_year').value) || new Date().getFullYear(),
-        rating: parseFloat($('f_rating').value) || 0,
-        duration: $('f_duration').value,
-        description: $('f_description').value,
-        poster: $('f_poster').value,
-        trailerId: $('f_trailerId').value,
-      };
-    } else {
-      url = '/api/admin/theatres';
-      let shows = [];
-      try { shows = JSON.parse($('f_shows').value); } catch { showToast('Invalid shows JSON'); return; }
-      body = {
-        name: $('f_name').value,
-        location: $('f_location').value,
-        city: $('f_city').value,
-        shows,
-      };
-    }
+        const modalAction = modalMode;
+        const method = modalAction === 'add' ? 'POST' : 'PUT';
+        if (modalAction === 'edit') body.id = editingId;
 
-    if (modalMode === 'edit') body._id = editingId;
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(body),
+        });
 
-    const res = await fetch(url, {
-      method: modalMode === 'add' ? 'POST' : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(body),
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Operation failed');
+
+        showToast(data.message || 'Saved successfully');
+        closeModal();
+        loadData();
+      } catch (err) {
+        showToast(`Error: ${err.message}`);
+      } finally {
+        saveBtn.textContent = 'Save';
+        saveBtn.disabled = false;
+      }
     });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Operation failed');
-
-    showToast(modalMode === 'add' ? 'Added successfully!' : 'Updated successfully!');
-    closeModal();
-    loadData();
-  } catch (err) {
-    showToast(err.message);
-  } finally {
-    saveBtn.textContent = 'Save';
-    saveBtn.disabled = false;
   }
-});
+
+  const addMovieBtn = $('addMovieBtn');
+  if (addMovieBtn) addMovieBtn.addEventListener('click', () => openModal('Add Movie', 'movie', 'add'));
+  const addTheatreBtn = $('addTheatreBtn');
+  if (addTheatreBtn) addTheatreBtn.addEventListener('click', () => openModal('Add Theatre', 'theatre', 'add'));
+
+  const adminLogout = $('adminLogout');
+  if (adminLogout) {
+    adminLogout.addEventListener('click', async () => {
+      try { await fetch('/api/auth/logout', { credentials: 'same-origin' }); } catch {}
+      window.location.href = '/';
+    });
+  }
+
+  (async function init() {
+    await checkAdmin();
+    initTabs();
+    loadData();
+  }());
+}
 
 // ========== DELETE ==========
 async function deleteItem(type, id) {
@@ -313,17 +338,24 @@ function editTheatre(id) {
 }
 
 // ========== BUTTON HANDLERS ==========
-$('addMovieBtn').addEventListener('click', () => openModal('Add Movie', 'movie', 'add'));
-$('addTheatreBtn').addEventListener('click', () => openModal('Add Theatre', 'theatre', 'add'));
+if (typeof window !== 'undefined') {
+  const addMovieBtn = $('addMovieBtn');
+  if (addMovieBtn) addMovieBtn.addEventListener('click', () => openModal('Add Movie', 'movie', 'add'));
+  const addTheatreBtn = $('addTheatreBtn');
+  if (addTheatreBtn) addTheatreBtn.addEventListener('click', () => openModal('Add Theatre', 'theatre', 'add'));
 
-$('adminLogout').addEventListener('click', async () => {
-  try { await fetch('/api/auth/logout', { credentials: 'same-origin' }); } catch {}
-  window.location.href = '/';
-});
+  const adminLogout = $('adminLogout');
+  if (adminLogout) {
+    adminLogout.addEventListener('click', async () => {
+      try { await fetch('/api/auth/logout', { credentials: 'same-origin' }); } catch {}
+      window.location.href = '/';
+    });
+  }
 
-// ========== INIT ==========
-(async function init() {
-  await checkAdmin();
-  initTabs();
-  loadData();
-}());
+  // ========== INIT ==========
+  (async function init() {
+    await checkAdmin();
+    initTabs();
+    loadData();
+  }());
+}

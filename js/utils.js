@@ -79,6 +79,7 @@ export function debounce(func, wait) {
  * Get cookie value by name
  */
 export function getCookie(name) {
+  if (typeof document === 'undefined') return '';
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
@@ -89,6 +90,7 @@ export function getCookie(name) {
  * Initialize CSRF Protection for fetch
  */
 export function initCSRF() {
+  if (typeof window === 'undefined') return;
   const originalFetch = window.fetch;
   window.fetch = function (url, options = {}) {
     const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
